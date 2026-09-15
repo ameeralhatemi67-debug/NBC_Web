@@ -1,0 +1,331 @@
+[
+  {
+    "id": "R01",
+    "page": 1,
+    "group": "Objectives",
+    "requirement": "Promote the book’s content across society",
+    "proposal_evidence": "Tie the proposal narrative and content navigation to the approved book."
+  },
+  {
+    "id": "R02",
+    "page": 1,
+    "group": "Objectives",
+    "requirement": "Provide an interactive knowledge and awareness experience using modern technology",
+    "proposal_evidence": "Show useful interaction with accessible reading and question navigation."
+  },
+  {
+    "id": "R03",
+    "page": 1,
+    "group": "Objectives",
+    "requirement": "Make the book easy for participants to benefit from",
+    "proposal_evidence": "Demonstrate book access on mobile and desktop."
+  },
+  {
+    "id": "R04",
+    "page": 1,
+    "group": "Objectives",
+    "requirement": "Ensure fairness and transparency in administration and results",
+    "proposal_evidence": "Show approval history, scoring explanation and controlled result publication."
+  },
+  {
+    "id": "R05",
+    "page": 1,
+    "group": "Registration",
+    "requirement": "Register with national identity or iqama number to verify eligibility",
+    "proposal_evidence": "Agree an authoritative verification method; entering an ID alone is insufficient."
+  },
+  {
+    "id": "R06",
+    "page": 1,
+    "group": "Registration",
+    "requirement": "Collect four-part name and primary mobile for OTP",
+    "proposal_evidence": "Validate understandable fields; separate identity verification from phone control."
+  },
+  {
+    "id": "R07",
+    "page": 1,
+    "group": "Registration",
+    "requirement": "Allow an optional backup mobile",
+    "proposal_evidence": "Keep it optional; do not silently promote it to an authentication factor."
+  },
+  {
+    "id": "R08",
+    "page": 1,
+    "group": "Registration",
+    "requirement": "Select middle, secondary or university stage",
+    "proposal_evidence": "Validate one supported stage; clarify category eligibility."
+  },
+  {
+    "id": "R09",
+    "page": 1,
+    "group": "Registration",
+    "requirement": "Record region, governorate, village or center or equivalent",
+    "proposal_evidence": "Use a controlled hierarchy with an exception path for equivalent localities."
+  },
+  {
+    "id": "R10",
+    "page": 1,
+    "group": "Registration",
+    "requirement": "Accept competition terms before registration completes",
+    "proposal_evidence": "Record terms version and acceptance; privacy notice and lawful basis remain separate matters."
+  },
+  {
+    "id": "R11",
+    "page": 1,
+    "group": "Login",
+    "requirement": "Use identity or iqama number to sign in",
+    "proposal_evidence": "Test both identifiers and numeral entry styles."
+  },
+  {
+    "id": "R12",
+    "page": 1,
+    "group": "Login",
+    "requirement": "Verify the participant through a code sent to the primary mobile",
+    "proposal_evidence": "Demonstrate OTP delivery, expiry, rate limits and supported recovery."
+  },
+  {
+    "id": "R13",
+    "page": 1,
+    "group": "Login",
+    "requirement": "No more than one participation per person",
+    "proposal_evidence": "Preserve one attempt through refresh, retries and concurrent sessions; clarify season boundary."
+  },
+  {
+    "id": "R14",
+    "page": 2,
+    "group": "Questions",
+    "requirement": "Use only objective questions, such as multiple choice",
+    "proposal_evidence": "Show supported objective formats; no essay grading in baseline."
+  },
+  {
+    "id": "R15",
+    "page": 2,
+    "group": "Questions",
+    "requirement": "Build questions from the named book",
+    "proposal_evidence": "Associate each item with approved edition and source location."
+  },
+  {
+    "id": "R16",
+    "page": 2,
+    "group": "Questions",
+    "requirement": "Distribute questions randomly between participants",
+    "proposal_evidence": "Approve the intended form model and retain each assigned question set."
+  },
+  {
+    "id": "R17",
+    "page": 2,
+    "group": "Questions",
+    "requirement": "Allow returning to a previous question while answering",
+    "proposal_evidence": "Show backward navigation and preserved answers."
+  },
+  {
+    "id": "R18",
+    "page": 2,
+    "group": "Questions",
+    "requirement": "Allow consulting, opening and downloading the book during participation",
+    "proposal_evidence": "Demonstrate book use without losing the active attempt."
+  },
+  {
+    "id": "R19",
+    "page": 2,
+    "group": "Questions",
+    "requirement": "Do not show correct answers to participants after the test",
+    "proposal_evidence": "Verify absence from visible UI, network responses and exports available to participants."
+  },
+  {
+    "id": "R20",
+    "page": 2,
+    "group": "Questions",
+    "requirement": "Allow participation throughout the competition period without a time limit for answering",
+    "proposal_evidence": "No attempt countdown; distinguish campaign closing date and security session expiry."
+  },
+  {
+    "id": "R21",
+    "page": 2,
+    "group": "Results",
+    "requirement": "Calculate results electronically and automatically",
+    "proposal_evidence": "Use reproducible scoring over a saved final answer set."
+  },
+  {
+    "id": "R22",
+    "page": 2,
+    "group": "Results",
+    "requirement": "Announce winners based on the highest achieved scores",
+    "proposal_evidence": "Use the approved award scope and categories, not assumed quotas."
+  },
+  {
+    "id": "R23",
+    "page": 2,
+    "group": "Results",
+    "requirement": "Do not use time to distinguish equal scores",
+    "proposal_evidence": "Show a tie test in which elapsed time and submission time do not affect rank."
+  },
+  {
+    "id": "R24",
+    "page": 2,
+    "group": "Results",
+    "requirement": "Use a fair tie-resolution mechanism determined by organizers when needed",
+    "proposal_evidence": "Keep tied cases unresolved until a documented organizer-approved rule is available."
+  },
+  {
+    "id": "R25",
+    "page": 2,
+    "group": "Results",
+    "requirement": "Export results and statistical reports electronically",
+    "proposal_evidence": "Provide authorized exports that match the approved scoring snapshot."
+  },
+  {
+    "id": "R26",
+    "page": 2,
+    "group": "Administration",
+    "requirement": "Manage participant data and results",
+    "proposal_evidence": "Demonstrate roles and logged changes."
+  },
+  {
+    "id": "R27",
+    "page": 2,
+    "group": "Administration",
+    "requirement": "Manage and update the question bank",
+    "proposal_evidence": "Use controlled versions and an approved mid-competition correction policy."
+  },
+  {
+    "id": "R28",
+    "page": 2,
+    "group": "Administration",
+    "requirement": "Track complete and incomplete participations",
+    "proposal_evidence": "Define completion states and verify counts."
+  },
+  {
+    "id": "R29",
+    "page": 3,
+    "group": "Administration",
+    "requirement": "Send automated reminders to incomplete participants without excessive alerts",
+    "proposal_evidence": "Use approved cadence, deduplication and cancellation after completion."
+  },
+  {
+    "id": "R30",
+    "page": 3,
+    "group": "Administration",
+    "requirement": "Produce required reports and statistics",
+    "proposal_evidence": "Demonstrate all required report families."
+  },
+  {
+    "id": "R31",
+    "page": 3,
+    "group": "Reports",
+    "requirement": "Total participants by educational stage",
+    "proposal_evidence": "Reconcile stage subtotals with the eligible reporting population."
+  },
+  {
+    "id": "R32",
+    "page": 3,
+    "group": "Reports",
+    "requirement": "Participants by cities, governorates, villages or centers",
+    "proposal_evidence": "Resolve the city/reporting versus region/registration field mismatch."
+  },
+  {
+    "id": "R33",
+    "page": 3,
+    "group": "Reports",
+    "requirement": "Counts of complete and incomplete participations",
+    "proposal_evidence": "Use explicit reporting definitions and an as-of timestamp."
+  },
+  {
+    "id": "R34",
+    "page": 3,
+    "group": "Reports",
+    "requirement": "Winners and final grades",
+    "proposal_evidence": "Restrict access and publish only approved winner fields."
+  },
+  {
+    "id": "R35",
+    "page": 3,
+    "group": "Reports",
+    "requirement": "General statistical report including the preceding reports",
+    "proposal_evidence": "Provide a consistent summary using the same filters and snapshot."
+  },
+  {
+    "id": "R36",
+    "page": 3,
+    "group": "Notifications",
+    "requirement": "Send verification code at registration",
+    "proposal_evidence": "Test code delivery and distinguish it from registration success."
+  },
+  {
+    "id": "R37",
+    "page": 3,
+    "group": "Notifications",
+    "requirement": "Send registration confirmation messages",
+    "proposal_evidence": "Send only after completed registration."
+  },
+  {
+    "id": "R38",
+    "page": 3,
+    "group": "Notifications",
+    "requirement": "Send reminders for incomplete participations",
+    "proposal_evidence": "Share reminder policy with R29 rather than duplicate sends."
+  },
+  {
+    "id": "R39",
+    "page": 3,
+    "group": "Notifications",
+    "requirement": "Send winner congratulations and result announcement notifications",
+    "proposal_evidence": "Trigger from approved release, not provisional calculation."
+  },
+  {
+    "id": "R40",
+    "page": 3,
+    "group": "Eligibility",
+    "requirement": "Male and female students in middle, secondary and university stages",
+    "proposal_evidence": "Cover specified populations in discovery and usability evaluation."
+  },
+  {
+    "id": "R41",
+    "page": 3,
+    "group": "Eligibility",
+    "requirement": "Include government, private and international schools and accredited universities/colleges",
+    "proposal_evidence": "Agree how institution eligibility is checked without excluding international schools."
+  },
+  {
+    "id": "R42",
+    "page": 4,
+    "group": "Technical",
+    "requirement": "Design compatible with smart devices and computers",
+    "proposal_evidence": "Evaluate realistic small screens and desktop use."
+  },
+  {
+    "id": "R43",
+    "page": 4,
+    "group": "Technical",
+    "requirement": "Easy-to-use Arabic interface",
+    "proposal_evidence": "Test Arabic copy, RTL layout, keyboard and assistive technology."
+  },
+  {
+    "id": "R44",
+    "page": 4,
+    "group": "Technical",
+    "requirement": "Protect participant data and privacy",
+    "proposal_evidence": "Map collected fields, permissions, retention and applicable legal controls."
+  },
+  {
+    "id": "R45",
+    "page": 4,
+    "group": "Technical",
+    "requirement": "Keep data backups",
+    "proposal_evidence": "Demonstrate a restore, not just backup configuration."
+  },
+  {
+    "id": "R46",
+    "page": 4,
+    "group": "Technical",
+    "requirement": "Allow future expansion and development",
+    "proposal_evidence": "Document extensibility and ownership without promising unnecessary features."
+  },
+  {
+    "id": "R47",
+    "page": 4,
+    "group": "Technical",
+    "requirement": "Provide technical support throughout the competition",
+    "proposal_evidence": "Agree coverage dates, channels, escalation and incident authority."
+  }
+]

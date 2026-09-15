@@ -1,0 +1,57 @@
+[
+  {
+    "claim": "Participant operating rules",
+    "evidence": "All 4 pages of supplied PDF visually read",
+    "confidence": "high within supplied document",
+    "gap": "Final approval/version not independently authenticated",
+    "next": "Request final signed scope during discovery"
+  },
+  {
+    "claim": "Competition owner",
+    "evidence": "PDF logo and pv.gov.sa footer; SPA records same-title organizer programs",
+    "confidence": "high for branding; medium for contracting identity",
+    "gap": "Legal procuring unit and tender identity unknown",
+    "next": "Obtain invitation/tender number and procurement contact"
+  },
+  {
+    "claim": "Earlier editions and winners of this exact competition",
+    "evidence": "Exact title and targeted organizer/SPA/Etimad searches",
+    "confidence": "unverified",
+    "gap": "No exact public competition history located; lectures and forums are not prior editions",
+    "next": "Ask organizer for prior reports; stop redundant search variants"
+  },
+  {
+    "claim": "Approved book",
+    "evidence": "Supplied PDF names title; retailer identifies author/ISBN",
+    "confidence": "medium bibliographic lead only",
+    "contradiction": "Retailer description 66 pages; metadata 62 pages; 2024 edition is not proof of first publication",
+    "next": "Obtain organizer-approved file, edition, rights and errata"
+  },
+  {
+    "claim": "Build judging weights/deadlines/prizes/budget",
+    "evidence": "Not in attachment; no exact public rubric located",
+    "confidence": "unknown",
+    "next": "Obtain procurement pack; keep internal scorecard explicitly proposed"
+  },
+  {
+    "claim": "Fair randomization",
+    "evidence": "PDF random distribution; ETS equating principles",
+    "confidence": "high general principle",
+    "gap": "Random order versus distinct forms, stage pools, question count/weights unknown",
+    "next": "Committee decision and pilot; no invented calibrated difficulty"
+  },
+  {
+    "claim": "OTP verifies identity eligibility",
+    "evidence": "PDF requires identity and OTP; NIST differentiates authenticator control",
+    "confidence": "high distinction",
+    "gap": "Authoritative identity/education verification integration not specified",
+    "next": "Document assurance level and approved verification route"
+  },
+  {
+    "claim": "Comparable competitions and cultural/design/legal context",
+    "evidence": "Official records from two completed lanes; consequential winner, scoring, PDPL and NCA claims checked in coordinator context",
+    "confidence": "High for directly read scoped claims; qualified for indexed sources",
+    "gap": "Live visual audit, exact NBC vendor rubric and customer-specific applicability unavailable",
+    "next": "Use disclosed limitations and obtain organizer decisions"
+  }
+]

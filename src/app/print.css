@@ -1,0 +1,32 @@
+@media print {
+  .site-header,
+  .site-footer,
+  .admin-sidebar,
+  .admin-topbar,
+  .button,
+  .filters,
+  .demo-note {
+    display: none !important;
+  }
+  .admin-layout {
+    display: block !important;
+  }
+  .admin-workspace,
+  .admin-main,
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .container {
+    width: 100% !important;
+  }
+  .panel {
+    break-inside: avoid;
+  }
+  .table-scroll {
+    overflow: visible !important;
+  }
+  table {
+    white-space: normal !important;
+  }
+}

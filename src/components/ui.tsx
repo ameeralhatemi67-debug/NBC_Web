@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
+import Image from 'next/image';
 import { motion, MotionConfig } from 'motion/react';
 export function Icon({ name = 'arrow', size = 22 }: { name?: string; size?: number }) {
   const paths: Record<string, ReactNode> = {
@@ -153,18 +154,69 @@ export function Header() {
     </>
   );
 }
-export function Footer() {
+export function OrganizationsBar({ compact = false }: { compact?: boolean }) {
   return (
-    <footer className="site-footer">
-      <div className="container footer-inner">
-        <Brand />
-        <p>معرفة تُلهمنا، وانتماء يجمعنا.</p>
-        <div>
-          <Link href="/admin">مساحة اللجنة</Link>
-          <span className="footer-note">تصوّر تجريبي · ليس الموقع الرسمي</span>
+    <section
+      className={compact ? 'organizations-bar compact' : 'organizations-bar'}
+      aria-label="الجهات المشاركة"
+    >
+      <div className={compact ? 'organizations-container' : 'container organizations-container'}>
+        <div className="organizations-heading">
+          <span className="eyebrow">
+            <span />
+            الجهات المشاركة
+            <span />
+          </span>
+        </div>
+        <div className="organizations-grid">
+          <div className="org-logo-item org-logo-hedayah">
+            <Image
+              src="/images/organizations/hedayah.png"
+              alt="شعار جمعية هداية للدعوة والإرشاد وتوعية الجاليات بالمنطقة الشرقية"
+              width={755}
+              height={915}
+              className="org-logo-img"
+            />
+          </div>
+          <div className="org-logo-item org-logo-presidency">
+            <Image
+              src="/images/organizations/general-presidency.png"
+              alt="شعار الرئاسة العامة لهيئة الأمر بالمعروف والنهي عن المنكر"
+              width={760}
+              height={760}
+              className="org-logo-img"
+            />
+          </div>
+          <div className="org-logo-item org-logo-saad">
+            <Image
+              src="/images/organizations/saad-bin-soliab-foundation.svg"
+              alt="شعار مؤسسة سعد بن صليب العتيبي الأهلية"
+              width={495}
+              height={207}
+              unoptimized
+              className="org-logo-img"
+            />
+          </div>
         </div>
       </div>
-    </footer>
+    </section>
+  );
+}
+export function Footer() {
+  return (
+    <>
+      <OrganizationsBar />
+      <footer className="site-footer">
+        <div className="container footer-inner">
+          <Brand />
+          <p>معرفة تُلهمنا، وانتماء يجمعنا.</p>
+          <div>
+            <Link href="/admin">مساحة اللجنة</Link>
+            <span className="footer-note">تصوّر تجريبي · ليس الموقع الرسمي</span>
+          </div>
+        </div>
+      </footer>
+    </>
   );
 }
 export function Providers({ children }: { children: ReactNode }) {

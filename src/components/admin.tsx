@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { api, Brand, DemoNote, ErrorMessage, Icon, Loading } from './ui';
+import { api, Brand, DemoNote, ErrorMessage, Icon, Loading, OrganizationsBar } from './ui';
 import { bookChapters, regions, stages } from '@/lib/content';
 import { tieGroups, type Question } from '@/lib/domain';
 type Participant = {
@@ -143,6 +143,7 @@ export function Admin() {
             العودة إلى الموقع
           </Link>
         </div>
+        <OrganizationsBar compact />
       </main>
     );
   const rows = data.participants.filter(

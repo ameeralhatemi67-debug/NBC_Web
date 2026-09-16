@@ -681,6 +681,85 @@ a {
   margin-top: 23px;
   color: var(--muted);
 }
+.organizations-bar {
+  background: var(--white);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding-block: 38px;
+  overflow: hidden;
+}
+.organizations-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+}
+.organizations-heading {
+  text-align: center;
+}
+.organizations-heading .eyebrow {
+  justify-content: center;
+}
+.organizations-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+  justify-items: center;
+  gap: 32px;
+}
+.org-logo-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+.org-logo-img {
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+.org-logo-hedayah .org-logo-img {
+  max-width: 135px;
+  max-height: 155px;
+}
+.org-logo-presidency .org-logo-img {
+  max-width: 135px;
+  max-height: 135px;
+}
+.org-logo-saad .org-logo-img {
+  max-width: 315px;
+  max-height: 132px;
+}
+.organizations-bar.compact {
+  max-width: 700px;
+  margin: 16px auto 48px;
+  padding: 22px 28px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+}
+.organizations-bar.compact .organizations-container {
+  width: 100%;
+  gap: 18px;
+}
+.organizations-bar.compact .organizations-grid {
+  gap: 20px;
+}
+.organizations-bar.compact .org-logo-hedayah .org-logo-img {
+  max-width: 95px;
+  max-height: 110px;
+}
+.organizations-bar.compact .org-logo-presidency .org-logo-img {
+  max-width: 95px;
+  max-height: 95px;
+}
+.organizations-bar.compact .org-logo-saad .org-logo-img {
+  max-width: 220px;
+  max-height: 92px;
+}
 .site-footer {
   background: var(--olive-deep);
   color: var(--cream);
@@ -2331,6 +2410,54 @@ td bdi {
   .faq-section h2 {
     font-size: 36px;
   }
+  .organizations-bar {
+    padding-block: 34px;
+  }
+  .organizations-container {
+    gap: 22px;
+  }
+  .organizations-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 20px;
+  }
+  .org-logo-saad {
+    grid-column: 1 / -1;
+  }
+  .org-logo-hedayah .org-logo-img {
+    max-width: 130px;
+    max-height: 145px;
+  }
+  .org-logo-presidency .org-logo-img {
+    max-width: 130px;
+    max-height: 130px;
+  }
+  .org-logo-saad .org-logo-img {
+    max-width: 290px;
+    max-height: 120px;
+  }
+  .organizations-bar.compact {
+    margin: 12px auto 40px;
+    padding: 20px 20px;
+  }
+  .organizations-bar.compact .organizations-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 16px;
+  }
+  .organizations-bar.compact .org-logo-saad {
+    grid-column: 1 / -1;
+  }
+  .organizations-bar.compact .org-logo-hedayah .org-logo-img {
+    max-width: 90px;
+    max-height: 105px;
+  }
+  .organizations-bar.compact .org-logo-presidency .org-logo-img {
+    max-width: 90px;
+    max-height: 90px;
+  }
+  .organizations-bar.compact .org-logo-saad .org-logo-img {
+    max-width: 210px;
+    max-height: 88px;
+  }
 }
 @media (max-width: 760px) {
   html {
@@ -2635,6 +2762,54 @@ td bdi {
   }
   .closing-note {
     font-size: 9px;
+  }
+  .organizations-bar {
+    padding-block: 28px;
+  }
+  .organizations-container {
+    gap: 20px;
+  }
+  .organizations-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 16px;
+  }
+  .org-logo-saad {
+    grid-column: 1 / -1;
+  }
+  .org-logo-hedayah .org-logo-img {
+    max-width: 115px;
+    max-height: 130px;
+  }
+  .org-logo-presidency .org-logo-img {
+    max-width: 115px;
+    max-height: 115px;
+  }
+  .org-logo-saad .org-logo-img {
+    max-width: 260px;
+    max-height: 105px;
+  }
+  .organizations-bar.compact {
+    margin: 10px auto 36px;
+    padding: 18px 16px;
+  }
+  .organizations-bar.compact .organizations-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 12px;
+  }
+  .organizations-bar.compact .org-logo-saad {
+    grid-column: 1 / -1;
+  }
+  .organizations-bar.compact .org-logo-hedayah .org-logo-img {
+    max-width: 82px;
+    max-height: 95px;
+  }
+  .organizations-bar.compact .org-logo-presidency .org-logo-img {
+    max-width: 82px;
+    max-height: 82px;
+  }
+  .organizations-bar.compact .org-logo-saad .org-logo-img {
+    max-width: 190px;
+    max-height: 80px;
   }
   .footer-inner {
     flex-wrap: wrap;
@@ -3149,6 +3324,26 @@ td bdi {
   }
   .mobile-only {
     display: block;
+  }
+}
+@media (max-width: 400px) {
+  .organizations-bar {
+    padding-block: 24px;
+  }
+  .organizations-grid {
+    gap: 16px 12px;
+  }
+  .org-logo-hedayah .org-logo-img {
+    max-width: 100px;
+    max-height: 115px;
+  }
+  .org-logo-presidency .org-logo-img {
+    max-width: 100px;
+    max-height: 100px;
+  }
+  .org-logo-saad .org-logo-img {
+    max-width: 230px;
+    max-height: 95px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

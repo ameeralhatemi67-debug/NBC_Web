@@ -188,8 +188,11 @@ async function respond(req: NextRequest) {
         { error: error.message },
         { status: error.status, headers: { 'Cache-Control': 'no-store' } },
       );
-    console.error('NBC API failure', error instanceof Error ? error.message : 'Unknown error');
-    return NextResponse.json({ error: 'تعذّر إتمام الطلب. حاول مرة أخرى.' }, { status: 500 });
+    console.error('NBC API failure', error instanceof Error ? error.stack : 'Unknown error');
+    return NextResponse.json(
+      { error: error instanceof Error ? `${error.name}: ${error.message}` : 'تعذّر إتمام الطلب. حاول مرة أخرى.' },
+      { status: 500 },
+    );
   }
 }
 export const GET = respond;

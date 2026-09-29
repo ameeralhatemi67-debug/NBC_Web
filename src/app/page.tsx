@@ -1,58 +1,16 @@
 import Link from 'next/link';
-import Image from 'next/image';
-import { Header, Footer, Icon, Reveal, DemoNote } from '@/components/ui';
+import { CompetitionPrizes } from '@/components/competition-prizes';
+import { CompetitionHero } from '@/components/competition-hero';
+import { Header, Footer, Icon, Reveal, OrganizationsBar } from '@/components/ui';
 import { faqs } from '@/lib/content';
 export default function Home() {
   return (
     <>
       <Header />
       <main id="main">
-        <section className="hero">
-          <div className="hero-art">
-            <Image
-              src="/images/heritage-book.png"
-              alt="كتاب مفتوح في فناء معماري بألوان الحجر والرمل"
-              fill
-              priority
-              sizes="(max-width: 760px) 100vw, 65vw"
-            />
-          </div>
-          <div className="container hero-container">
-            <Reveal className="hero-copy">
-              <div className="eyebrow">
-                <span /> معرفة تُلهمنا. وانتماء يجمعنا.
-              </div>
-              <h1>
-                نقرأ لننتمي.
-                <br />
-                <span>وننتمي لنصنع الأثر.</span>
-              </h1>
-              <p className="hero-title">مسابقة الانتماء واللحمة الوطنية</p>
-              <p className="hero-description">
-                رحلة في المعرفة، نكتشف فيها معنى الانتماء،
-                <br className="desktop-only" /> ونشارك في بناء مجتمع أكثر وعيًا وترابطًا.
-              </p>
-              <div className="button-row">
-                <Link className="button primary" href="/register">
-                  ابدأ رحلتك <Icon />
-                </Link>
-                <Link className="button outline" href="/book">
-                  <Icon name="book" /> اكتشف الكتاب
-                </Link>
-              </div>
-              <div className="hero-caption">
-                <span className="tiny-line" /> لطلاب وطالبات المتوسطة والثانوية والجامعة
-              </div>
-            </Reveal>
-          </div>
-          <div className="hero-bottom container">
-            <DemoNote compact />
-            <a href="#about" className="scroll-hint">
-              تعرّف على المسابقة <span>↓</span>
-            </a>
-            <span className="edition-label">القراءة بداية الأثر</span>
-          </div>
-        </section>
+        <CompetitionHero />
+        <OrganizationsBar prominent />
+        <CompetitionPrizes />
         <section className="principle-strip">
           <div className="container principles">
             <span>
@@ -79,12 +37,13 @@ export default function Home() {
             </h2>
             <div>
               <p>
-                الانتماء أكثر من كلمة. هو وعي نكتسبه، وقيم نعيشها، وأثر نتركه في محيطنا. تتيح
-                المسابقة فرصة للقراءة والتأمل والمشاركة انطلاقًا من كتاب «الانتماء واللحمة الوطنية».
+                مسابقة معرفية تنطلق من كتاب «الانتماء واللحمة الوطنية» لعبدالرحمن بن عبدالله السند،
+                لتعزيز قيم الانتماء الوطني والولاء للوطن وقيادته، وترسيخ التماسك المجتمعي والوعي
+                الفكري.
               </p>
               <p className="muted">
-                تجربة عربية ميسّرة، تضع المعرفة في متناولك، وتمنحك مساحة للإجابة والرجوع إلى الكتاب
-                قبل إرسال مشاركتك.
+                تجمع بين القراءة والتحليل والتنافس العادل، وتدعو الشباب إلى فهم دورهم في حماية
+                المكتسبات الوطنية وتعزيز الهوية الوطنية في ضوء رؤية المملكة 2030.
               </p>
               <Link href="/book" className="text-link">
                 ابدأ من الكتاب <Icon size={19} />
@@ -218,12 +177,12 @@ export default function Home() {
               ابدأ المشاركة <Icon />
             </Link>
             <p className="closing-note">
-              عرض تجريبي · المواعيد والكتاب الرسمي بانتظار اعتماد الجهة المنظمة
+              عرض تجريبي · المواعيد النهائية بانتظار اعتماد الجهة المنظمة
             </p>
           </Reveal>
         </section>
       </main>
-      <Footer />
+      <Footer showOrganizations={false} />
     </>
   );
 }

@@ -15,6 +15,7 @@ export type ParticipantReport = {
   id: string;
   name: string;
   stage: string;
+  institution: string | null;
   region: string;
   locality: string;
   village: string;
@@ -84,6 +85,8 @@ export async function challenge(body: Record<string, unknown>) {
       throw new AppError('أدخل الاسم الرباعي كما في الوثيقة.');
     if (!stages.includes(field(body, 'stage')) || !regions.includes(field(body, 'region')))
       throw new AppError('اختر المرحلة والمنطقة.');
+    if (typeof body.institution !== 'string' || !field(body, 'institution', 160))
+      throw new AppError('أدخل اسم جهة الدراسة: المدرسة أو الجامعة / الكلية.');
     if (!field(body, 'locality') || body.terms !== true)
       throw new AppError('أكمل المحافظة ووافق على شروط المشاركة.');
     const backup = normalizeDigits(field(body, 'backup', 20)).replace(/[\s-]/g, '');
@@ -99,6 +102,7 @@ export async function challenge(body: Record<string, unknown>) {
         phone,
         backup: field(body, 'backup'),
         stage: field(body, 'stage'),
+        institution: field(body, 'institution', 160),
         region: field(body, 'region'),
         locality: field(body, 'locality'),
         village: field(body, 'village'),
@@ -136,7 +140,7 @@ export async function verify(id: string, code: string) {
     const participant = p.existingId ?? randomUUID();
     if (!p.existingId) {
       const inserted = await tx.query(
-        'INSERT INTO participants (id,identity,name,phone,backup,stage,region,locality,village) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT (identity) DO NOTHING RETURNING id',
+        'INSERT INTO participants (id,identity,name,phone,backup,stage,region,locality,village,institution) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ON CONFLICT (identity) DO NOTHING RETURNING id',
         [
           participant,
           p.identity,
@@ -147,6 +151,7 @@ export async function verify(id: string, code: string) {
           p.region,
           p.locality,
           p.village,
+          p.institution ?? null,
         ],
       );
       if (!inserted.rows.length) return { error: 'تم إنشاء الحساب بالفعل. استخدم تسجيل الدخول.' };
@@ -165,9 +170,10 @@ export async function verify(id: string, code: string) {
 export async function participantState(session: Session) {
   const db = await getDb();
   const participant = (
-    await db.query('SELECT id,name,stage,region,locality FROM participants WHERE id=$1', [
-      session.participant_id,
-    ])
+    await db.query(
+      'SELECT id,name,stage,region,locality,institution FROM participants WHERE id=$1',
+      [session.participant_id],
+    )
   ).rows[0];
   const attempt = (
     await db.query<Attempt>('SELECT * FROM attempts WHERE participant_id=$1', [
@@ -262,7 +268,7 @@ export async function adminState() {
   return db.transaction(async (tx) => ({
     participants: (
       await tx.query<ParticipantReport>(
-        'SELECT p.id,p.name,p.stage,p.region,p.locality,p.village,a.score,a.submitted_at,a.receipt,a.id AS attempt_id FROM participants p LEFT JOIN attempts a ON a.participant_id=p.id ORDER BY p.created_at',
+        'SELECT p.id,p.name,p.stage,p.institution,p.region,p.locality,p.village,a.score,a.submitted_at,a.receipt,a.id AS attempt_id FROM participants p LEFT JOIN attempts a ON a.participant_id=p.id ORDER BY p.created_at',
       )
     ).rows,
     questions: (

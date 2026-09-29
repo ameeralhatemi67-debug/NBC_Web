@@ -2,12 +2,11 @@
 import { Suspense, useState, type FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { api, DemoNote, ErrorMessage, Icon, Loading } from './ui';
+import Image from 'next/image';
+import { api, BrandMark, DemoNote, ErrorMessage, Icon, Loading } from './ui';
 import { regions, stages } from '@/lib/content';
-function RegistrationForm() {
-  const params = useSearchParams();
+function RegistrationForm({ mode }: { mode: 'login' | 'register' }) {
   const router = useRouter();
-  const [mode, setMode] = useState(params.get('mode') === 'login' ? 'login' : 'register');
   const [step, setStep] = useState(1);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -17,6 +16,7 @@ function RegistrationForm() {
     phone: '',
     backup: '',
     stage: stages[0],
+    institution: '',
     region: regions[0],
     locality: '',
     village: '',
@@ -58,42 +58,85 @@ function RegistrationForm() {
     }
   }
   return (
-    <div className="registration-grid">
+    <div className="registration-grid" data-mode={mode} data-step={step}>
       <aside className="registration-aside">
-        <span className="eyebrow">أهلًا بك في الرحلة</span>
+        <div className="registration-emblem">
+          <BrandMark size={64} />
+        </div>
+        <span className="eyebrow light">معرفة تُلهمنا. وانتماء يجمعنا.</span>
         <h1>
-          خطوة صغيرة.
-          <br />
-          <em>وبداية تستحق.</em>
+          مسابقة الانتماء
+          <br /> واللحمة الوطنية
         </h1>
         <p>
-          مساحتك للقراءة والمشاركة،
-          <br /> ومعرفة أقرب إلى حياتك.
+          {mode === 'login'
+            ? 'أهلًا بعودتك. أكمل قراءتك، وراجع إجاباتك، وتابع مشاركتك من حيث توقفت.'
+            : 'رحلة في المعرفة، ومساحة لتترك أثرًا. سجّل بياناتك لتبدأ المشاركة في المسابقة.'}
         </p>
-        <div className="registration-arch">
-          <Icon name="book" size={64} />
-          <span>اقرأ لننتمي معًا</span>
-        </div>
         <div className="aside-points">
           <span>
-            <Icon name="check" size={17} /> يمكنك الرجوع إلى الكتاب
+            <Icon name="book" size={20} /> الكتاب متاح أثناء الإجابة
           </span>
           <span>
-            <Icon name="check" size={17} /> إجاباتك تُحفظ لتعود إليها
+            <Icon name="clock" size={20} /> اقرأ وأجب دون مؤقت
           </span>
           <span>
-            <Icon name="check" size={17} /> المشاركة دون مؤقت للإجابة
+            <Icon name="shield" size={20} /> راجع إجاباتك قبل الإرسال
           </span>
         </div>
+        <Link href="/book" className="registration-book">
+          <Image
+            src="/images/competition/book-cover.png"
+            alt=""
+            width={921}
+            height={1300}
+            sizes="82px"
+          />
+          <span>
+            <small>رفيقك في المسابقة</small>
+            <strong>ابدأ من الكتاب.</strong>
+            <span>
+              افتح كتاب المسابقة <Icon size={16} />
+            </span>
+          </span>
+        </Link>
+        <p className="registration-aside-note">
+          لطلاب وطالبات المتوسطة والثانوية والجامعات والكليات المعتمدة
+        </p>
       </aside>
-      <section className="form-card">
+      <section className="form-card" aria-labelledby="registration-title">
+        <nav className="auth-mode-nav" aria-label="خيارات الحساب">
+          <Link
+            href="/register"
+            scroll={false}
+            aria-current={mode === 'register' ? 'page' : undefined}
+          >
+            <Icon name="user" size={18} /> مشاركة جديدة
+          </Link>
+          <Link
+            href="/register?mode=login"
+            scroll={false}
+            aria-current={mode === 'login' ? 'page' : undefined}
+          >
+            تسجيل الدخول
+          </Link>
+        </nav>
+        <ol className="registration-progress" aria-label="خطوات الدخول والمشاركة">
+          <li aria-current={step === 1 ? 'step' : undefined} data-complete={step > 1}>
+            <span>{step > 1 ? <Icon name="check" size={16} /> : '1'}</span>
+            {mode === 'register' ? 'بيانات المشاركة' : 'بيانات الدخول'}
+          </li>
+          <li aria-current={step === 2 ? 'step' : undefined}>
+            <span>2</span>التحقق من الجوال
+          </li>
+        </ol>
         <div className="form-heading">
           <span className="eyebrow">
-            {step === 1 ? '01 / بيانات المشاركة' : '02 / التحقق من الجوال'}
+            {step === 2 ? 'تأكيد الدخول' : mode === 'login' ? 'تابع رحلتك' : 'ابدأ المشاركة'}
           </span>
           <DemoNote compact />
         </div>
-        <h2>
+        <h2 id="registration-title">
           {step === 2 ? 'بقيت خطوة واحدة.' : mode === 'login' ? 'سعداء بعودتك.' : 'لنبدأ بالتعارف.'}
         </h2>
         <p className="muted">
@@ -102,7 +145,7 @@ function RegistrationForm() {
               رمز التحقق للرقم <bdi>{challenge?.maskedPhone}</bdi>
             </>
           ) : mode === 'login' ? (
-            'أدخل بيانات حسابك للعودة إلى مشاركتك.'
+            'أدخل الهوية ورقم الجوال المسجلين في حسابك. التحقق محاكاة في هذه النسخة التجريبية.'
           ) : (
             'استخدم بيانات افتراضية فقط في هذا العرض.'
           )}
@@ -112,6 +155,11 @@ function RegistrationForm() {
           <form onSubmit={requestCode}>
             <fieldset disabled={busy}>
               <div className="form-grid">
+                {mode === 'register' && (
+                  <h3 className="form-section-label full-width">
+                    <Icon name="user" size={17} /> بياناتك الشخصية
+                  </h3>
+                )}
                 {mode === 'register' && (
                   <label className="full-width">
                     الاسم الرباعي
@@ -156,6 +204,9 @@ function RegistrationForm() {
                 </label>
                 {mode === 'register' && (
                   <>
+                    <h3 className="form-section-label full-width">
+                      <Icon name="grad" size={19} /> الدراسة ومكان الإقامة
+                    </h3>
                     <label>
                       المرحلة التعليمية
                       <select
@@ -179,6 +230,18 @@ function RegistrationForm() {
                           <option key={s}>{s}</option>
                         ))}
                       </select>
+                    </label>
+                    <label className="full-width">
+                      جهة الدراسة
+                      <input
+                        name="institution"
+                        autoComplete="organization"
+                        required
+                        maxLength={160}
+                        placeholder="اسم المدرسة أو الجامعة / الكلية"
+                        value={values.institution}
+                        onChange={(e) => change('institution', e.target.value)}
+                      />
                     </label>
                     <label>
                       المدينة / المحافظة
@@ -225,7 +288,7 @@ function RegistrationForm() {
                   />
                   <span>
                     أوافق على{' '}
-                    <Link href="/#faq" target="_blank">
+                    <Link href="/terms" target="_blank">
                       شروط المشاركة الموضحة
                     </Link>
                     ، وأفهم أن هذا عرض تجريبي ببيانات افتراضية.
@@ -237,18 +300,6 @@ function RegistrationForm() {
                 <Icon />
               </button>
             </fieldset>
-            <p className="form-switch">
-              {mode === 'register' ? 'لديك حساب بالفعل؟' : 'تشارك للمرة الأولى؟'}{' '}
-              <button
-                type="button"
-                onClick={() => {
-                  setMode(mode === 'login' ? 'register' : 'login');
-                  setError('');
-                }}
-              >
-                {mode === 'register' ? 'تسجيل الدخول' : 'إنشاء حساب'}
-              </button>
-            </p>
           </form>
         ) : (
           <form onSubmit={verify}>
@@ -259,7 +310,7 @@ function RegistrationForm() {
                   <strong>محاكاة التحقق في العرض</strong>
                   <p>
                     لا تُرسل رسالة فعلية. استخدم الرمز{' '}
-                    <bdi className="demo-code">{challenge?.demoCode}</bdi>. الرمز صالح لمدة ٥ دقائق،
+                    <bdi className="demo-code">{challenge?.demoCode}</bdi>. الرمز صالح لمدة 5 دقائق،
                     ولا يثبت ملكية الهوية.
                   </p>
                 </div>
@@ -281,7 +332,11 @@ function RegistrationForm() {
                 />
               </label>
               <button className="button primary full-width" type="submit">
-                {busy ? 'جارٍ التحقق…' : 'تحقق وابدأ الرحلة'}
+                {busy
+                  ? 'جارٍ التحقق…'
+                  : mode === 'login'
+                    ? 'تحقق وتابع مشاركتك'
+                    : 'تحقق وابدأ الرحلة'}
                 <Icon />
               </button>
               <div className="form-switch">
@@ -310,10 +365,15 @@ function RegistrationForm() {
     </div>
   );
 }
+function RegistrationMode() {
+  const params = useSearchParams();
+  const mode = params.get('mode') === 'login' ? 'login' : 'register';
+  return <RegistrationForm key={mode} mode={mode} />;
+}
 export function Registration() {
   return (
     <Suspense fallback={<Loading />}>
-      <RegistrationForm />
+      <RegistrationMode />
     </Suspense>
   );
 }

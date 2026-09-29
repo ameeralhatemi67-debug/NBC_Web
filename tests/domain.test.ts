@@ -8,6 +8,7 @@ import {
   tieGroups,
   validateAnswers,
 } from '../src/lib/domain';
+import { prizeStages, mediaPrize, totalPrizes } from '../src/lib/content';
 import { seedQuestions } from '../src/lib/seed';
 test('Arabic and Persian digits retain identifier meaning', () => {
   assert.equal(normalizeDigits('١٢٣٠۹۸'), '123098');
@@ -42,4 +43,17 @@ test('CSV escapes quotes and neutralizes spreadsheet formulas', () => {
   assert.equal(csvCell('="unsafe"'), '"\'=\"\"unsafe\"\""');
   assert.equal(csvCell('مرحلة، محافظة'), '"مرحلة، محافظة"');
   assert.equal(csvCell(null), '""');
+});
+
+test('six awards per education stage reconcile to the supplied SAR 52,000 budget', () => {
+  assert.deepEqual(
+    prizeStages.map(({ awards }) => awards.length),
+    [6, 6, 6],
+  );
+  assert.deepEqual(
+    prizeStages.map(({ awards }) => awards.reduce((sum, award) => sum + award, 0)),
+    [12000, 16500, 21000],
+  );
+  assert.equal(mediaPrize, 2500);
+  assert.equal(totalPrizes, 52000);
 });

@@ -72,7 +72,17 @@ export function BookReader({
           )}
         </div>
       </header>
-      <div className="reader-disclaimer">نص أصلي للتجربة فقط · لا يمثّل الكتاب الرسمي</div>
+      <a
+        className="reader-book-link"
+        href="/documents/national-belonging.pdf"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <Icon name="book" size={18} /> افتح كتاب المسابقة الكامل (نافذة جديدة)
+      </a>
+      <div className="reader-disclaimer">
+        النص أدناه مخصّص للأسئلة التجريبية فقط، وليس من كتاب المسابقة
+      </div>
       <div className="reader-tabs" aria-label="فصول النص">
         {bookChapters.map((c, i) => (
           <button

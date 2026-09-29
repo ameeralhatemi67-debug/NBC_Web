@@ -8,6 +8,7 @@ type Participant = {
   id: string;
   name: string;
   stage: string;
+  institution: string | null;
   region: string;
   locality: string;
   village: string;
@@ -150,7 +151,11 @@ export function Admin() {
     (p) =>
       (!stage || p.stage === stage) &&
       (!region || p.region === region) &&
-      (tab !== 'participants' || !search || p.name.includes(search) || p.locality.includes(search)),
+      (tab !== 'participants' ||
+        !search ||
+        p.name.includes(search) ||
+        p.locality.includes(search) ||
+        p.institution?.includes(search)),
   );
   const submitted = data.participants.filter((p) => p.submitted_at);
   const completed = rows.filter((p) => p.submitted_at).length;
@@ -179,7 +184,10 @@ export function Admin() {
                   <strong>{p.name}</strong>
                   <small>سجل تجريبي</small>
                 </td>
-                <td>{p.stage.replace('المرحلة ', '')}</td>
+                <td>
+                  {p.stage.replace('المرحلة ', '')}
+                  <small>{p.institution || 'جهة الدراسة غير مسجلة'}</small>
+                </td>
                 <td>
                   {p.region}
                   <small>
@@ -407,7 +415,7 @@ export function Admin() {
                   <label>
                     البحث
                     <input
-                      placeholder="اسم المشارك أو المحافظة"
+                      placeholder="اسم المشارك أو جهة الدراسة أو المحافظة"
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                     />

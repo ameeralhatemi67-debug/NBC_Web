@@ -8,7 +8,7 @@ import './globals.css';
 import { Providers } from '@/components/ui';
 export const metadata: Metadata = {
   title: {
-    default: 'الانتماء واللحمة الوطنية | معرفة تجمعنا',
+    default: 'مسابقة الانتماء واللحمة الوطنية | معرفة تجمعنا',
     template: '%s | الانتماء واللحمة الوطنية',
   },
   description:

@@ -6,3 +6,5 @@ node_modules/
 *.tsbuildinfo
 tmp/
 test-results/
+# Licensed font source stays on this device.
+Thmanyah-Font-Family.zip

@@ -71,6 +71,11 @@ export function Icon({ name = 'arrow', size = 22 }: { name?: string; size?: numb
         <path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5l-2 3Zm5 4h4" />
       </>
     ),
+    trophy: (
+      <>
+        <path d="M7 3h10v7a5 5 0 0 1-10 0V3ZM7 5H3v3a4 4 0 0 0 4 4m10-7h4v3a4 4 0 0 1-4 4M12 15v5m-5 1h10" />
+      </>
+    ),
     dot: <circle cx="12" cy="12" r="3" />,
   };
   return (
@@ -89,19 +94,28 @@ export function Icon({ name = 'arrow', size = 22 }: { name?: string; size?: numb
     </svg>
   );
 }
+export function BrandMark({ size = 44 }: { size?: number }) {
+  return (
+    <svg className="brand-mark" width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
+      <path fill="var(--brand-gold, #b49250)" d="M13 20h18l37 43 19-3v17l-26 6-36-44-12 2Z" />
+      <path fill="var(--brand-green, #18543f)" d="M87 20H69L32 63l-19-3v17l26 6 36-44 12 2Z" />
+      <path
+        d="M13 87c14 0 23 2 37 9 14-7 23-9 37-9"
+        fill="none"
+        stroke="var(--brand-green, #18543f)"
+        strokeWidth="4"
+        strokeLinecap="round"
+      />
+      <path fill="var(--brand-green, #18543f)" d="m41 28 9-11 9 11-9 11Z" />
+    </svg>
+  );
+}
 export function Brand() {
   return (
-    <Link href="/" className="brand" aria-label="الانتماء واللحمة الوطنية — الرئيسية">
-      <svg width="39" height="49" viewBox="0 0 39 49" fill="none" aria-hidden="true">
-        <path
-          d="M4 44V21C4 10 11 4 19.5 4S35 10 35 21v23M11 44V23c0-7 3-11 8.5-11S28 16 28 23v21M4 44h31M19.5 24v20"
-          stroke="currentColor"
-          strokeWidth="1.4"
-        />
-        <path d="m14 29 5.5-3 5.5 3" stroke="currentColor" strokeWidth="1.4" />
-      </svg>
+    <Link href="/" className="brand" aria-label="مسابقة الانتماء واللحمة الوطنية، الرئيسية">
+      <BrandMark />
       <span>
-        الانتماء<span className="brand-small">واللحمة الوطنية</span>
+        مسابقة الانتماء<span className="brand-small">واللحمة الوطنية</span>
       </span>
     </Link>
   );
@@ -118,9 +132,9 @@ export function Header() {
         <div className="container header-inner">
           <Brand />
           <nav className={open ? 'main-nav is-open' : 'main-nav'} aria-label="التنقل الرئيسي">
-            <Link href="/#about" onClick={() => setOpen(false)}>
+            <a href="/#about" onClick={() => setOpen(false)}>
               عن المسابقة
-            </Link>
+            </a>
             <Link
               href="/book"
               onClick={() => setOpen(false)}
@@ -128,14 +142,18 @@ export function Header() {
             >
               كتاب المسابقة
             </Link>
-            <Link href="/#journey" onClick={() => setOpen(false)}>
-              رحلة المشاركة
-            </Link>
-            <Link href="/#faq" onClick={() => setOpen(false)}>
-              الأسئلة الشائعة
-            </Link>
+            <a href="/#organizations" onClick={() => setOpen(false)}>
+              الجهات المشاركة
+            </a>
+            <a href="/#prizes" onClick={() => setOpen(false)}>
+              الجوائز
+            </a>
           </nav>
           <div className="header-actions">
+            <Link href="/book" className="header-book-link" aria-label="كتاب المسابقة">
+              <Icon name="book" size={18} />
+              <span>الكتاب</span>
+            </Link>
             <Link href="/register?mode=login" className="login-link" aria-label="تسجيل الدخول">
               <Icon name="user" size={18} />
               <span>تسجيل الدخول</span>
@@ -154,19 +172,22 @@ export function Header() {
     </>
   );
 }
-export function OrganizationsBar({ compact = false }: { compact?: boolean }) {
+export function OrganizationsBar({
+  compact = false,
+  prominent = false,
+}: {
+  compact?: boolean;
+  prominent?: boolean;
+}) {
   return (
     <section
-      className={compact ? 'organizations-bar compact' : 'organizations-bar'}
+      id={prominent ? 'organizations' : undefined}
+      className={`organizations-bar${compact ? ' compact' : ''}${prominent ? ' prominent' : ''}`}
       aria-label="الجهات المشاركة"
     >
       <div className={compact ? 'organizations-container' : 'container organizations-container'}>
         <div className="organizations-heading">
-          <span className="eyebrow">
-            <span />
-            الجهات المشاركة
-            <span />
-          </span>
+          <h2 className="organizations-title">الجهات المشاركة</h2>
         </div>
         <div className="organizations-grid">
           <div className="org-logo-item org-logo-hedayah">
@@ -202,15 +223,16 @@ export function OrganizationsBar({ compact = false }: { compact?: boolean }) {
     </section>
   );
 }
-export function Footer() {
+export function Footer({ showOrganizations = true }: { showOrganizations?: boolean }) {
   return (
     <>
-      <OrganizationsBar />
+      {showOrganizations && <OrganizationsBar />}
       <footer className="site-footer">
         <div className="container footer-inner">
           <Brand />
           <p>معرفة تُلهمنا، وانتماء يجمعنا.</p>
           <div>
+            <Link href="/terms">شروط المشاركة</Link>
             <Link href="/admin">مساحة اللجنة</Link>
             <span className="footer-note">تصوّر تجريبي · ليس الموقع الرسمي</span>
           </div>

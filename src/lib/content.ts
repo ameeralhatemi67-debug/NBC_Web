@@ -62,3 +62,15 @@ export const faqs = [
     a: 'تُحتسب الدرجات آليًا وتراجعها اللجنة. تظهر الدرجة بعد اعتماد نشرها، وتبقى حالات التعادل قيد قرار اللجنة. لا تُعرض الإجابات الصحيحة للمشاركين.',
   },
 ];
+
+// Prize allocation supplied by the project owner.
+export const prizeStages = [
+  { name: 'المرحلة المتوسطة', awards: [4000, 3000, 2000, 1000, 1000, 1000] },
+  { name: 'المرحلة الثانوية', awards: [5000, 4000, 3000, 1500, 1500, 1500] },
+  { name: 'المرحلة الجامعية', awards: [6000, 5000, 4000, 2000, 2000, 2000] },
+];
+export const mediaPrize = 2500;
+export const totalPrizes = prizeStages.reduce(
+  (total, stage) => total + stage.awards.reduce((sum, award) => sum + award, 0),
+  mediaPrize,
+);

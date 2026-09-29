@@ -23,8 +23,7 @@ function assertDemo(req: NextRequest) {
     throw new AppError('هذه النسخة مخصصة للعرض المحلي فقط.', 503);
   const isLocal = ['localhost', '127.0.0.1', '[::1]'].includes(req.nextUrl.hostname);
   const allowRemote = process.env.NBC_ALLOW_REMOTE_DEMO === 'true' || Boolean(process.env.VERCEL);
-  if (!isLocal && !allowRemote)
-    throw new AppError('العرض متاح محليًا فقط.', 403);
+  if (!isLocal && !allowRemote) throw new AppError('العرض متاح محليًا فقط.', 403);
 }
 function role(session: Session | null, allowed: Session['role'][]): Session {
   if (!session) throw new AppError('سجّل الدخول للمتابعة.', 401);
@@ -94,6 +93,7 @@ async function respond(req: NextRequest) {
           [
             'الاسم (بيانات افتراضية)',
             'المرحلة',
+            'جهة الدراسة',
             'المنطقة',
             'المحافظة',
             'القرية / المركز',
@@ -103,6 +103,7 @@ async function respond(req: NextRequest) {
           ...rows.map((p) => [
             p.name,
             p.stage,
+            p.institution,
             p.region,
             p.locality,
             p.village,

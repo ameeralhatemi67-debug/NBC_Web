@@ -2,7 +2,7 @@
 type: index
 tags: [nbc, implementation, demo]
 created: 2026-09-08
-updated: 2026-09-08
+updated: 2026-09-29
 ---
 
 # NBC implementation index
@@ -11,19 +11,22 @@ Parent: [[00-NBC-Research-Index]]
 
 ## Current delivery
 
-The first working demonstration implements the selected **Contemporary Heritage** design with **balanced editorial** motion. Its purpose is a live committee presentation and proposal evaluation. The deadline and the official supplier-selection rubric are still unknown.
+The user selected **C. Deep Green & Gold** from [[2026-09-29-Design-Review]]. The application now uses the green/gold palette, a textured animated hero, prominent organisations, the supplied SAR 52,000 prize schedule, direct book access and the supplied participation rules. The user selected **B3**, now used in the shared brand and browser icon. The [logo review](../design/2026-09-29/logo-variations/index.html) is retained as design history. Registration captures the study institution through participant records, committee reports/search and CSV.
+
+New source interpretation: [[16-Committee-Update-and-Design-Decision]].
+The first working demonstration implements **Contemporary Heritage** with the selected **Deep Green & Gold** palette and restrained motion. Its purpose is a live committee presentation and proposal evaluation. The deadline and the official supplier-selection rubric are still unknown.
 
 | Area | Current state |
 |---|---|
-| Arabic homepage | Working, with original heritage illustration, responsive navigation, eligibility, journey, and FAQs |
-| Registration and login | Working local accounts; OTP and identity checks explicitly simulated |
+| Arabic homepage | Working, with supplied book cover, textured green hero, motion controls, prominent organisations, prizes, eligibility, journey, and FAQs |
+| Registration and login | Green/gold registration, login and OTP screens; URL-driven mode switching; local accounts with OTP and identity checks explicitly simulated |
 | Participation | Ten sample questions, randomized stable order, server saves, review, single final submission |
-| Reading | Original sample text, font controls, remembered chapter and scroll position; desktop split view and mobile reading panel |
+| Reading | Supplied 66-page PDF with open/download controls and native embedding; separate demo text retains remembered chapter/font/scroll and participation panel |
 | Committee | Overview, participants, editor/admin permissions, draft/approved question versions, grades, ties, reports, CSV, reminders preview, audit |
 | Recovery | Database snapshot export and restoration into a new folder; old sessions invalidated |
 | Proposal materials | [[02-Committee-Demo-and-Proposal]] provides the pitch and concrete commercial dependency list |
 | Requirements coverage | [[01-Demo-Requirements-Coverage]] distinguishes implemented, simulated, partial, and pending items |
-| Verification | Six domain tests and 35 isolated integration checks; production build and type check pass |
+| Verification | Seven domain tests and 39 isolated integration checks; production build and type check pass |
 
 ## Decisions carried forward
 
@@ -41,7 +44,7 @@ The contents page points to eleven pages, but only pages 1–5 were supplied. Pa
 
 ## Remaining work before a real launch
 
-Approved book and rights; final question bank and review ownership; authoritative eligibility checks; actual SMS provider and delivery policies; final terms/privacy/guardian decisions; registration and campaign dates; tie/winner rules; staff authentication; production hosting and database migration; retention policy; performance/load testing; independent accessibility and security review; support agreement and pricing.
+Book publication rights; final question bank and review ownership; authoritative eligibility checks; actual SMS provider and delivery policies; final privacy/guardian decisions and approval of published terms; registration and campaign dates; tie/winner rules; staff authentication; production hosting and database migration; retention policy; performance/load testing; independent accessibility and security review; support agreement and pricing.
 
 No presentation recording, real-user usability study, or production certification is claimed.
 

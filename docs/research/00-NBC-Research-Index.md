@@ -4,7 +4,7 @@ tags:
   - nbc/research
   - nbc/index
 created: 2026-09-07
-updated: 2026-09-08
+updated: 2026-09-29
 status: active
 aliases:
   - NBC Research
@@ -17,6 +17,9 @@ aliases:
 > Our strongest working proposal is a **trustworthy Arabic competition experience with accessible book use, defensible scoring and dependable operation**. This collection prepares us to compete for the platform build. It does not claim a guaranteed first place or an official supplier scorecard.
 
 Public sources checked: **7 September 2026**. Collection completed: **8 September 2026**. Audience: the NBC_web proposal, design and delivery team. Format follows the supplied Obsidian guide: metadata, linked notes, callouts and workflow diagrams.
+
+> [!info] September update
+> The user supplied the 66-page book and two further committee PDFs. [[16-Committee-Update-and-Design-Decision]] records the new rules, organising context and selected C design. The local demonstrator is tracked in [[00-Implementation-Index]]. Earlier source gaps below describe the original research date.
 
 ## The five decisions that matter most
 

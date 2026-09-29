@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { spawn, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
@@ -71,6 +72,30 @@ try {
     await new Promise((r) => setTimeout(r, 250));
   }
   assert.ok(ready, logs + '\n' + readyError);
+  const publicBook = await fetch(base + '/documents/national-belonging.pdf');
+  const bookBytes = new Uint8Array(await publicBook.arrayBuffer());
+  check('public book is the complete supplied PDF, available without login', () => {
+    assert.equal(publicBook.status, 200);
+    assert.equal(publicBook.headers.get('x-frame-options'), 'SAMEORIGIN');
+    assert.equal(publicBook.headers.get('content-security-policy'), "frame-ancestors 'self'");
+    assert.match(publicBook.headers.get('content-type'), /application\/pdf/);
+    assert.equal(
+      createHash('sha256').update(bookBytes).digest('hex'),
+      'ec07ef57e563ada8bba244317aeeef0e34c8caa0ea7e10bee228232615db79fd',
+    );
+  });
+  const rulesFile = await fetch(base + '/documents/participation-rules.pdf');
+  const rulesBytes = new Uint8Array(await rulesFile.arrayBuffer());
+  const termsPage = await fetch(base + '/terms');
+  const termsText = await termsPage.text();
+  check('registration terms and original committee rules are available without login', () => {
+    assert.equal(termsPage.status, 200);
+    assert.equal(termsPage.headers.get('x-frame-options'), 'DENY');
+    assert.equal(rulesFile.status, 200);
+    assert.equal(new TextDecoder().decode(rulesBytes.slice(0, 5)), '%PDF-');
+    assert.ok(termsText.includes('لا يعتمد الوقت معيارًا للمفاضلة'));
+    assert.ok(termsText.includes('لا يتم إظهار الإجابات الصحيحة'));
+  });
   const anon = client(),
     student = client(),
     admin = client(),
@@ -96,11 +121,17 @@ try {
     phone: '٠٥٩٩٩٩٩٩٩٩',
     backup: '',
     stage: 'المرحلة المتوسطة',
+    institution: 'مدرسة الاختبار الافتراضية',
     region: 'الرياض',
     locality: 'الرياض',
     village: 'مركز تجريبي',
     terms: true,
   };
+  for (const institution of [undefined, '   ', 'س'.repeat(161), { name: 'مدرسة' }]) {
+    const invalid = await student('auth/challenge', { ...payload, institution });
+    assert.equal(invalid.status, 400);
+  }
+  check('institution is required, bounded and must be text', () => {});
   const challenge = await student('auth/challenge', payload);
   check('Arabic digits accepted in registration', () => assert.equal(challenge.status, 200));
   const bad = await student('auth/verify', {
@@ -113,6 +144,10 @@ try {
     code: '123456',
   });
   check('simulated OTP establishes participant session', () => assert.equal(verified.status, 200));
+  const profile = await student('participant');
+  check('institution survives verification and reaches the participant profile', () =>
+    assert.equal(profile.data.participant.institution, payload.institution),
+  );
   const reuse = await anon('auth/verify', {
     challengeId: challenge.data.challengeId,
     code: '123456',
@@ -209,6 +244,9 @@ try {
   check('CSV filters reconcile with the same report cohort', () => {
     assert.equal(report.status, 200);
     assert.equal(report.text.trim().split('\r\n').length - 1, expected.length);
+    assert.ok(report.text.includes('جهة الدراسة'));
+    assert.ok(report.text.includes(payload.institution));
+    assert.ok(expected.some((p) => p.institution === payload.institution));
   });
   await admin('admin/publish', { published: true });
   const released = await student('participant');

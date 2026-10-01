@@ -1,0 +1,831 @@
+@font-face {
+  font-family: 'Frutiger Arabic';
+  src: url('/fonts/identity/FrutigerLTArabic-45Light.ttf') format('truetype');
+  font-weight: 300;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Frutiger Arabic';
+  src: url('/fonts/identity/FrutigerLTArabic-55Roman.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Frutiger Arabic';
+  src: url('/fonts/identity/FrutigerLTArabic-65Bold.ttf') format('truetype');
+  font-weight: 500 700;
+  font-display: swap;
+}
+
+.official-brand-mark,
+.identity-hero-title {
+  display: none;
+}
+.design-toggle {
+  flex-shrink: 0;
+  width: 90px;
+  height: 55px;
+  padding: 3px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+}
+.design-toggle:hover {
+  background: var(--cream);
+}
+.design-toggle img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.org-logo-item {
+  flex-direction: column;
+  gap: 12px;
+}
+.org-role {
+  font: 500 12px/1.8 var(--body);
+  color: var(--olive);
+  white-space: nowrap;
+}
+.staff-entry > .design-toggle {
+  float: left;
+}
+
+/* Additional identities are scoped so the original stylesheet stays intact. */
+:root:is([data-design='official'], [data-design='hybrid']) {
+  --paper: #fff;
+  --white: #fff;
+  --cream: #f0f7fa;
+  --sand: #dbe6ed;
+  --ink: #17384e;
+  --olive: #074572;
+  --olive-deep: #053655;
+  --copper: #0876a2;
+  --muted: #536b7c;
+  --line: #dbe6ed;
+  --body: 'Frutiger Arabic', Tahoma, sans-serif;
+  --display: var(--body);
+  --radius: 4px;
+  --identity-accent: #00a4e0;
+  --identity-banner: #074572 url('/images/identity/blue-background.png') center / cover;
+  --identity-button: var(--olive);
+
+  body {
+    font-size: 16px;
+  }
+  h1,
+  h2,
+  h3 {
+    letter-spacing: 0;
+    font-weight: 700;
+  }
+  h2 {
+    font-size: 34px;
+    line-height: 1.5;
+  }
+  em {
+    color: inherit;
+  }
+  ::selection {
+    background: var(--cream);
+    color: var(--ink);
+  }
+  :focus-visible {
+    outline-color: #bd9900;
+  }
+  .eyebrow {
+    color: var(--olive);
+    letter-spacing: 0;
+  }
+  .brand-mark {
+    display: none;
+  }
+  .official-brand-mark {
+    display: block;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+  .site-header {
+    border-top: 5px solid var(--identity-accent);
+    background: white;
+    border-bottom-color: var(--line);
+  }
+  .header-inner .brand {
+    font: 700 17px/1.6 var(--body);
+  }
+  .brand-small {
+    font-size: 13px;
+  }
+  .main-nav {
+    font-size: 13px;
+  }
+  .button {
+    font-size: 15px;
+    border-radius: 4px;
+  }
+  .button.primary,
+  .form-card .button.primary {
+    background: var(--identity-button);
+  }
+  .button.outline {
+    border-color: var(--line);
+  }
+  .button.outline:hover,
+  .icon-button:hover {
+    background: var(--cream);
+  }
+  .competition-hero,
+  .registration-aside,
+  .book-invitation-inner,
+  .closing-section,
+  .campaign-panel,
+  .admin-sidebar {
+    background: var(--identity-banner);
+    color: white;
+  }
+  .competition-hero-texture,
+  .registration-aside::before,
+  .prizes-total::before {
+    display: none;
+  }
+  .competition-hero-grid {
+    grid-template-columns: 1.35fr 1fr;
+    gap: 65px;
+    padding-block: 42px 28px;
+  }
+  .competition-hero-copy .eyebrow {
+    color: #d4edf8;
+  }
+  .competition-hero-copy h1 {
+    font-size: 56px;
+    line-height: 1.5;
+    margin-block: 15px;
+  }
+  .competition-hero-copy h1 img {
+    display: none;
+  }
+  .identity-hero-title,
+  .identity-hero-title > span {
+    display: block;
+  }
+  .identity-hero-title > small {
+    display: block;
+    font-size: 21px;
+    font-weight: 300;
+  }
+  .competition-hero-intro {
+    color: #ecf8ff;
+    font-size: 17px;
+    margin-bottom: 22px;
+  }
+  .competition-hero-audience,
+  .hero-highlight span,
+  .hero-highlight p,
+  .hero-pause,
+  .book-scene-author,
+  .competition-hero-bottom .demo-note {
+    color: #d4edf8;
+  }
+  .hero-gold {
+    background: white;
+    color: var(--olive);
+    box-shadow: none;
+  }
+  .hero-gold:hover {
+    background: var(--cream);
+  }
+  .hero-outline {
+    border-color: #b8dfee;
+    color: white;
+  }
+  .hero-outline:hover {
+    background: #ffffff15;
+  }
+  .hero-highlights {
+    border-color: #ffffff40;
+    margin-top: 23px;
+    padding-top: 16px;
+  }
+  .hero-highlight-content {
+    min-height: 98px;
+  }
+  .hero-highlight h2 {
+    font-size: 21px;
+  }
+  .hero-highlight > svg,
+  .book-scene-caption,
+  .hero-slide-selectors button[aria-pressed='true'] span {
+    color: white;
+  }
+  .hero-slide-selectors button[aria-pressed='true'] span {
+    background: white;
+  }
+  .competition-book-scene {
+    min-height: 400px;
+  }
+  .book-halo,
+  .book-orbit {
+    display: none;
+  }
+  .competition-book-float {
+    width: 225px;
+    animation: none;
+  }
+  .competition-book-link {
+    transform: rotate(-3deg);
+  }
+  .competition-hero-bottom {
+    border-color: #ffffff30;
+    font-size: 11px;
+  }
+  .organizations-bar,
+  .organizations-bar.prominent {
+    background: white;
+    padding-block: 27px;
+  }
+  .organizations-bar.prominent .organizations-container {
+    gap: 35px;
+  }
+  .organizations-title,
+  .organizations-bar.prominent .organizations-title {
+    font-size: 23px;
+  }
+  .organizations-bar.prominent .org-logo-hedayah .org-logo-img,
+  .organizations-bar.prominent .org-logo-presidency .org-logo-img {
+    height: 80px;
+  }
+  .organizations-bar.prominent .org-logo-saad .org-logo-img {
+    width: 170px;
+  }
+  .competition-prizes {
+    background: white;
+  }
+  .prizes-heading h2 {
+    font-size: 34px;
+  }
+  .prizes-total {
+    min-width: 240px;
+    border: 0;
+    border-inline-start: 3px solid var(--identity-accent);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--muted);
+    padding: 0 25px;
+  }
+  .prizes-total > strong {
+    font-size: 53px;
+    color: var(--olive);
+  }
+  .prizes-total > svg {
+    display: none;
+  }
+  .prize-stage-card,
+  .recognition-card {
+    border-radius: 4px;
+    background: white;
+    border-color: var(--line);
+    box-shadow: none;
+  }
+  .prize-stage-heading {
+    background: var(--cream);
+    border-color: var(--line);
+  }
+  .prize-stage-heading h3 {
+    font-size: 21px;
+  }
+  .stage-icon,
+  .prize-medal {
+    background: transparent;
+    border-color: var(--line);
+    color: var(--olive);
+  }
+  .first-prize {
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    border-radius: 0;
+    background: transparent;
+    color: var(--olive);
+  }
+  .first-prize::before {
+    display: none;
+  }
+  .first-prize > span,
+  .first-prize p > span,
+  .prize-stage-heading p {
+    color: var(--muted);
+  }
+  .first-prize strong {
+    font-size: 38px;
+  }
+  .prize-runners-up > div + div {
+    border-color: var(--line);
+  }
+  .prize-position > span,
+  .prize-runners-up > div:nth-child(2) .prize-position > span,
+  .remaining-prizes,
+  .media-award {
+    background: var(--cream);
+    border-color: var(--line);
+    color: var(--ink);
+  }
+  .recognition-card > svg,
+  .decorative-star,
+  .arch-icon,
+  .audience-row svg,
+  .step-number {
+    color: var(--olive);
+  }
+  .principle-strip {
+    background: var(--olive);
+    border-color: var(--olive);
+    color: white;
+  }
+  .principles svg {
+    color: #c1e6f6;
+  }
+  .principles > span + span {
+    border-color: #ffffff30;
+  }
+  .journey-section {
+    background: var(--cream);
+  }
+  .journey-step + .journey-step,
+  .arch-icon {
+    border-color: var(--line);
+  }
+  .book-invitation.container {
+    max-width: none;
+    width: 100%;
+    margin: 0;
+  }
+  .book-invitation-inner {
+    position: relative;
+    isolation: isolate;
+    border-radius: 0;
+    padding-inline: max(40px, calc((100% - 1280px) / 2));
+  }
+  .book-invitation-inner .arch-decoration {
+    display: none;
+  }
+  .book-invitation h2,
+  .closing-section h2,
+  .book-invitation .eyebrow {
+    color: white;
+  }
+  .book-invitation p,
+  .closing-note,
+  .closing-section .eyebrow {
+    color: #d4edf8;
+  }
+  .book-invitation .button,
+  .closing-section .button {
+    background: white;
+    color: var(--olive);
+  }
+  .closing-section {
+    position: relative;
+    isolation: isolate;
+  }
+  .faq-list details,
+  .audience-row {
+    border-color: var(--line);
+  }
+  .faq-plus {
+    color: var(--olive);
+  }
+  .site-footer {
+    background: white;
+    color: var(--ink);
+    border-top: 1px solid var(--line);
+  }
+  .site-footer p,
+  .footer-note {
+    color: var(--muted);
+  }
+  .page-heading h1 {
+    font-size: 40px;
+  }
+  .auth-page {
+    background: var(--cream);
+  }
+  .registration-grid {
+    border-radius: 4px;
+    border-color: var(--line);
+    box-shadow: none;
+  }
+  .registration-emblem {
+    border: 0;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  .registration-aside h1 {
+    font-size: 37px;
+    letter-spacing: 0;
+  }
+  .registration-aside > p,
+  .registration-aside > .registration-aside-note,
+  .registration-book small,
+  .aside-points,
+  .registration-aside .eyebrow {
+    color: #d4edf8;
+  }
+  .aside-points svg {
+    color: white;
+  }
+  .registration-book {
+    border-radius: 4px;
+    background: #ffffff08;
+    border-color: #ffffff40;
+  }
+  .form-card,
+  .reader,
+  .question-card,
+  .panel,
+  .stat-card,
+  .official-book-reader {
+    background: white;
+    border-color: var(--line);
+  }
+  .form-card h2 {
+    font-size: 32px;
+  }
+  .auth-mode-nav {
+    background: var(--cream);
+    border-color: var(--line);
+    border-radius: 4px;
+  }
+  .auth-mode-nav a {
+    border-radius: 3px;
+    color: var(--muted);
+  }
+  .auth-mode-nav a[aria-current] {
+    background: var(--olive);
+    color: white;
+  }
+  .auth-mode-nav a:hover:not([aria-current]) {
+    background: var(--sand);
+  }
+  .registration-progress,
+  .registration-progress li > span {
+    color: var(--muted);
+    border-color: var(--line);
+  }
+  .registration-progress li[aria-current] > span {
+    background: var(--cream);
+    color: var(--olive);
+    border-color: var(--identity-accent);
+  }
+  .registration-progress li:first-child::after,
+  .progress-track {
+    background: var(--line);
+  }
+  .form-section-label {
+    border-color: var(--line);
+  }
+  input,
+  select,
+  textarea,
+  .form-card input:not([type='checkbox']),
+  .form-card select {
+    background: white;
+    border-color: #acbfcd;
+    border-radius: 4px;
+  }
+  input:focus,
+  select:focus,
+  textarea:focus,
+  .form-card input:focus,
+  .form-card select:focus {
+    border-color: var(--olive);
+    box-shadow: 0 0 0 3px var(--cream);
+  }
+  .form-card input::placeholder {
+    color: var(--muted);
+  }
+  .form-card .simulation-box,
+  .simulation-box,
+  .notice,
+  .reader-disclaimer,
+  .reader-body blockquote,
+  .terms-demo-note,
+  .question-tip {
+    background: var(--cream);
+    border-color: var(--line);
+    color: var(--ink);
+    border-radius: 4px;
+  }
+  .checkbox-label,
+  .reader-body > p {
+    color: var(--muted);
+  }
+  .answer-option {
+    background: white;
+    border-color: var(--line);
+  }
+  .answer-option.selected,
+  .answer-option:hover,
+  .question-map .answered {
+    background: var(--cream);
+    border-color: var(--olive);
+  }
+  .question-map .current {
+    background: var(--olive);
+    border-color: var(--olive);
+    color: white;
+  }
+  .competition-rules li,
+  .book-topics li {
+    border-color: var(--line);
+  }
+  .admin-sidebar .brand-small,
+  .sidebar-caption,
+  .sidebar-bottom {
+    color: #d4edf8;
+  }
+  .admin-sidebar nav button {
+    color: white;
+  }
+  .admin-sidebar nav button.active,
+  .admin-sidebar nav button:hover {
+    background: #ffffff18;
+    color: white;
+  }
+  .admin-topbar {
+    background: white;
+    border-color: var(--line);
+  }
+  .admin-workspace {
+    background: var(--cream);
+  }
+  .panel,
+  .stat-card,
+  .question-card {
+    border-radius: 4px;
+    box-shadow: none;
+  }
+  .panel-heading,
+  .question-toolbar {
+    border-color: var(--line);
+  }
+  .panel-heading h2 {
+    font-size: 18px;
+  }
+  .admin-sidebar .brand {
+    font: 700 20px/1.6 var(--body);
+  }
+  .question-body h2 {
+    font-size: 26px;
+    line-height: 1.6;
+  }
+  .report-summary,
+  .table-scroll th {
+    background: var(--cream);
+  }
+  .table-scroll th,
+  .table-scroll td {
+    border-color: var(--line);
+  }
+  .admin-page-heading h1 {
+    font-size: 32px;
+  }
+
+  @media (max-width: 1100px) {
+    .main-nav {
+      gap: 16px;
+      font-size: 12px;
+    }
+    .header-inner .brand {
+      font-size: 15px;
+      min-width: 0;
+    }
+    .competition-hero-grid {
+      gap: 35px;
+    }
+    .competition-hero-copy h1 {
+      font-size: 48px;
+    }
+  }
+  @media (max-width: 760px) {
+    .header-inner .brand {
+      font-size: 13px;
+    }
+    .brand-small {
+      font-size: 11px;
+    }
+    .header-inner .official-brand-mark {
+      width: 40px;
+      height: 40px;
+    }
+    .competition-hero-grid {
+      padding-block: 20px 15px;
+      gap: 10px;
+    }
+    .competition-hero-copy h1 {
+      font-size: 32px;
+      line-height: 1.4;
+      margin-block: 12px;
+    }
+    .identity-hero-title > small {
+      font-size: 16px;
+    }
+    .competition-hero-intro {
+      font-size: 14px;
+      line-height: 1.8;
+      margin-bottom: 18px;
+    }
+    .hero-highlight-content {
+      min-height: 78px;
+    }
+    .hero-highlight h2 {
+      font-size: 19px;
+    }
+    .hero-highlights {
+      margin-top: 17px;
+      padding-top: 12px;
+    }
+    .competition-book-scene {
+      display: grid;
+      grid-template-columns: 84px auto;
+      grid-template-rows: auto auto;
+      align-items: center;
+      justify-content: center;
+      column-gap: 24px;
+      min-height: 105px;
+      width: 100%;
+    }
+    .competition-book-float {
+      grid-row: 1 / 3;
+      width: 78px;
+      margin: 0;
+    }
+    .book-scene-caption {
+      align-self: end;
+      font-size: 12px;
+    }
+    .book-scene-author {
+      align-self: start;
+      font-size: 10px;
+    }
+    .competition-hero-bottom {
+      min-height: 40px;
+    }
+    .organizations-bar.prominent .organizations-grid,
+    .organizations-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 15px;
+    }
+    .org-logo-saad {
+      grid-column: auto;
+    }
+    .org-role {
+      font-size: 11px;
+    }
+    .organizations-bar .org-logo-hedayah .org-logo-img,
+    .organizations-bar .org-logo-presidency .org-logo-img {
+      width: auto;
+      max-width: 100%;
+      height: 64px;
+    }
+    .organizations-bar .org-logo-saad .org-logo-img {
+      width: 120px;
+      max-width: 100%;
+      height: 64px;
+    }
+    .prizes-heading h2 {
+      font-size: 28px;
+    }
+    .prizes-total {
+      width: auto;
+      min-width: 0;
+      padding: 0 18px;
+    }
+    .prizes-total > strong {
+      font-size: 42px;
+    }
+    .prize-stage-heading h3 {
+      font-size: 21px;
+    }
+    .first-prize strong {
+      font-size: 36px;
+    }
+    .book-invitation-inner {
+      padding: 38px 20px;
+    }
+    .book-invitation h2,
+    .closing-section h2 {
+      font-size: 29px;
+    }
+    .page-heading h1 {
+      font-size: 30px;
+    }
+    .registration-aside h1 {
+      font-size: 28px;
+    }
+    .form-card h2 {
+      font-size: 28px;
+    }
+    h2 {
+      font-size: 28px;
+    }
+    .panel-heading h2 {
+      font-size: 16px;
+    }
+  }
+  @media (max-width: 360px) {
+    .competition-hero-copy h1 {
+      font-size: 32px;
+    }
+    .competition-hero-copy .button {
+      font-size: 11px;
+      padding-inline: 10px;
+      gap: 7px;
+    }
+    .header-inner .brand {
+      font-size: 11px;
+    }
+    .brand-small {
+      font-size: 9px;
+    }
+    .org-role {
+      font-size: 10px;
+    }
+  }
+}
+
+:root[data-design='hybrid'] {
+  --cream: #eff5f1;
+  --sand: #d9e5dd;
+  --ink: #193b30;
+  --olive: #18523f;
+  --olive-deep: #113f33;
+  --copper: #367356;
+  --muted: #536b5e;
+  --line: #d8e4dc;
+  --identity-accent: #4c9971;
+  --identity-banner: linear-gradient(125deg, #194e3c, #103b30 75%);
+  --identity-button: linear-gradient(120deg, #1b573f, #103d30);
+
+  .competition-hero-texture,
+  .registration-aside::before,
+  .book-invitation-inner::before,
+  .closing-section::before {
+    content: '';
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: url('/images/identity/blue-background.png') center / cover;
+    filter: grayscale(1);
+    mix-blend-mode: soft-light;
+    mask-image: none;
+    opacity: 0.9;
+  }
+}
+
+@media (max-width: 1100px) and (min-width: 761px) {
+  .design-toggle {
+    width: 65px;
+  }
+  .header-actions {
+    gap: 8px;
+  }
+}
+@media (max-width: 600px) {
+  .design-toggle {
+    width: 51px;
+    height: 42px;
+    padding: 2px;
+  }
+  .header-actions {
+    gap: 5px;
+  }
+  .header-book-link {
+    display: none;
+  }
+  .login-link span {
+    display: none;
+  }
+  .header-inner .brand {
+    font-size: 18px;
+  }
+  .header-inner .brand-small {
+    font-size: 10px;
+  }
+  .header-inner .brand .brand-mark {
+    width: 32px;
+    height: 35px;
+  }
+}
+@media (max-width: 360px) {
+  .header-inner .brand {
+    font-size: 16px;
+    gap: 6px;
+  }
+  .header-inner {
+    gap: 6px;
+  }
+}

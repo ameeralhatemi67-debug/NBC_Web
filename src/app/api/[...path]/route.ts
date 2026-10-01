@@ -93,7 +93,8 @@ async function respond(req: NextRequest) {
           [
             'الاسم (بيانات افتراضية)',
             'المرحلة',
-            'جهة الدراسة',
+            'أسم المدرسة/الجامعة',
+            'الجنس',
             'المنطقة',
             'المحافظة',
             'القرية / المركز',
@@ -104,6 +105,7 @@ async function respond(req: NextRequest) {
             p.name,
             p.stage,
             p.institution,
+            p.gender,
             p.region,
             p.locality,
             p.village,

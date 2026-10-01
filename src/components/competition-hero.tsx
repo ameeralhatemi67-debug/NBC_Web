@@ -27,7 +27,9 @@ const highlights = [
 ];
 
 export function CompetitionHero() {
-  const reducedMotion = useReducedMotion();
+  const prefersReducedMotion = useReducedMotion();
+  const [mounted, setMounted] = useState(false);
+  const reducedMotion = mounted && prefersReducedMotion;
   const [paused, setPaused] = useState(false);
   const [visible, setVisible] = useState(false);
   const [inView, setInView] = useState(false);
@@ -38,6 +40,7 @@ export function CompetitionHero() {
   const running = !paused && !reducedMotion && visible && inView && !hovered && !focused;
 
   useEffect(() => {
+    setMounted(true);
     const visibility = () => setVisible(!document.hidden);
     visibility();
     document.addEventListener('visibilitychange', visibility);
@@ -89,6 +92,11 @@ export function CompetitionHero() {
               sizes="(max-width: 760px) 88vw, 46vw"
               preload
             />
+            <span className="identity-hero-title" aria-hidden="true">
+              <small>مسابقة</small>
+              <span>الانتماء</span>
+              <span>واللحمة الوطنية</span>
+            </span>
           </h1>
           <p className="competition-hero-intro">
             نقرأ لنفهم معنى الانتماء، ونشارك في تعزيز

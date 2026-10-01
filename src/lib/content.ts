@@ -1,4 +1,6 @@
 export const stages = ['المرحلة المتوسطة', 'المرحلة الثانوية', 'المرحلة الجامعية'];
+export const genders = ['ذكر', 'أنثى'];
+export const easternCities = ['الدمام', 'الخبر', 'الظهران', 'الجبيل', 'القطيف', 'الهفوف'];
 export const regions = [
   'الرياض',
   'مكة المكرمة',

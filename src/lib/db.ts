@@ -21,6 +21,7 @@ async function initialize() {
     CREATE TABLE IF NOT EXISTS audit (id BIGSERIAL PRIMARY KEY, actor TEXT NOT NULL, action TEXT NOT NULL, detail TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
     CREATE TABLE IF NOT EXISTS settings (id TEXT PRIMARY KEY, value JSONB NOT NULL);
     ALTER TABLE participants ADD COLUMN IF NOT EXISTS institution TEXT;
+    ALTER TABLE participants ADD COLUMN IF NOT EXISTS gender TEXT;
   `);
   await db.transaction(async (tx) => {
     const { rows } = await tx.query('SELECT id FROM settings WHERE id = $1', ['initialized']);

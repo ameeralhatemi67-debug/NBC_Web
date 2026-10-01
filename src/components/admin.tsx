@@ -1,7 +1,16 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { api, Brand, DemoNote, ErrorMessage, Icon, Loading, OrganizationsBar } from './ui';
+import {
+  api,
+  Brand,
+  DemoNote,
+  DesignToggle,
+  ErrorMessage,
+  Icon,
+  Loading,
+  OrganizationsBar,
+} from './ui';
 import { bookChapters, regions, stages } from '@/lib/content';
 import { tieGroups, type Question } from '@/lib/domain';
 type Participant = {
@@ -9,6 +18,7 @@ type Participant = {
   name: string;
   stage: string;
   institution: string | null;
+  gender: string | null;
   region: string;
   locality: string;
   village: string;
@@ -112,6 +122,7 @@ export function Admin() {
   if (!role || !data)
     return (
       <main id="main" className="staff-entry container">
+        <DesignToggle />
         <Brand />
         <div className="staff-entry-card">
           <div className="arch-icon">
@@ -172,6 +183,7 @@ export function Admin() {
             <tr>
               <th>المشارك</th>
               <th>المرحلة</th>
+              <th>الجنس</th>
               <th>المنطقة / المحافظة</th>
               <th>حالة المشاركة</th>
               <th>الدرجة</th>
@@ -186,8 +198,9 @@ export function Admin() {
                 </td>
                 <td>
                   {p.stage.replace('المرحلة ', '')}
-                  <small>{p.institution || 'جهة الدراسة غير مسجلة'}</small>
+                  <small>{p.institution || 'أسم المدرسة/الجامعة غير مسجل'}</small>
                 </td>
+                <td>{p.gender || 'غير مسجل'}</td>
                 <td>
                   {p.region}
                   <small>
@@ -260,6 +273,7 @@ export function Admin() {
           <div>
             <span className="status-dot" /> بيانات تجريبية{' '}
             <span className="avatar">{role === 'admin' ? 'ل' : 'م'}</span>
+            <DesignToggle />
           </div>
         </header>
         <main id="main" className="admin-main">

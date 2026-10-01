@@ -1,0 +1,556 @@
+[
+  {
+    "path": "┘à╪«╪╖┘ê╪╖╪د╪ز\\┘à╪«╪╖┘ê╪╖╪ر ╪د┘_╪ذ╪│┘à┘_╪ر.ai",
+    "readable": "┘à╪«╪╖┘ê╪╖╪د╪ز/┘à╪«╪╖┘ê╪╖╪ر ╪د┘_╪ذ╪│┘à┘_╪ر.ai",
+    "bytes": 1257592,
+    "pages": 1,
+    "page_sizes": [
+      [
+        841.89,
+        595.276
+      ]
+    ],
+    "text": "",
+    "fonts": [],
+    "renders": [
+      "assets\\source-01-1.png"
+    ]
+  },
+  {
+    "path": "┘à╪«╪╖┘ê╪╖╪د╪ز\\┘à╪«╪╖┘ê╪╖╪ر ╪د┘_╪ذ╪│┘à┘_╪ر.pdf",
+    "readable": "┘à╪«╪╖┘ê╪╖╪د╪ز/┘à╪«╪╖┘ê╪╖╪ر ╪د┘_╪ذ╪│┘à┘_╪ر.pdf",
+    "bytes": 412481,
+    "pages": 1,
+    "page_sizes": [
+      [
+        841.89,
+        595.276
+      ]
+    ],
+    "text": "",
+    "fonts": [],
+    "renders": [
+      "assets\\source-02-1.png"
+    ]
+  },
+  {
+    "path": "┘à╪«╪╖┘ê╪╖╪د╪ز\\┘à╪«╪╖┘ê╪╖╪ر ╪ز┘à ╪ذ╪ص┘à╪»┘_┘_┘ç.ai",
+    "readable": "┘à╪«╪╖┘ê╪╖╪د╪ز/┘à╪«╪╖┘ê╪╖╪ر ╪ز┘à ╪ذ╪ص┘à╪»┘_┘_┘ç.ai",
+    "bytes": 102990,
+    "pages": 1,
+    "page_sizes": [
+      [
+        841.89,
+        595.276
+      ]
+    ],
+    "text": "",
+    "fonts": [],
+    "renders": [
+      "assets\\source-03-1.png"
+    ]
+  },
+  {
+    "path": "┘à╪«╪╖┘ê╪╖╪د╪ز\\┘à╪«╪╖┘ê╪╖╪ر ╪ز┘à ╪ذ╪ص┘à╪»┘_┘_┘ç.pdf",
+    "readable": "┘à╪«╪╖┘ê╪╖╪د╪ز/┘à╪«╪╖┘ê╪╖╪ر ╪ز┘à ╪ذ╪ص┘à╪»┘_┘_┘ç.pdf",
+    "bytes": 103171,
+    "pages": 1,
+    "page_sizes": [
+      [
+        841.89,
+        595.276
+      ]
+    ],
+    "text": "",
+    "fonts": [],
+    "renders": [
+      "assets\\source-04-1.png"
+    ]
+  },
+  {
+    "path": "┘à╪«╪╖┘ê╪╖╪ر ╪د┘¤╪│┘à ╪د┘_╪▒┘è┘¤┘è╪│ ╪د┘_╪╣╪د┘à\\╪د┘_╪│┘_╪».png",
+    "readable": "┘à╪«╪╖┘ê╪╖╪ر ╪د┘¤╪│┘à ╪د┘_╪▒┘è┘¤┘è╪│ ╪د┘_╪╣╪د┘à/╪د┘_╪│┘_╪».png",
+    "bytes": 164896,
+    "size": [
+      1819,
+      356
+    ],
+    "mode": "RGBA",
+    "renders": [
+      "assets\\source-06.png"
+    ]
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\Dinar-One-Medium-Italic.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/Dinar-One-Medium-Italic.otf",
+    "bytes": 19992
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE Box Bold.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE Box Bold.otf",
+    "bytes": 13024
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE Cap Medium.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE Cap Medium.otf",
+    "bytes": 20976
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE Contrast Bold.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE Contrast Bold.otf",
+    "bytes": 19408
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE Curves Medium.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE Curves Medium.otf",
+    "bytes": 20304
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE Dinar Two Light Italic.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE Dinar Two Light Italic.otf",
+    "bytes": 20248
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE Dinar Two Light.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE Dinar Two Light.otf",
+    "bytes": 20500
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE Dinar Two Medium Italic.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE Dinar Two Medium Italic.otf",
+    "bytes": 20572
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE Dinar Two Medium.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE Dinar Two Medium.otf",
+    "bytes": 21280
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE East ExtraBold.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE East ExtraBold.otf",
+    "bytes": 25088
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE Elegant Bold.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE Elegant Bold.otf",
+    "bytes": 22460
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE Elegant Medium.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE Elegant Medium.otf",
+    "bytes": 19180
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE Jarida Heavy.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE Jarida Heavy.otf",
+    "bytes": 19420
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE MB Farah Bold.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE MB Farah Bold.otf",
+    "bytes": 21980
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE MB Farasha Light.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE MB Farasha Light.otf",
+    "bytes": 25364
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE MB Fares Medium.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE MB Fares Medium.otf",
+    "bytes": 29588
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE MB MB condensedBold.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE MB MB condensedBold.otf",
+    "bytes": 24256
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE MB Najm Bold.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE MB Najm Bold.otf",
+    "bytes": 30276
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE Modern Bold.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE Modern Bold.otf",
+    "bytes": 19676
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE Modern Light.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE Modern Light.otf",
+    "bytes": 18704
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE Modern Medium.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE Modern Medium.otf",
+    "bytes": 19660
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE Narrow Light.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE Narrow Light.otf",
+    "bytes": 16272
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE SS Text Bold.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE SS Text Bold.otf",
+    "bytes": 19864
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE SS Text Light Italic.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE SS Text Light Italic.otf",
+    "bytes": 22768
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE SS Text Light.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE SS Text Light.otf",
+    "bytes": 21448
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE SS Text Medium.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE SS Text Medium.otf",
+    "bytes": 20692
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE SS Text UltraLight.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE SS Text UltraLight.otf",
+    "bytes": 21500
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE SS TV Bold.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE SS TV Bold.otf",
+    "bytes": 18380
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE SS Two Bold.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE SS Two Bold.otf",
+    "bytes": 20880
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE SS Two Light.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE SS Two Light.otf",
+    "bytes": 19932
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE SS Two Medium.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE SS Two Medium.otf",
+    "bytes": 20412
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE SS Unique Bold.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE SS Unique Bold.otf",
+    "bytes": 18976
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE SS Unique Light.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE SS Unique Light.otf",
+    "bytes": 19324
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE Tasmeem Medium.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE Tasmeem Medium.otf",
+    "bytes": 22684
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE Unique Bold Expanded.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE Unique Bold Expanded.otf",
+    "bytes": 20080
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE Wide ExtraBold.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE Wide ExtraBold.otf",
+    "bytes": 19540
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE-Dinar-One-Light-Italic.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE-Dinar-One-Light-Italic.otf",
+    "bytes": 19452
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE-Dinar-One-Light.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE-Dinar-One-Light.otf",
+    "bytes": 20184
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE-Dinar-One-Medium.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE-Dinar-One-Medium.otf",
+    "bytes": 20528
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE_Dinar_One_Light.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE_Dinar_One_Light.otf",
+    "bytes": 20184
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GE_Dinar_One_Medium.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GE_Dinar_One_Medium.otf",
+    "bytes": 20528
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\GE-Fonts\\GEDinarOne-Medium.otf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/GE-Fonts/GEDinarOne-Medium.otf",
+    "bytes": 20528
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\╪«╪╖ ╪د┘_┘à┘ç┘_╪»\\ae_AlMohanad_bold.ttf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/╪«╪╖ ╪د┘_┘à┘ç┘_╪»/ae_AlMohanad_bold.ttf",
+    "bytes": 111436
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\FrutigerLTArabic-45Light.ttf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/FrutigerLTArabic-45Light.ttf",
+    "bytes": 151228
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\FrutigerLTArabic-55Roman.ttf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/FrutigerLTArabic-55Roman.ttf",
+    "bytes": 141480
+  },
+  {
+    "path": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر\\FrutigerLTArabic-65Bold.ttf",
+    "readable": "╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/╪د┘_╪«╪╖┘ê╪╖ ╪د┘_┘à╪╣╪ز┘à╪»╪ر/FrutigerLTArabic-65Bold.ttf",
+    "bytes": 134420
+  },
+  {
+    "path": "╪د┘_╪د╪▒╪╢┘è╪د╪ز\\02.png",
+    "readable": "╪د┘_╪د╪▒╪╢┘è╪د╪ز/02.png",
+    "bytes": 166876,
+    "size": [
+      3508,
+      2477
+    ],
+    "mode": "RGBA",
+    "renders": [
+      "assets\\source-58.png"
+    ]
+  },
+  {
+    "path": "╪د┘_╪د╪▒╪╢┘è╪د╪ز\\┘_╪│╪«╪ر ┘à┘_ ╪د┘_┘ç┘ê┘è╪ر ╪د┘_╪▓╪▒┘é╪د╪ة.pdf",
+    "readable": "╪د┘_╪د╪▒╪╢┘è╪د╪ز/┘_╪│╪«╪ر ┘à┘_ ╪د┘_┘ç┘ê┘è╪ر ╪د┘_╪▓╪▒┘é╪د╪ة.pdf",
+    "bytes": 160444,
+    "pages": 1,
+    "page_sizes": [
+      [
+        986.939,
+        618.755
+      ]
+    ],
+    "text": "",
+    "fonts": [],
+    "renders": [
+      "assets\\source-59-1.png"
+    ]
+  },
+  {
+    "path": "╪د┘_╪د╪▒╪╢┘è╪د╪ز\\╪د┘_┘ç┘ê┘è╪ر ╪د┘_╪ذ┘è╪╢╪د╪ة.pdf",
+    "readable": "╪د┘_╪د╪▒╪╢┘è╪د╪ز/╪د┘_┘ç┘ê┘è╪ر ╪د┘_╪ذ┘è╪╢╪د╪ة.pdf",
+    "bytes": 130985,
+    "pages": 1,
+    "page_sizes": [
+      [
+        986.939,
+        618.755
+      ]
+    ],
+    "text": "",
+    "fonts": [],
+    "renders": [
+      "assets\\source-60-1.png"
+    ]
+  },
+  {
+    "path": "╪د┘_╪د╪▒╪╢┘è╪د╪ز\\╪د┘_┘ç┘ê┘è╪ر ╪د┘_╪▓╪▒┘é╪د╪ة.ai",
+    "readable": "╪د┘_╪د╪▒╪╢┘è╪د╪ز/╪د┘_┘ç┘ê┘è╪ر ╪د┘_╪▓╪▒┘é╪د╪ة.ai",
+    "bytes": 1007424,
+    "pages": 1,
+    "page_sizes": [
+      [
+        986.939,
+        618.755
+      ]
+    ],
+    "text": "",
+    "fonts": [],
+    "renders": [
+      "assets\\source-61-1.png"
+    ]
+  },
+  {
+    "path": "╪د┘_╪د╪▒╪╢┘è╪د╪ز\\╪ز╪▒╪ص┘è╪ذ ╪ذ╪╢┘è┘ê┘_ ┘à╪▒┘â╪▓ ╪د┘_╪ص╪▒╪ذ ╪د┘_┘_┘â╪▒┘è╪ر 2.png",
+    "readable": "╪د┘_╪د╪▒╪╢┘è╪د╪ز/╪ز╪▒╪ص┘è╪ذ ╪ذ╪╢┘è┘ê┘_ ┘à╪▒┘â╪▓ ╪د┘_╪ص╪▒╪ذ ╪د┘_┘_┘â╪▒┘è╪ر 2.png",
+    "bytes": 1446471,
+    "size": [
+      1920,
+      1080
+    ],
+    "mode": "RGBA",
+    "renders": [
+      "assets\\source-62.png"
+    ]
+  },
+  {
+    "path": "╪د┘_╪د╪▒╪╢┘è╪د╪ز\\╪▓╪«╪▒┘_╪ر ┘ç┘ê┘è╪ر ╪د┘_┘ç┘è┘è┘¤╪ر.ai",
+    "readable": "╪د┘_╪د╪▒╪╢┘è╪د╪ز/╪▓╪«╪▒┘_╪ر ┘ç┘ê┘è╪ر ╪د┘_┘ç┘è┘è┘¤╪ر.ai",
+    "bytes": 1027358,
+    "pages": 1,
+    "page_sizes": [
+      [
+        841.89,
+        572.28
+      ]
+    ],
+    "text": "",
+    "fonts": [],
+    "renders": [
+      "assets\\source-63-1.png"
+    ]
+  },
+  {
+    "path": "╪د┘è┘é┘ê┘_╪د╪ز ╪ذ╪▒╪د┘à╪ش ╪د┘_╪ز┘ê╪د╪╡┘_ ╪د┘_╪د╪ش╪ز┘à╪د╪╣┘è\\╪د┘è┘é┘ê┘_╪د╪ز ╪ذ╪▒╪د┘à╪ش ╪د┘_╪ز┘ê╪د╪╡┘_ ╪د┘_╪د╪ش╪ز┘à╪د╪╣┘è.ai",
+    "readable": "╪د┘è┘é┘ê┘_╪د╪ز ╪ذ╪▒╪د┘à╪ش ╪د┘_╪ز┘ê╪د╪╡┘_ ╪د┘_╪د╪ش╪ز┘à╪د╪╣┘è/╪د┘è┘é┘ê┘_╪د╪ز ╪ذ╪▒╪د┘à╪ش ╪د┘_╪ز┘ê╪د╪╡┘_ ╪د┘_╪د╪ش╪ز┘à╪د╪╣┘è.ai",
+    "bytes": 85325,
+    "pages": 1,
+    "page_sizes": [
+      [
+        1948.35,
+        1108.35
+      ]
+    ],
+    "text": "",
+    "fonts": [],
+    "renders": [
+      "assets\\source-65-1.png"
+    ]
+  },
+  {
+    "path": "╪د┘è┘é┘ê┘_╪د╪ز ╪ذ╪▒╪د┘à╪ش ╪د┘_╪ز┘ê╪د╪╡┘_ ╪د┘_╪د╪ش╪ز┘à╪د╪╣┘è\\╪د┘è┘é┘ê┘_╪د╪ز ╪ذ╪▒╪د┘à╪ش ╪د┘_╪ز┘ê╪د╪╡┘_ ╪د┘_╪د╪ش╪ز┘à╪د╪╣┘è.pdf",
+    "readable": "╪د┘è┘é┘ê┘_╪د╪ز ╪ذ╪▒╪د┘à╪ش ╪د┘_╪ز┘ê╪د╪╡┘_ ╪د┘_╪د╪ش╪ز┘à╪د╪╣┘è/╪د┘è┘é┘ê┘_╪د╪ز ╪ذ╪▒╪د┘à╪ش ╪د┘_╪ز┘ê╪د╪╡┘_ ╪د┘_╪د╪ش╪ز┘à╪د╪╣┘è.pdf",
+    "bytes": 85048,
+    "pages": 1,
+    "page_sizes": [
+      [
+        1948.35,
+        1108.35
+      ]
+    ],
+    "text": "",
+    "fonts": [],
+    "renders": [
+      "assets\\source-66-1.png"
+    ]
+  },
+  {
+    "path": "╪┤╪╣╪د╪▒ ╪د┘_┘ç┘è┘è┘¤╪ر - ╪د┘_╪▒╪│┘à┘è\\╪د┘_╪┤╪╣╪د╪▒ ╪د┘_╪▒╪│┘à┘è ┘â╪ذ┘è╪▒.pdf",
+    "readable": "╪┤╪╣╪د╪▒ ╪د┘_┘ç┘è┘è┘¤╪ر - ╪د┘_╪▒╪│┘à┘è/╪د┘_╪┤╪╣╪د╪▒ ╪د┘_╪▒╪│┘à┘è ┘â╪ذ┘è╪▒.pdf",
+    "bytes": 4939468,
+    "pages": 1,
+    "page_sizes": [
+      [
+        487.5,
+        467.511
+      ]
+    ],
+    "text": "",
+    "fonts": [],
+    "renders": [
+      "assets\\source-68-1.png"
+    ]
+  },
+  {
+    "path": "╪┤╪╣╪د╪▒ ╪د┘_┘ç┘è┘è┘¤╪ر - ╪د┘_╪▒╪│┘à┘è\\╪د┘_╪┤╪╣╪د╪▒ ╪د╪│┘ê╪» ┘ê╪د╪ذ┘è╪╢.pdf",
+    "readable": "╪┤╪╣╪د╪▒ ╪د┘_┘ç┘è┘è┘¤╪ر - ╪د┘_╪▒╪│┘à┘è/╪د┘_╪┤╪╣╪د╪▒ ╪د╪│┘ê╪» ┘ê╪د╪ذ┘è╪╢.pdf",
+    "bytes": 315637,
+    "pages": 1,
+    "page_sizes": [
+      [
+        141.732,
+        141.732
+      ]
+    ],
+    "text": "",
+    "fonts": [],
+    "renders": [
+      "assets\\source-69-1.png"
+    ]
+  },
+  {
+    "path": "╪┤╪╣╪د╪▒ ╪د┘_┘ç┘è┘è┘¤╪ر - ╪د┘_╪▒╪│┘à┘è\\╪┤╪╣╪د╪▒ ╪د┘_┘ç┘è┘è┘¤╪ر ╪ذ╪╣╪» ╪د┘_╪ز╪╣╪»┘è┘_.psd",
+    "readable": "╪┤╪╣╪د╪▒ ╪د┘_┘ç┘è┘è┘¤╪ر - ╪د┘_╪▒╪│┘à┘è/╪┤╪╣╪د╪▒ ╪د┘_┘ç┘è┘è┘¤╪ر ╪ذ╪╣╪» ╪د┘_╪ز╪╣╪»┘è┘_.psd",
+    "bytes": 4147984,
+    "size": [
+      1000,
+      1000
+    ],
+    "mode": "RGBA",
+    "renders": [
+      "assets\\source-70.png"
+    ]
+  },
+  {
+    "path": "╪┤╪╣╪د╪▒ ╪د┘_┘ç┘è┘è┘¤╪ر ┘à╪╣ ╪┤╪╣╪د╪▒ ╪د┘_╪▒┘ê┘¤┘è╪ر\\╪┤╪╣╪د╪▒ ╪د┘_┘ç┘è┘è┘¤╪ر ┘à╪╣ ╪┤╪╣╪د╪▒ ╪د┘_╪▒┘ê┘¤┘è╪ر.ai",
+    "readable": "╪┤╪╣╪د╪▒ ╪د┘_┘ç┘è┘è┘¤╪ر ┘à╪╣ ╪┤╪╣╪د╪▒ ╪د┘_╪▒┘ê┘¤┘è╪ر/╪┤╪╣╪د╪▒ ╪د┘_┘ç┘è┘è┘¤╪ر ┘à╪╣ ╪┤╪╣╪د╪▒ ╪د┘_╪▒┘ê┘¤┘è╪ر.ai",
+    "bytes": 195270,
+    "pages": 1,
+    "page_sizes": [
+      [
+        1948.35,
+        1108.35
+      ]
+    ],
+    "text": "",
+    "fonts": [],
+    "renders": [
+      "assets\\source-72-1.png"
+    ]
+  },
+  {
+    "path": "╪┤╪╣╪د╪▒ ╪د┘_┘ç┘è┘è┘¤╪ر ┘à╪╣ ╪┤╪╣╪د╪▒ ╪د┘_╪▒┘ê┘¤┘è╪ر\\╪┤╪╣╪د╪▒ ╪د┘_┘ç┘è┘è┘¤╪ر ┘à╪╣ ╪┤╪╣╪د╪▒ ╪د┘_╪▒┘ê┘¤┘è╪ر.pdf",
+    "readable": "╪┤╪╣╪د╪▒ ╪د┘_┘ç┘è┘è┘¤╪ر ┘à╪╣ ╪┤╪╣╪د╪▒ ╪د┘_╪▒┘ê┘¤┘è╪ر/╪┤╪╣╪د╪▒ ╪د┘_┘ç┘è┘è┘¤╪ر ┘à╪╣ ╪┤╪╣╪د╪▒ ╪د┘_╪▒┘ê┘¤┘è╪ر.pdf",
+    "bytes": 194964,
+    "pages": 1,
+    "page_sizes": [
+      [
+        1948.35,
+        1108.35
+      ]
+    ],
+    "text": "",
+    "fonts": [],
+    "renders": [
+      "assets\\source-73-1.png"
+    ]
+  },
+  {
+    "path": "╪┤╪╣╪د╪▒ ╪▒┘ê┘¤┘è╪ر 2030\\╪┤╪╣╪د╪▒ ╪▒┘ê┘¤┘è╪ر 2030 black.pdf",
+    "readable": "╪┤╪╣╪د╪▒ ╪▒┘ê┘¤┘è╪ر 2030/╪┤╪╣╪د╪▒ ╪▒┘ê┘¤┘è╪ر 2030 black.pdf",
+    "bytes": 257127,
+    "pages": 1,
+    "page_sizes": [
+      [
+        141.732,
+        141.732
+      ]
+    ],
+    "text": "",
+    "fonts": [],
+    "renders": [
+      "assets\\source-75-1.png"
+    ]
+  },
+  {
+    "path": "╪┤╪╣╪د╪▒ ╪▒┘ê┘¤┘è╪ر 2030\\╪┤╪╣╪د╪▒ ╪▒┘ê┘¤┘è╪ر 2030.pdf",
+    "readable": "╪┤╪╣╪د╪▒ ╪▒┘ê┘¤┘è╪ر 2030/╪┤╪╣╪د╪▒ ╪▒┘ê┘¤┘è╪ر 2030.pdf",
+    "bytes": 394934,
+    "pages": 1,
+    "page_sizes": [
+      [
+        841.89,
+        595.28
+      ]
+    ],
+    "text": "",
+    "fonts": [],
+    "renders": [
+      "assets\\source-76-1.png"
+    ]
+  }
+]

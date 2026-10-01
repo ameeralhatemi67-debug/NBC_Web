@@ -1,0 +1,11 @@
+Reading Palm — recommended original proposal
+
+An open book grows into a palm. Two equal pages share a central spine, expressing reading, common roots and national cohesion. The palm adds a Saudi cultural cue. No crossed swords, flag, official seal or school shield is reproduced. One silhouette serves all three educational stages.
+
+Deep Green #18543F; Warm Gold #B49250; Ivory #F7F3E7. Use master on light, dark on deep green, mono variants for single ink. Minimum recommended mark width: 32px; 24px is a stress test. Keep Arabic lockup for larger use.
+
+Verified title: مسابقة الانتماء واللحمة الوطنية. Checked docs/research/01-Competition-and-Book-Intelligence.md and src/app/layout.tsx. Author عبدالرحمن بن عبدالله السند confirmed in 16-Committee-Update-and-Design-Decision.md. Read 04-Cultural-Context-and-Editorial-Direction.md and visually inspected selected B3.
+
+Original SVG paths authored programmatically. Installed Inkscape 1.4 rendered every PNG and converted shaped Arabic into paths in lockup-outlined and identity-preview-outlined. Editable lockup retains live text (Arial/system fallback); appearance depends on fonts. Outlined version preserves inspected rendering. No image generation or GUI editing claimed.
+
+Visually checked large light/dark, positive/reversed mono, 24/32/48/80px samples, transparent exports and shaped Arabic lockup. No clipping or unintended overlap observed. Standalone PNGs transparent; review board ivory. Proposal only; B3/production preserved. No deployment, push or unrelated edits. Committee approval pending.

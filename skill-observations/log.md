@@ -31,3 +31,5 @@
 **Suggested improvement:** Read both permitted-use and distribution clauses before embedding. Keep font sources outside public assets and version control until the delivery method is resolved. When design use is permitted, locally rendered title samples can support visual review without distributing the font program.
 
 **Principle:** Permission to create a design and permission to distribute its underlying asset are separate checks.
+
+2026-10-01 deliverable checkpoint: supplied identity artwork inspected and standalone visual preview verified; no new reusable observations beyond Observations 1 and 2.

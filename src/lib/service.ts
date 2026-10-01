@@ -9,13 +9,14 @@ import {
   type Answers,
   type Question,
 } from './domain';
-import { regions, stages } from './content';
+import { easternCities, genders, stages } from './content';
 export type Session = { role: 'participant' | 'admin' | 'editor'; participant_id: string | null };
 export type ParticipantReport = {
   id: string;
   name: string;
   stage: string;
   institution: string | null;
+  gender: string | null;
   region: string;
   locality: string;
   village: string;
@@ -83,15 +84,12 @@ export async function challenge(body: Record<string, unknown>) {
     if (existing) throw new AppError('لديك حساب سابق. استخدم تسجيل الدخول لإكمال المشاركة.');
     if (field(body, 'name').split(/\s+/).length < 4)
       throw new AppError('أدخل الاسم الرباعي كما في الوثيقة.');
-    if (!stages.includes(field(body, 'stage')) || !regions.includes(field(body, 'region')))
-      throw new AppError('اختر المرحلة والمنطقة.');
+    if (!stages.includes(field(body, 'stage')) || !genders.includes(field(body, 'gender')))
+      throw new AppError('اختر المرحلة التعليمية والجنس.');
     if (typeof body.institution !== 'string' || !field(body, 'institution', 160))
-      throw new AppError('أدخل اسم جهة الدراسة: المدرسة أو الجامعة / الكلية.');
-    if (!field(body, 'locality') || body.terms !== true)
-      throw new AppError('أكمل المحافظة ووافق على شروط المشاركة.');
-    const backup = normalizeDigits(field(body, 'backup', 20)).replace(/[\s-]/g, '');
-    if (backup && !/^05\d{8}$/.test(backup)) throw new AppError('رقم الجوال الاحتياطي غير صالح.');
-    body = { ...body, backup };
+      throw new AppError('أدخل أسم المدرسة/الجامعة.');
+    if (!easternCities.includes(field(body, 'locality')) || body.terms !== true)
+      throw new AppError('اختر مدينة من المنطقة الشرقية ووافق على شروط المشاركة.');
   }
   const id = randomUUID();
   const payload = existing
@@ -100,12 +98,11 @@ export async function challenge(body: Record<string, unknown>) {
         name: field(body, 'name'),
         identity,
         phone,
-        backup: field(body, 'backup'),
         stage: field(body, 'stage'),
         institution: field(body, 'institution', 160),
-        region: field(body, 'region'),
+        gender: field(body, 'gender'),
+        region: 'الشرقية',
         locality: field(body, 'locality'),
-        village: field(body, 'village'),
       };
   await db.query('DELETE FROM challenges WHERE expires_at < now()');
   await db.query('INSERT INTO challenges (id,payload,expires_at) VALUES ($1,$2,$3)', [
@@ -140,18 +137,17 @@ export async function verify(id: string, code: string) {
     const participant = p.existingId ?? randomUUID();
     if (!p.existingId) {
       const inserted = await tx.query(
-        'INSERT INTO participants (id,identity,name,phone,backup,stage,region,locality,village,institution) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ON CONFLICT (identity) DO NOTHING RETURNING id',
+        'INSERT INTO participants (id,identity,name,phone,stage,region,locality,institution,gender) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT (identity) DO NOTHING RETURNING id',
         [
           participant,
           p.identity,
           p.name,
           p.phone,
-          p.backup,
           p.stage,
           p.region,
           p.locality,
-          p.village,
           p.institution ?? null,
+          p.gender ?? null,
         ],
       );
       if (!inserted.rows.length) return { error: 'تم إنشاء الحساب بالفعل. استخدم تسجيل الدخول.' };
@@ -171,7 +167,7 @@ export async function participantState(session: Session) {
   const db = await getDb();
   const participant = (
     await db.query(
-      'SELECT id,name,stage,region,locality,institution FROM participants WHERE id=$1',
+      'SELECT id,name,stage,region,locality,institution,gender FROM participants WHERE id=$1',
       [session.participant_id],
     )
   ).rows[0];
@@ -268,7 +264,7 @@ export async function adminState() {
   return db.transaction(async (tx) => ({
     participants: (
       await tx.query<ParticipantReport>(
-        'SELECT p.id,p.name,p.stage,p.institution,p.region,p.locality,p.village,a.score,a.submitted_at,a.receipt,a.id AS attempt_id FROM participants p LEFT JOIN attempts a ON a.participant_id=p.id ORDER BY p.created_at',
+        'SELECT p.id,p.name,p.stage,p.institution,p.gender,p.region,p.locality,p.village,a.score,a.submitted_at,a.receipt,a.id AS attempt_id FROM participants p LEFT JOIN attempts a ON a.participant_id=p.id ORDER BY p.created_at',
       )
     ).rows,
     questions: (

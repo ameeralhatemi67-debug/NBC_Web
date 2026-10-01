@@ -119,12 +119,11 @@ try {
     name: 'مشارك اختبار أحمد صالح',
     identity: '١٩٩٩٩٩٩٩٩٩',
     phone: '٠٥٩٩٩٩٩٩٩٩',
-    backup: '',
     stage: 'المرحلة المتوسطة',
     institution: 'مدرسة الاختبار الافتراضية',
-    region: 'الرياض',
-    locality: 'الرياض',
-    village: 'مركز تجريبي',
+    gender: 'أنثى',
+    region: 'الشرقية',
+    locality: 'الدمام',
     terms: true,
   };
   for (const institution of [undefined, '   ', 'س'.repeat(161), { name: 'مدرسة' }]) {
@@ -132,6 +131,15 @@ try {
     assert.equal(invalid.status, 400);
   }
   check('institution is required, bounded and must be text', () => {});
+  for (const gender of [undefined, '', 'غير محدد', { value: 'ذكر' }]) {
+    const invalid = await student('auth/challenge', { ...payload, gender });
+    assert.equal(invalid.status, 400);
+  }
+  for (const locality of [undefined, '', 'الرياض', 'جدة', { value: 'الدمام' }]) {
+    const invalid = await student('auth/challenge', { ...payload, locality });
+    assert.equal(invalid.status, 400);
+  }
+  check('registration requires a valid gender and an Eastern Province city', () => {});
   const challenge = await student('auth/challenge', payload);
   check('Arabic digits accepted in registration', () => assert.equal(challenge.status, 200));
   const bad = await student('auth/verify', {
@@ -148,6 +156,11 @@ try {
   check('institution survives verification and reaches the participant profile', () =>
     assert.equal(profile.data.participant.institution, payload.institution),
   );
+  check('gender and Eastern Province city survive verification', () => {
+    assert.equal(profile.data.participant.gender, payload.gender);
+    assert.equal(profile.data.participant.locality, payload.locality);
+    assert.equal(profile.data.participant.region, 'الشرقية');
+  });
   const reuse = await anon('auth/verify', {
     challengeId: challenge.data.challengeId,
     code: '123456',
@@ -244,7 +257,9 @@ try {
   check('CSV filters reconcile with the same report cohort', () => {
     assert.equal(report.status, 200);
     assert.equal(report.text.trim().split('\r\n').length - 1, expected.length);
-    assert.ok(report.text.includes('جهة الدراسة'));
+    assert.ok(report.text.includes('أسم المدرسة/الجامعة'));
+    assert.ok(report.text.includes('الجنس'));
+    assert.ok(report.text.includes(payload.gender));
     assert.ok(report.text.includes(payload.institution));
     assert.ok(expected.some((p) => p.institution === payload.institution));
   });

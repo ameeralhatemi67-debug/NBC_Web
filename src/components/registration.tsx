@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { api, BrandMark, DemoNote, ErrorMessage, Icon, Loading } from './ui';
-import { regions, stages } from '@/lib/content';
+import { easternCities, genders, stages } from '@/lib/content';
 function RegistrationForm({ mode }: { mode: 'login' | 'register' }) {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -14,12 +14,10 @@ function RegistrationForm({ mode }: { mode: 'login' | 'register' }) {
     name: '',
     identity: '',
     phone: '',
-    backup: '',
     stage: stages[0],
     institution: '',
-    region: regions[0],
+    gender: '',
     locality: '',
-    village: '',
     terms: false,
   });
   const [challenge, setChallenge] = useState<{
@@ -189,7 +187,7 @@ function RegistrationForm({ mode }: { mode: 'login' | 'register' }) {
                   />
                 </label>
                 <label>
-                  رقم الجوال الأساسي
+                  رقم الجوال
                   <input
                     name="phone"
                     dir="ltr"
@@ -220,19 +218,21 @@ function RegistrationForm({ mode }: { mode: 'login' | 'register' }) {
                       </select>
                     </label>
                     <label>
-                      المنطقة
+                      الجنس
                       <select
-                        name="region"
-                        value={values.region}
-                        onChange={(e) => change('region', e.target.value)}
+                        name="gender"
+                        required
+                        value={values.gender}
+                        onChange={(e) => change('gender', e.target.value)}
                       >
-                        {regions.map((s) => (
+                        <option value="">اختر الجنس</option>
+                        {genders.map((s) => (
                           <option key={s}>{s}</option>
                         ))}
                       </select>
                     </label>
                     <label className="full-width">
-                      جهة الدراسة
+                      أسم المدرسة/الجامعة
                       <input
                         name="institution"
                         autoComplete="organization"
@@ -243,36 +243,19 @@ function RegistrationForm({ mode }: { mode: 'login' | 'register' }) {
                         onChange={(e) => change('institution', e.target.value)}
                       />
                     </label>
-                    <label>
+                    <label className="full-width">
                       المدينة / المحافظة
-                      <input
+                      <select
                         name="locality"
                         required
-                        placeholder="مثال: الرياض"
-                        maxLength={120}
                         value={values.locality}
                         onChange={(e) => change('locality', e.target.value)}
-                      />
-                    </label>
-                    <label>
-                      القرية / المركز <small>إن وجد</small>
-                      <input
-                        name="village"
-                        maxLength={120}
-                        value={values.village}
-                        onChange={(e) => change('village', e.target.value)}
-                      />
-                    </label>
-                    <label className="full-width">
-                      جوال احتياطي <small>اختياري</small>
-                      <input
-                        name="backup"
-                        dir="ltr"
-                        type="tel"
-                        placeholder="05XXXXXXXX"
-                        value={values.backup}
-                        onChange={(e) => change('backup', e.target.value)}
-                      />
+                      >
+                        <option value="">اختر المدينة / المحافظة</option>
+                        {easternCities.map((city) => (
+                          <option key={city}>{city}</option>
+                        ))}
+                      </select>
                     </label>
                   </>
                 )}

@@ -96,18 +96,66 @@ export function Icon({ name = 'arrow', size = 22 }: { name?: string; size?: numb
 }
 export function BrandMark({ size = 44 }: { size?: number }) {
   return (
-    <svg className="brand-mark" width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
-      <path fill="var(--brand-gold, #b49250)" d="M13 20h18l37 43 19-3v17l-26 6-36-44-12 2Z" />
-      <path fill="var(--brand-green, #18543f)" d="M87 20H69L32 63l-19-3v17l26 6 36-44 12 2Z" />
-      <path
-        d="M13 87c14 0 23 2 37 9 14-7 23-9 37-9"
-        fill="none"
-        stroke="var(--brand-green, #18543f)"
-        strokeWidth="4"
-        strokeLinecap="round"
+    <>
+      <svg
+        className="brand-mark"
+        width={size}
+        height={size}
+        viewBox="0 0 100 100"
+        aria-hidden="true"
+      >
+        <path fill="var(--brand-gold, #b49250)" d="M13 20h18l37 43 19-3v17l-26 6-36-44-12 2Z" />
+        <path fill="var(--brand-green, #18543f)" d="M87 20H69L32 63l-19-3v17l26 6 36-44 12 2Z" />
+        <path
+          d="M13 87c14 0 23 2 37 9 14-7 23-9 37-9"
+          fill="none"
+          stroke="var(--brand-green, #18543f)"
+          strokeWidth="4"
+          strokeLinecap="round"
+        />
+        <path fill="var(--brand-green, #18543f)" d="m41 28 9-11 9 11-9 11Z" />
+      </svg>
+      <Image
+        className="official-brand-mark"
+        src="/images/identity/authority-logo.png"
+        alt=""
+        loading="eager"
+        width={size}
+        height={size}
       />
-      <path fill="var(--brand-green, #18543f)" d="m41 28 9-11 9 11-9 11Z" />
-    </svg>
+    </>
+  );
+}
+export function DesignToggle() {
+  const [announcement, setAnnouncement] = useState('');
+  return (
+    <>
+      <button
+        type="button"
+        className="design-toggle"
+        aria-label="تغيير التصميم"
+        title="تغيير التصميم: الأصلي، الرسمي، المزيج"
+        onClick={() => {
+          const designs = ['original', 'official', 'hybrid'];
+          const index =
+            (designs.indexOf(document.documentElement.dataset.design || 'original') + 1) %
+            designs.length;
+          const next = designs[index];
+          document.documentElement.dataset.design = next;
+          try {
+            localStorage.setItem('nbc-design', next);
+          } catch {
+            /* The switch also works when storage is unavailable. */
+          }
+          setAnnouncement(['التصميم الأصلي', 'التصميم الرسمي', 'التصميم المزيج'][index]);
+        }}
+      >
+        <Image src="/images/identity/vision2030.png" alt="" width={90} height={55} />
+      </button>
+      <span className="sr-only" role="status">
+        {announcement}
+      </span>
+    </>
   );
 }
 export function Brand() {
@@ -166,6 +214,7 @@ export function Header() {
             >
               <Icon name={open ? 'close' : 'menu'} />
             </button>
+            <DesignToggle />
           </div>
         </div>
       </header>
@@ -191,6 +240,7 @@ export function OrganizationsBar({
         </div>
         <div className="organizations-grid">
           <div className="org-logo-item org-logo-hedayah">
+            <span className="org-role">الجهة المساندة</span>
             <Image
               src="/images/organizations/hedayah.png"
               alt="شعار جمعية هداية للدعوة والإرشاد وتوعية الجاليات بالمنطقة الشرقية"
@@ -200,6 +250,7 @@ export function OrganizationsBar({
             />
           </div>
           <div className="org-logo-item org-logo-presidency">
+            <span className="org-role">الجهة المنفذة</span>
             <Image
               src="/images/organizations/general-presidency.png"
               alt="شعار الرئاسة العامة لهيئة الأمر بالمعروف والنهي عن المنكر"
@@ -209,6 +260,7 @@ export function OrganizationsBar({
             />
           </div>
           <div className="org-logo-item org-logo-saad">
+            <span className="org-role">الجهة الراعية</span>
             <Image
               src="/images/organizations/saad-bin-soliab-foundation.svg"
               alt="شعار مؤسسة سعد بن صليب العتيبي الأهلية"

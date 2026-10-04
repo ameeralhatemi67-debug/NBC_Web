@@ -1,62 +1,33 @@
----
-type: guide
-tags: [nbc, implementation, demo]
-created: 2026-09-08
-updated: 2026-09-08
----
+# NBC competition platform
 
-# NBC competition demo
+Arabic RTL competition application with participant SMS OTP, saved participation, and an admin security setup center.
 
-An Arabic, RTL demonstration of the **Contemporary Heritage** direction: warm stone surfaces, olive typography, restrained copper details, and balanced editorial motion.
+The OTP code and deployment path are implemented. Real SMS activation still requires the organization's Unifonic account, approved Saudi sender, production secrets, managed PostgreSQL, and staff identity setup. See [the deployment guide](docs/implementation/2026-10-04-production-otp.md) and [the implementation specification](docs/implementation/NBC_OTP_Production_Implementation_Spec.md).
 
-Start with [[00-Implementation-Index]] for delivery status and [[00-NBC-Research-Index]] for the underlying research.
+## Local development
 
-## Run locally
-
-Requires Node.js 22.19 or a compatible supported newer version. Dependencies are pinned in the lockfile.
+Requires Node.js 22.19 or newer supported Node.js. Install pinned dependencies with `npm ci`. For a new checkout, copy `.env.example` to `.env.local`, then run:
 
 ```powershell
-npm ci
-npm run build
-npm run start
+npm run dev
 ```
 
-Open [the demo](http://127.0.0.1:3000) or [the committee workspace](http://127.0.0.1:3000/admin). For development, use `npm run dev` instead. Run one application process per database directory.
+Open [registration](http://127.0.0.1:3000/register) or [admin](http://127.0.0.1:3000/admin). Preserve existing secrets when merging environment changes into an existing `.env.local`.
 
-To launch a hidden preview on Windows after building:
+Local simulation requires explicit `NBC_RUNTIME_MODE=demo`, `OTP_PROVIDER=fake`, and a six-digit `NBC_DEMO_OTP` chosen in `.env.local`. Enter that local fixture manually. The UI labels simulation but never displays the code. The API never returns it. Fake mode and the role picker are blocked in production; demo HTTP access is restricted to loopback. Keep demo data synthetic. Remote demo sharing is no longer supported.
 
-```powershell
-powershell -NoProfile -File scripts/preview.ps1
-```
+Local PGlite storage defaults to `.data/nbc`. Run one process per PGlite directory. Production always requires `DATABASE_URL`; it never falls back to `/tmp` or PGlite. Local sample participants are seeded only in explicit local mode with PGlite. Production starts sample questions unapproved so the committee must edit/review them before participation can begin.
 
-The script records its PID in `tmp/server/preview.pid` and logs in `tmp/server`. Stop only that preview process when needed. If the application reports that its port is occupied, use another port or stop the known preview; do not stop unrelated services.
+## Production deployment
 
-## Try the demonstration
+1. Provision a fresh UTF-8 PostgreSQL database with TLS, backups and a tested restore procedure.
+2. Configure production environment variables from the deployment guide. Use secure server/deployment secret storage.
+3. With the deployment environment loaded, run `npm run db:migrate` as a release step, then `npm run build` and start/deploy the application.
+4. Configure Cloudflare Access for the staff paths, require MFA, and allowlist staff subjects. Public participant paths remain public.
+5. Open Admin > إعداد التحقق والأمان. Complete sender/account approvals, check readiness, run the real SMS verification test, acknowledge internal operational checks, and activate.
+6. Schedule `npm run db:cleanup` daily with the same database/security environment. Monitor delivery errors, abuse counts, costs and database backups.
 
-1. Register with a synthetic four-part name, a ten-digit synthetic identity starting with 1 or 2, and a synthetic mobile number starting with 05. Do not enter real personal data.
-2. Use the visibly disclosed simulated OTP **123456**. Each challenge expires after five minutes and permits at most five incorrect attempts.
-3. Start the ten-question sample participation. Open the reading panel, revisit questions, reload after a confirmed save, review, and submit.
-4. Open `/admin` and choose the explicit local committee demo entry. The editor entry demonstrates restricted content permissions.
-5. Review reports, tied scores, question versions, grade publication, reminder previews, and the audit trail.
-
-> [!important] Demonstration boundaries
-> SMS and identity verification are simulated. The reading material, questions, names, and results are synthetic. The official book is not included. This is a local presentation system, not a production deployment or an official competition website.
-
-## Data and recovery
-
-The local database uses **PGlite**, an embedded PostgreSQL build, stored in `.data/nbc`. The server owns this database; participant data is not stored in browser local storage. Browser session storage contains reading preferences only.
-
-The committee overview offers a private `.tar.gz` database backup. To restore, use a **new** directory:
-
-```powershell
-node scripts/restore.mjs path/to/nbc-demo-backup.tar.gz .data/restored-demo
-$env:NBC_DATA_DIR = '.data/restored-demo'
-npm run start
-```
-
-Restoration refuses existing destinations and invalidates old sessions and OTP challenges. PGlite snapshots are for compatible PGlite versions; they are not a portable production PostgreSQL migration format.
-
-For a fresh rehearsal, stop the preview, set `NBC_DATA_DIR` to a new path such as `.data/rehearsal-02`, and restart. The database seeds six synthetic participants and ten questions automatically. Existing data is preserved.
+Migration/cleanup commands read the process environment. In local development with Node.js 22, use `node --env-file=.env.local --import tsx scripts/migrate.mjs` or the corresponding cleanup script. Do not use demo environment files for production.
 
 ## Verification
 
@@ -65,21 +36,28 @@ npm run typecheck
 npm test
 npm run build
 npm run test:integration
+npm run test:postgres
 npm run format:check
 ```
 
-Integration tests run a separate server on port 43187 and use unique databases under `.data`. They do not modify the presentation database. Results are written to `test-results/integration.json`. Some managed Windows sandboxes require permission for the local test port and test-runner OS access.
+`test:integration` uses a fresh PGlite directory and port 43187 for existing competition and backup/restore regressions. `test:postgres` starts an isolated UTF-8 PostgreSQL cluster on loopback port 43189, repeats the OTP security suite, then tests the built app in production mode on port 43188. External provider/JWKS requests are mocked only by the test-process preload; the application still uses its production adapter and JWT verifier. No paid SMS is sent. Captured test codes stay in memory/IPC and are checked for absence from HTTP responses and logs.
+
+## Data and recovery
+
+Use managed PostgreSQL backups for production. Never import a demo snapshot into production. Identity lookup keys must be retained with separately controlled secret backups. Losing or casually rotating the identity key prevents account lookup; readiness rejects a key that does not match the database.
+
+The admin backup endpoint supports local PGlite only. Restore into a new directory:
+
+```powershell
+node scripts/restore.mjs path/to/nbc-demo-backup.tar.gz .data/restored-demo
+```
+
+Restoration preserves competition data but removes restored sessions/challenges and resets OTP activation. Existing destinations are refused. Legacy session rows are preserved by schema migration but rejected by production authentication; users authenticate again through OTP.
 
 ## Structure
 
-- `src/app`: routes, styles, and authenticated server API.
-- `src/components`: Arabic participant and committee interfaces.
-- `src/lib`: sample reading content, question seeds, validation, scoring, database, and service logic.
-- `tests`: domain and isolated API/recovery checks.
-- `docs/implementation`: scope, evidence coverage, demo script, and production dependencies.
-
-## Hosting boundary
-
-The npm scripts bind to loopback. Remote demonstration requires explicit configuration and synthetic data only. Setting `NBC_DEMO_MODE=false` disables this demo API; a real authentication and integration implementation must replace the demo entry points before production. A managed PostgreSQL service, deployment scaling, actual institutional policies, and service contracts remain separate work.
-
-No code or design is submitted to the organizer automatically.
+- `src/lib/database.ts`, `migrations.ts`, `db.ts`: PostgreSQL/PGlite adapter, ordered transactional schema migrations, initialization.
+- `src/lib/otp*.ts`, `security-store.ts`: provider, cryptography, challenge lifecycle, readiness, database-backed limits and retention.
+- `src/lib/staff-auth.ts`, `request-security.ts`, `runtime.ts`: staff JWT checks, request protections and runtime boundaries.
+- `src/components/registration.tsx`, `otp-entry.tsx`, `admin-security.tsx`: participant OTP and Arabic administrator setup.
+- `tests`: domain, migration, security, production HTTP and competition regression checks.

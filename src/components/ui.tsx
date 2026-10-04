@@ -343,6 +343,15 @@ export function Loading() {
     </div>
   );
 }
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public code?: string,
+    public retryAfter?: number,
+  ) {
+    super(message);
+  }
+}
 export async function api<T = Record<string, unknown>>(path: string, body?: unknown): Promise<T> {
   let response: Response;
   try {
@@ -362,6 +371,7 @@ export async function api<T = Record<string, unknown>>(path: string, body?: unkn
   if (!response.headers.get('content-type')?.includes('application/json'))
     throw new Error('الخدمة غير متاحة مؤقتًا. أعد المحاولة بعد قليل.');
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error ?? 'تعذّر الاتصال. حاول مرة أخرى.');
+  if (!response.ok)
+    throw new ApiError(data.error ?? 'تعذّر الاتصال. حاول مرة أخرى.', data.code, data.retryAfter);
   return data;
 }

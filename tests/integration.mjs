@@ -16,6 +16,11 @@ const server = spawn(
     env: {
       ...process.env,
       NBC_DATA_DIR: dataDir,
+      NBC_RUNTIME_MODE: 'test',
+      OTP_PROVIDER: 'fake',
+      NBC_DEMO_OTP: '739281',
+      DATABASE_URL: '',
+      VERCEL: '',
       NBC_DEMO_MODE: 'true',
       NBC_ALLOW_REMOTE_DEMO: 'false',
     },
@@ -151,7 +156,7 @@ try {
     stage: 'المرحلة المتوسطة',
     institution: 'مدرسة الاختبار الافتراضية',
     gender: 'أنثى',
-    region: 'الشرقية',
+    mode: 'register',
     locality: 'الدمام',
     terms: true,
   };
@@ -173,12 +178,14 @@ try {
   check('Arabic digits accepted in registration', () => assert.equal(challenge.status, 200));
   const bad = await student('auth/verify', {
     challengeId: challenge.data.challengeId,
+    purpose: 'REGISTER',
     code: '000000',
   });
   check('wrong verification code rejected', () => assert.equal(bad.status, 400));
   const verified = await student('auth/verify', {
     challengeId: challenge.data.challengeId,
-    code: '123456',
+    purpose: 'REGISTER',
+    code: '739281',
   });
   check('simulated OTP establishes participant session', () => assert.equal(verified.status, 200));
   const profile = await student('participant');
@@ -192,7 +199,8 @@ try {
   });
   const reuse = await anon('auth/verify', {
     challengeId: challenge.data.challengeId,
-    code: '123456',
+    purpose: 'REGISTER',
+    code: '739281',
   });
   check('verification challenge is single use', () => assert.equal(reuse.status, 400));
   const duplicate = await anon('auth/challenge', payload);
@@ -278,10 +286,10 @@ try {
     'export?stage=' +
       encodeURIComponent(payload.stage) +
       '&region=' +
-      encodeURIComponent(payload.region),
+      encodeURIComponent('الشرقية'),
   );
   const expected = completed.data.participants.filter(
-    (p) => p.stage === payload.stage && p.region === payload.region,
+    (p) => p.stage === payload.stage && p.region === 'الشرقية',
   );
   check('CSV filters reconcile with the same report cohort', () => {
     assert.equal(report.status, 200);
@@ -331,11 +339,13 @@ try {
   for (let i = 0; i < 5; i++)
     await expiredClient('auth/verify', {
       challengeId: challenge2.data.challengeId,
+      purpose: 'LOGIN',
       code: '000000',
     });
   const locked = await expiredClient('auth/verify', {
     challengeId: challenge2.data.challengeId,
-    code: '123456',
+    purpose: 'LOGIN',
+    code: '739281',
   });
   check('five failed OTP attempts exhaust the challenge', () => assert.equal(locked.status, 400));
   const anonBackup = await anon('admin/backup');

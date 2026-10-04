@@ -24,7 +24,12 @@ await mkdir(path.dirname(target), { recursive: true });
 const db = await PGlite.create({ dataDir: target, loadDataDir: new Blob([bytes]) });
 try {
   // Restored data must not reactivate old browser sessions or OTP challenges.
-  await db.exec('DELETE FROM sessions; DELETE FROM challenges;');
+  await db.exec('DELETE FROM sessions;');
+  for (const table of ['challenges', 'otp_challenges']) {
+    const exists = await db.query('SELECT to_regclass($1) AS name', [table]);
+    if (exists.rows[0].name) await db.exec(`DELETE FROM ${table}`);
+  }
+  await db.query('UPDATE settings SET value=$1 WHERE id=$2', ['{}', 'otp_security']);
   const { rows } = await db.query(
     'SELECT (SELECT count(*) FROM participants)::int AS participants, (SELECT count(*) FROM attempts WHERE submitted_at IS NOT NULL)::int AS submissions',
   );

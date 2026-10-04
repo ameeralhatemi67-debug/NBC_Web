@@ -4,8 +4,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { api, BrandMark, DemoNote, ErrorMessage, Icon, Loading } from './ui';
+import { OtpEntry, type OtpChallenge } from './otp-entry';
 import { easternCities, genders, stages } from '@/lib/content';
-function RegistrationForm({ mode }: { mode: 'login' | 'register' }) {
+function RegistrationForm({ mode, demo }: { mode: 'login' | 'register'; demo: boolean }) {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [busy, setBusy] = useState(false);
@@ -20,12 +21,7 @@ function RegistrationForm({ mode }: { mode: 'login' | 'register' }) {
     locality: '',
     terms: false,
   });
-  const [challenge, setChallenge] = useState<{
-    challengeId: string;
-    maskedPhone: string;
-    demoCode: string;
-  } | null>(null);
-  const [code, setCode] = useState('');
+  const [challenge, setChallenge] = useState<OtpChallenge | null>(null);
   const change = (key: string, value: string | boolean) =>
     setValues((v) => ({ ...v, [key]: value }));
   async function requestCode(e?: FormEvent) {
@@ -35,25 +31,27 @@ function RegistrationForm({ mode }: { mode: 'login' | 'register' }) {
     try {
       setChallenge(await api('auth/challenge', { ...values, mode }));
       setStep(2);
-      setCode('');
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setBusy(false);
     }
   }
-  async function verify(e: FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    setError('');
-    try {
-      await api('auth/verify', { challengeId: challenge?.challengeId, code });
-      router.push('/participate');
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
+  async function verify(code: string) {
+    await api('auth/verify', {
+      challengeId: challenge?.challengeId,
+      purpose: challenge?.purpose,
+      code,
+    });
+    router.push('/participate');
+  }
+  async function resend() {
+    setChallenge(
+      await api<OtpChallenge>('auth/resend', {
+        challengeId: challenge?.challengeId,
+        purpose: challenge?.purpose,
+      }),
+    );
   }
   return (
     <div className="registration-grid" data-mode={mode} data-step={step}>
@@ -132,7 +130,7 @@ function RegistrationForm({ mode }: { mode: 'login' | 'register' }) {
           <span className="eyebrow">
             {step === 2 ? 'تأكيد الدخول' : mode === 'login' ? 'تابع رحلتك' : 'ابدأ المشاركة'}
           </span>
-          <DemoNote compact />
+          {demo && <DemoNote compact />}
         </div>
         <h2 id="registration-title">
           {step === 2 ? 'بقيت خطوة واحدة.' : mode === 'login' ? 'سعداء بعودتك.' : 'لنبدأ بالتعارف.'}
@@ -143,9 +141,11 @@ function RegistrationForm({ mode }: { mode: 'login' | 'register' }) {
               رمز التحقق للرقم <bdi>{challenge?.maskedPhone}</bdi>
             </>
           ) : mode === 'login' ? (
-            'أدخل الهوية ورقم الجوال المسجلين في حسابك. التحقق محاكاة في هذه النسخة التجريبية.'
+            'أدخل الهوية ورقم الجوال المسجلين في حسابك لتلقي رمز تحقق جديد.'
+          ) : demo ? (
+            'استخدم بيانات افتراضية فقط في هذا العرض المحلي.'
           ) : (
-            'استخدم بيانات افتراضية فقط في هذا العرض.'
+            'أدخل بيانات المشاركة ورقم جوالك لتلقي رمز التحقق.'
           )}
         </p>
         <ErrorMessage message={error} />
@@ -274,7 +274,7 @@ function RegistrationForm({ mode }: { mode: 'login' | 'register' }) {
                     <Link href="/terms" target="_blank">
                       شروط المشاركة الموضحة
                     </Link>
-                    ، وأفهم أن هذا عرض تجريبي ببيانات افتراضية.
+                    ، وأوافق على استخدام الجوال للتحقق وتأمين حسابي.
                   </span>
                 </label>
               )}
@@ -285,60 +285,17 @@ function RegistrationForm({ mode }: { mode: 'login' | 'register' }) {
             </fieldset>
           </form>
         ) : (
-          <form onSubmit={verify}>
-            <fieldset disabled={busy}>
-              <div className="simulation-box">
-                <Icon name="shield" />
-                <div>
-                  <strong>محاكاة التحقق في العرض</strong>
-                  <p>
-                    لا تُرسل رسالة فعلية. استخدم الرمز{' '}
-                    <bdi className="demo-code">{challenge?.demoCode}</bdi>. الرمز صالح لمدة 5 دقائق،
-                    ولا يثبت ملكية الهوية.
-                  </p>
-                </div>
-              </div>
-              <label>
-                رمز التحقق
-                <input
-                  className="otp-input"
-                  name="code"
-                  dir="ltr"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  autoFocus
-                  maxLength={6}
-                  required
-                  placeholder="— — — — — —"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                />
-              </label>
-              <button className="button primary full-width" type="submit">
-                {busy
-                  ? 'جارٍ التحقق…'
-                  : mode === 'login'
-                    ? 'تحقق وتابع مشاركتك'
-                    : 'تحقق وابدأ الرحلة'}
-                <Icon />
-              </button>
-              <div className="form-switch">
-                <button type="button" onClick={() => requestCode()}>
-                  طلب رمز جديد
-                </button>
-                <span> · </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStep(1);
-                    setError('');
-                  }}
-                >
-                  تعديل البيانات
-                </button>
-              </div>
-            </fieldset>
-          </form>
+          challenge && (
+            <OtpEntry
+              challenge={challenge}
+              onVerify={verify}
+              onResend={resend}
+              onBack={() => {
+                setStep(1);
+                setError('');
+              }}
+            />
+          )
         )}
         <div className="form-security">
           <Icon name="shield" size={17} />
@@ -348,15 +305,15 @@ function RegistrationForm({ mode }: { mode: 'login' | 'register' }) {
     </div>
   );
 }
-function RegistrationMode() {
+function RegistrationMode({ demo }: { demo: boolean }) {
   const params = useSearchParams();
   const mode = params.get('mode') === 'login' ? 'login' : 'register';
-  return <RegistrationForm key={mode} mode={mode} />;
+  return <RegistrationForm key={mode} mode={mode} demo={demo} />;
 }
-export function Registration() {
+export function Registration({ demo }: { demo: boolean }) {
   return (
     <Suspense fallback={<Loading />}>
-      <RegistrationMode />
+      <RegistrationMode demo={demo} />
     </Suspense>
   );
 }

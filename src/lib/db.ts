@@ -1,44 +1,48 @@
-import { PGlite } from '@electric-sql/pglite';
-import path from 'node:path';
-import { mkdir } from 'node:fs/promises';
+import { connectDatabase, type Database } from './database';
+import { migrate, migrationsCurrent } from './migrations';
+import { isProduction, isLocalMode } from './runtime';
+import { AppError } from './domain';
 import { seedQuestions } from './seed';
 import { defaultPrizes } from './prizes';
-const globalDb = globalThis as unknown as { nbcDb?: Promise<PGlite> };
-export function getDb(): Promise<PGlite> {
-  globalDb.nbcDb ??= initialize();
+const globalDb = globalThis as unknown as { nbcDb?: Promise<Database> };
+export function getDb(): Promise<Database> {
+  globalDb.nbcDb ??= initialize().catch((error) => {
+    globalDb.nbcDb = undefined;
+    throw error;
+  });
   return globalDb.nbcDb;
 }
 async function initialize() {
-  const defaultDir = process.env.VERCEL ? '/tmp/nbc' : '.data/nbc';
-  const dir = path.resolve(/* turbopackIgnore: true */ process.env.NBC_DATA_DIR || defaultDir);
-  await mkdir(dir, { recursive: true });
-  const db = new PGlite(dir);
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS participants (id TEXT PRIMARY KEY, identity TEXT UNIQUE NOT NULL, name TEXT NOT NULL, phone TEXT NOT NULL, backup TEXT, stage TEXT NOT NULL, region TEXT NOT NULL, locality TEXT NOT NULL, village TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
-    CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, participant_id TEXT, role TEXT NOT NULL, expires_at TIMESTAMPTZ NOT NULL);
-    CREATE TABLE IF NOT EXISTS challenges (id TEXT PRIMARY KEY, payload JSONB NOT NULL, tries INT NOT NULL DEFAULT 0, expires_at TIMESTAMPTZ NOT NULL);
-    CREATE TABLE IF NOT EXISTS questions (id TEXT PRIMARY KEY, body JSONB NOT NULL);
-    CREATE TABLE IF NOT EXISTS attempts (id TEXT PRIMARY KEY, participant_id TEXT UNIQUE NOT NULL REFERENCES participants(id), questions JSONB NOT NULL, answers JSONB NOT NULL DEFAULT '{}', revision INT NOT NULL DEFAULT 0, score INT, submitted_at TIMESTAMPTZ, receipt TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
-    CREATE TABLE IF NOT EXISTS audit (id BIGSERIAL PRIMARY KEY, actor TEXT NOT NULL, action TEXT NOT NULL, detail TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
-    CREATE TABLE IF NOT EXISTS settings (id TEXT PRIMARY KEY, value JSONB NOT NULL);
-    ALTER TABLE participants ADD COLUMN IF NOT EXISTS institution TEXT;
-    ALTER TABLE participants ADD COLUMN IF NOT EXISTS gender TEXT;
-  `);
+  const db = await connectDatabase();
+  try {
+    if (isProduction()) {
+      if (!(await migrationsCurrent(db)))
+        throw new AppError('نفّذ ترحيلات قاعدة البيانات قبل التشغيل.', 503);
+    } else await migrate(db);
+  } catch (error) {
+    await db.close();
+    throw error;
+  }
   await db.query('INSERT INTO settings (id,value) VALUES ($1,$2) ON CONFLICT (id) DO NOTHING', [
     'prizes',
     JSON.stringify(defaultPrizes),
   ]);
   await db.transaction(async (tx) => {
+    if (db.kind === 'postgres') await tx.query('SELECT pg_advisory_xact_lock(72831005)');
     const { rows } = await tx.query('SELECT id FROM settings WHERE id = $1', ['initialized']);
     if (rows.length) return;
     for (const q of seedQuestions)
-      await tx.query('INSERT INTO questions VALUES ($1,$2)', [q.id, JSON.stringify(q)]);
+      await tx.query('INSERT INTO questions VALUES ($1,$2)', [
+        q.id,
+        JSON.stringify(isProduction() ? { ...q, approved: false } : q),
+      ]);
     await tx.query('INSERT INTO settings VALUES ($1,$2),($3,$4)', [
       'initialized',
       'true',
       'published',
       'false',
     ]);
+    if (!isLocalMode() || db.kind !== 'pglite') return;
     const names = [
       'نورة أحمد محمد العتيبي',
       'عبدالله خالد سعد القحطاني',
@@ -91,7 +95,7 @@ async function initialize() {
     ]);
   });
   // Enrich only the built-in synthetic records; never infer demographics for registrations.
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; isLocalMode() && db.kind === 'pglite' && i < 6; i++) {
     await db.query(
       'UPDATE participants SET gender=COALESCE(gender,$1),institution=COALESCE(institution,$2) WHERE id=$3 AND identity=$4',
       [

@@ -4513,3 +4513,41 @@ td bdi {
     font-size: 28px;
   }
 }
+/* OTP setup follows the existing admin panel and RTL form styles. */
+.security-setup {
+  display: grid;
+  gap: 24px;
+}
+.security-setup .admin-panel {
+  padding: 24px;
+}
+.security-checks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 12px;
+  margin-block: 20px;
+}
+.security-checks > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  border: 1px solid #d9dedb;
+  border-radius: 8px;
+}
+.security-instructions {
+  padding-inline-start: 24px;
+}
+.security-instructions li {
+  margin-block: 14px;
+}
+.security-test {
+  display: grid;
+  gap: 16px;
+  max-width: 460px;
+  margin-block: 20px;
+}
+.security-setup bdi {
+  overflow-wrap: anywhere;
+}

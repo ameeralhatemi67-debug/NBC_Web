@@ -1,17 +1,21 @@
 import { randomBytes, randomInt, randomUUID, createHash } from 'node:crypto';
 import { getDb } from './db';
+import { isProduction, requireLocalMode } from './runtime';
 import {
   AppError,
-  normalizeDigits,
   publicQuestions,
   scoreAttempt,
   validateAnswers,
   type Answers,
   type Question,
 } from './domain';
-import { easternCities, genders, stages } from './content';
 import { validatePrizes, type PrizeSettings } from './prizes';
-export type Session = { role: 'participant' | 'admin' | 'editor'; participant_id: string | null };
+export type Session = {
+  role: 'participant' | 'admin' | 'editor';
+  participant_id: string | null;
+  actor?: string | null;
+  auth_source?: string;
+};
 export type ParticipantReport = {
   id: string;
   name: string;
@@ -43,20 +47,21 @@ export async function sessionFor(token?: string): Promise<Session | null> {
   if (!token) return null;
   const db = await getDb();
   const { rows } = await db.query<Session>(
-    'SELECT role,participant_id FROM sessions WHERE token=$1 AND expires_at > now()',
+    'SELECT role,participant_id,actor,auth_source FROM sessions WHERE token=$1 AND expires_at > now()',
     [hash(token)],
   );
-  return rows[0] ?? null;
+  const session = rows[0];
+  if (isProduction() && session && session.auth_source !== 'otp') return null;
+  return session ?? null;
 }
 export async function newSession(role: Session['role'], participant: string | null = null) {
+  requireLocalMode();
   const token = randomBytes(32).toString('hex');
   const db = await getDb();
-  await db.query('INSERT INTO sessions VALUES ($1,$2,$3,$4)', [
-    hash(token),
-    participant,
-    role,
-    new Date(Date.now() + 8 * 3600 * 1000),
-  ]);
+  await db.query(
+    "INSERT INTO sessions (token,participant_id,role,expires_at,auth_source,actor) VALUES ($1,$2,$3,$4,'demo',$3)",
+    [hash(token), participant, role, new Date(Date.now() + 8 * 3600 * 1000)],
+  );
   return token;
 }
 export async function revokeSession(token: string) {
@@ -67,104 +72,6 @@ function field(body: Record<string, unknown>, key: string, max = 120) {
   const value = String(body[key] ?? '').trim();
   if (value.length > max) throw new AppError('أحد الحقول أطول من الحد المسموح.');
   return value;
-}
-export async function challenge(body: Record<string, unknown>) {
-  const identity = normalizeDigits(field(body, 'identity', 30));
-  const phone = normalizeDigits(field(body, 'phone', 20)).replace(/[\s-]/g, '');
-  if (!/^[12]\d{9}$/.test(identity) || !/^05\d{8}$/.test(phone))
-    throw new AppError('أدخل هوية من ١٠ أرقام ورقم جوال يبدأ بـ 05.');
-  const db = await getDb();
-  const existing = (
-    await db.query<{ id: string; phone: string }>(
-      'SELECT id,phone FROM participants WHERE identity=$1',
-      [identity],
-    )
-  ).rows[0];
-  if (body.mode === 'login') {
-    if (!existing || existing.phone !== phone)
-      throw new AppError('تعذّر مطابقة بيانات الدخول في العرض التجريبي.');
-  } else {
-    if (existing) throw new AppError('لديك حساب سابق. استخدم تسجيل الدخول لإكمال المشاركة.');
-    if (field(body, 'name').split(/\s+/).length < 4)
-      throw new AppError('أدخل الاسم الرباعي كما في الوثيقة.');
-    if (!stages.includes(field(body, 'stage')) || !genders.includes(field(body, 'gender')))
-      throw new AppError('اختر المرحلة التعليمية والجنس.');
-    if (typeof body.institution !== 'string' || !field(body, 'institution', 160))
-      throw new AppError('أدخل أسم المدرسة/الجامعة.');
-    if (!easternCities.includes(field(body, 'locality')) || body.terms !== true)
-      throw new AppError('اختر مدينة من المنطقة الشرقية ووافق على شروط المشاركة.');
-  }
-  const id = randomUUID();
-  const payload = existing
-    ? { existingId: existing.id }
-    : {
-        name: field(body, 'name'),
-        identity,
-        phone,
-        stage: field(body, 'stage'),
-        institution: field(body, 'institution', 160),
-        gender: field(body, 'gender'),
-        region: 'الشرقية',
-        locality: field(body, 'locality'),
-      };
-  await db.query('DELETE FROM challenges WHERE expires_at < now()');
-  await db.query('INSERT INTO challenges (id,payload,expires_at) VALUES ($1,$2,$3)', [
-    id,
-    JSON.stringify(payload),
-    new Date(Date.now() + 5 * 60000),
-  ]);
-  return {
-    challengeId: id,
-    maskedPhone: `${phone.slice(0, 2)}••••••${phone.slice(-2)}`,
-    demoCode: '123456',
-    expiresIn: 300,
-  };
-}
-export async function verify(id: string, code: string) {
-  const db = await getDb();
-  // Failed attempts must commit; throwing inside this transaction would undo the counter.
-  const result = await db.transaction(async (tx) => {
-    const row = (
-      await tx.query<{ payload: Record<string, string>; tries: number; expires_at: Date }>(
-        'SELECT * FROM challenges WHERE id=$1 FOR UPDATE',
-        [id],
-      )
-    ).rows[0];
-    if (!row || new Date(row.expires_at).getTime() < Date.now() || row.tries >= 5)
-      return { error: 'انتهت صلاحية الرمز. اطلب رمزًا جديدًا.' };
-    if (normalizeDigits(code) !== '123456') {
-      await tx.query('UPDATE challenges SET tries=tries+1 WHERE id=$1', [id]);
-      return { error: 'الرمز غير صحيح. تحقق ثم أعد المحاولة.' };
-    }
-    const p = row.payload;
-    const participant = p.existingId ?? randomUUID();
-    if (!p.existingId) {
-      const inserted = await tx.query(
-        'INSERT INTO participants (id,identity,name,phone,stage,region,locality,institution,gender) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT (identity) DO NOTHING RETURNING id',
-        [
-          participant,
-          p.identity,
-          p.name,
-          p.phone,
-          p.stage,
-          p.region,
-          p.locality,
-          p.institution ?? null,
-          p.gender ?? null,
-        ],
-      );
-      if (!inserted.rows.length) return { error: 'تم إنشاء الحساب بالفعل. استخدم تسجيل الدخول.' };
-      await tx.query('INSERT INTO audit (actor,action,detail) VALUES ($1,$2,$3)', [
-        participant,
-        'تسجيل مشارك',
-        'تم إنشاء حساب تجريبي؛ رسالة التأكيد محاكاة.',
-      ]);
-    }
-    await tx.query('DELETE FROM challenges WHERE id=$1', [id]);
-    return { participant };
-  });
-  if (result.error) throw new AppError(result.error);
-  return newSession('participant', result.participant!);
 }
 export async function participantState(session: Session) {
   const db = await getDb();

@@ -5,7 +5,6 @@ import { AppError, csvCell } from '@/lib/domain';
 import { emptyFilters, filterParticipants, scorePercentage } from '@/lib/analytics';
 import {
   adminState,
-  challenge,
   changeAttempt,
   newSession,
   participantState,
@@ -14,19 +13,16 @@ import {
   startAttempt,
   updateQuestion,
   updatePrizes,
-  verify,
   type Session,
 } from '@/lib/service';
+import { OtpService, strictKeys } from '@/lib/otp';
+import { readiness, healthCheck, updateSecurity } from '@/lib/otp-readiness';
+import { cleanupSecurity } from '@/lib/security-store';
+import { isProduction, isLocalMode } from '@/lib/runtime';
+import { staffSession } from '@/lib/staff-auth';
+import { assertRequest, jsonBody, requestIp } from '@/lib/request-security';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-const cookieName = 'nbc-session';
-function assertDemo(req: NextRequest) {
-  if (process.env.NBC_DEMO_MODE === 'false')
-    throw new AppError('هذه النسخة مخصصة للعرض المحلي فقط.', 503);
-  const isLocal = ['localhost', '127.0.0.1', '[::1]'].includes(req.nextUrl.hostname);
-  const allowRemote = process.env.NBC_ALLOW_REMOTE_DEMO === 'true' || Boolean(process.env.VERCEL);
-  if (!isLocal && !allowRemote) throw new AppError('العرض متاح محليًا فقط.', 403);
-}
 function role(session: Session | null, allowed: Session['role'][]): Session {
   if (!session) throw new AppError('سجّل الدخول للمتابعة.', 401);
   if (!allowed.includes(session.role)) throw new AppError('ليست لديك صلاحية لهذا الإجراء.', 403);
@@ -34,31 +30,30 @@ function role(session: Session | null, allowed: Session['role'][]): Session {
 }
 async function respond(req: NextRequest) {
   try {
-    assertDemo(req);
-    if (req.method === 'POST') {
-      const origin = req.headers.get('origin');
-      const host = req.headers.get('host');
-      if (origin && host) {
-        try {
-          if (new URL(origin).host !== host) throw new AppError('مصدر الطلب غير مسموح.', 403);
-        } catch (e) {
-          if (e instanceof AppError) throw e;
-          throw new AppError('مصدر الطلب غير مسموح.', 403);
-        }
-      }
-      if (Number(req.headers.get('content-length') || 0) > 24000)
-        throw new AppError('الطلب أكبر من الحد المسموح.', 413);
-    }
+    assertRequest(req);
+    const cookieName = isProduction() ? '__Host-nbc-session' : 'nbc-session';
     const route = req.nextUrl.pathname.replace('/api/', '');
     const jar = await cookies();
     const token = jar.get(cookieName)?.value;
-    const session = await sessionFor(token);
+    let session: Session | null = null;
+    if (route.startsWith('admin') || route === 'export') {
+      const staff = await staffSession(req.headers.get('cf-access-jwt-assertion'));
+      if (staff) session = staff;
+    }
+    if (!session) session = await sessionFor(token);
     let result: unknown;
     let setToken: string | undefined;
-    const body = req.method === 'POST' ? await req.json() : {};
+    const body = req.method === 'POST' ? await jsonBody(req) : {};
     if (req.method === 'GET') {
-      if (route === 'session') result = { session };
-      else if (route === 'participant')
+      if (route === 'session' || route === 'admin/session')
+        result = {
+          session: session ? { role: session.role, participant_id: session.participant_id } : null,
+          demo: isLocalMode(),
+        };
+      else if (route === 'admin/security') {
+        role(session, ['admin']);
+        result = await readiness(await getDb().catch(() => null));
+      } else if (route === 'participant')
         result = await participantState(role(session, ['participant']));
       else if (route === 'admin') {
         const staff = role(session, ['admin', 'editor']);
@@ -131,14 +126,40 @@ async function respond(req: NextRequest) {
         });
       } else throw new AppError('المسار غير موجود.', 404);
     } else {
-      if (route === 'auth/challenge') result = await challenge(body);
+      if (route === 'auth/challenge')
+        result = await new OtpService(await getDb()).challenge(body, { ip: requestIp(req) });
+      else if (route === 'auth/resend')
+        result = await new OtpService(await getDb()).resend(body, { ip: requestIp(req) });
       else if (route === 'auth/verify') {
-        setToken = await verify(String(body.challengeId), String(body.code));
+        setToken = await new OtpService(await getDb()).verify(body, { ip: requestIp(req) });
+        if (token) await revokeSession(token);
         result = { ok: true };
       } else if (route === 'auth/demo-staff') {
-        if (!['admin', 'editor'].includes(body.role)) throw new AppError('دور غير صالح.');
-        setToken = await newSession(body.role);
+        if (!isLocalMode()) throw new AppError('المسار غير موجود.', 404);
+        strictKeys(body, ['role']);
+        if (!['admin', 'editor'].includes(String(body.role))) throw new AppError('دور غير صالح.');
+        setToken = await newSession(body.role as 'admin' | 'editor');
         result = { ok: true };
+      } else if (route.startsWith('admin/security/')) {
+        const staff = role(session, ['admin']);
+        const actor = staff.actor ?? 'demo-admin';
+        const db = await getDb();
+        if (route === 'admin/security/health') {
+          strictKeys(body, []);
+          result = await healthCheck(db, actor);
+        } else if (route === 'admin/security/setup') {
+          strictKeys(body, ['action', 'acknowledgements']);
+          result = await updateSecurity(db, body, actor);
+        } else if (route === 'admin/security/test')
+          result = await new OtpService(db).challenge(body, { ip: requestIp(req), actor }, true);
+        else if (route === 'admin/security/test-verify') {
+          await new OtpService(db).verify(body, { ip: requestIp(req), actor }, true);
+          result = { ok: true };
+        } else if (route === 'admin/security/cleanup') {
+          strictKeys(body, []);
+          await cleanupSecurity(db);
+          result = { ok: true };
+        } else throw new AppError('المسار غير موجود.', 404);
       } else if (route === 'auth/logout') {
         if (token) await revokeSession(token);
         jar.delete(cookieName);
@@ -191,7 +212,7 @@ async function respond(req: NextRequest) {
       jar.set(cookieName, setToken, {
         httpOnly: true,
         sameSite: 'strict',
-        secure: req.nextUrl.protocol === 'https:',
+        secure: isProduction() || req.nextUrl.protocol === 'https:',
         maxAge: 8 * 3600,
         path: '/',
       });
@@ -199,11 +220,20 @@ async function respond(req: NextRequest) {
   } catch (error) {
     if (error instanceof AppError)
       return NextResponse.json(
-        { error: error.message },
-        { status: error.status, headers: { 'Cache-Control': 'no-store' } },
+        { error: error.message, code: error.code, retryAfter: error.retryAfter },
+        {
+          status: error.status,
+          headers: {
+            'Cache-Control': 'no-store',
+            ...(error.retryAfter ? { 'Retry-After': String(error.retryAfter) } : {}),
+          },
+        },
       );
-    console.error('NBC API failure', error instanceof Error ? error.stack : 'Unknown error');
-    return NextResponse.json({ error: 'تعذّر إتمام الطلب. حاول مرة أخرى.' }, { status: 500 });
+    console.error('NBC API failure');
+    return NextResponse.json(
+      { error: 'تعذّر إتمام الطلب. حاول مرة أخرى.' },
+      { status: 500, headers: { 'Cache-Control': 'no-store' } },
+    );
   }
 }
 export const GET = respond;

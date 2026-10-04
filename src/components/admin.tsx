@@ -14,8 +14,9 @@ import {
 import { bookChapters, regions, stages } from '@/lib/content';
 import { tieGroups, type Question } from '@/lib/domain';
 import { AdminAnalytics } from './admin-analytics';
+import { AdminSecurity } from './admin-security';
 import { AdminPrizes } from './admin-prizes';
-import type { PrizeSettings } from '@/lib/prizes';
+import { defaultPrizes, type PrizeSettings } from '@/lib/prizes';
 type Participant = {
   id: string;
   name: string;
@@ -39,6 +40,7 @@ type AdminData = {
   prizes: PrizeSettings;
 };
 const tabs = [
+  { id: 'security', name: 'إعداد التحقق والأمان', icon: 'shield' },
   { id: 'overview', name: 'نظرة عامة', icon: 'chart' },
   { id: 'participants', name: 'المشاركون', icon: 'user' },
   { id: 'analytics', name: 'تحليلات المسابقة', icon: 'chart' },
@@ -48,7 +50,7 @@ const tabs = [
   { id: 'reports', name: 'التقارير', icon: 'download' },
   { id: 'audit', name: 'سجل العمليات', icon: 'clock' },
 ];
-export function Admin() {
+export function Admin({ demo }: { demo: boolean }) {
   const [data, setData] = useState<AdminData | null>(null);
   const [role, setRole] = useState('');
   const [loading, setLoading] = useState(true);
@@ -71,12 +73,25 @@ export function Admin() {
     setData(state);
   }
   useEffect(() => {
-    api<{ session: { role: string } | null }>('session')
+    api<{ session: { role: string } | null }>('admin/session')
       .then(async (s) => {
         if (s.session && ['admin', 'editor'].includes(s.session.role)) {
           setRole(s.session.role);
           if (s.session.role === 'editor') setTab('questions');
-          await load();
+          try {
+            await load();
+          } catch (e) {
+            if (s.session.role !== 'admin') throw e;
+            setData({
+              participants: [],
+              questions: [],
+              audit: [],
+              published: false,
+              prizes: defaultPrizes,
+            });
+            setTab('security');
+            setError('تعذّر تحميل بيانات المسابقة. راجع جاهزية قاعدة البيانات والترحيلات.');
+          }
         }
       })
       .catch((e) => setError(e.message))
@@ -143,22 +158,31 @@ export function Admin() {
             <em>إدارة تستحق الثقة.</em>
           </h1>
           <p>استعرض إدارة المحتوى، ومتابعة المشاركين، واعتماد الدرجات.</p>
-          <div className="simulation-box">
-            <Icon name="shield" />
-            <p>
-              دخول تجريبي محلي ببيانات افتراضية. اختيار الدور هنا مخصص للعرض، ولا يمثّل مصادقة
-              موظفين في نظام إنتاجي.
-            </p>
-          </div>
+          {demo && (
+            <div className="simulation-box">
+              <Icon name="shield" />
+              <p>
+                دخول تجريبي محلي ببيانات افتراضية. اختيار الدور هنا مخصص للعرض، ولا يمثّل مصادقة
+                موظفين في نظام إنتاجي.
+              </p>
+            </div>
+          )}
           <ErrorMessage message={error} />
-          <div className="button-row centered">
-            <button className="button primary" disabled={busy} onClick={() => login('admin')}>
-              دخول عرض اللجنة <Icon />
-            </button>
-            <button className="button outline" disabled={busy} onClick={() => login('editor')}>
-              دخول محرر المحتوى
-            </button>
-          </div>
+          {demo ? (
+            <div className="button-row centered">
+              <button className="button primary" disabled={busy} onClick={() => login('admin')}>
+                دخول عرض اللجنة <Icon />
+              </button>
+              <button className="button outline" disabled={busy} onClick={() => login('editor')}>
+                دخول محرر المحتوى
+              </button>
+            </div>
+          ) : (
+            <p>
+              دخول الموظفين عبر Cloudflare Access مع المصادقة متعددة العوامل. إذا تعذّر الدخول، اطلب
+              من مسؤول النشر إعداد التطبيق وقائمة الموظفين المصرح لهم، ثم أعد فتح هذه الصفحة.
+            </p>
+          )}
           <Link className="text-link" href="/">
             العودة إلى الموقع
           </Link>
@@ -202,7 +226,7 @@ export function Admin() {
               <tr key={p.id}>
                 <td>
                   <strong>{p.name}</strong>
-                  <small>سجل تجريبي</small>
+                  {p.id.startsWith('sample-') && <small>سجل تجريبي</small>}
                 </td>
                 <td>
                   {p.stage.replace('المرحلة ', '')}
@@ -260,12 +284,16 @@ export function Admin() {
             ))}
         </nav>
         <div className="sidebar-bottom">
-          <DemoNote compact />
+          {demo && <DemoNote compact />}
           <Link href="/">
             معاينة الموقع <Icon size={17} />
           </Link>
           <button
             onClick={async () => {
+              if (!demo) {
+                window.location.assign('/cdn-cgi/access/logout');
+                return;
+              }
               await api('auth/logout', {});
               setRole('');
               setData(null);
@@ -279,7 +307,7 @@ export function Admin() {
         <header className="admin-topbar">
           <span>مسابقة الانتماء واللحمة الوطنية</span>
           <div>
-            <span className="status-dot" /> بيانات تجريبية{' '}
+            <span className="status-dot" /> {demo ? 'بيانات تجريبية' : 'جلسة موظف موثقة'}{' '}
             <span className="avatar">{role === 'admin' ? 'ل' : 'م'}</span>
             <DesignToggle />
           </div>
@@ -292,7 +320,9 @@ export function Admin() {
               <p>
                 {tab === 'overview'
                   ? 'صورة واضحة للمشاركة، من البداية إلى الاعتماد.'
-                  : 'المعلومات المعروضة من سجلات العرض التجريبي.'}
+                  : demo
+                    ? 'المعلومات المعروضة من سجلات العرض التجريبي.'
+                    : 'المعلومات المعروضة من سجلات المنصة.'}
               </p>
             </div>
             {role === 'admin' && (
@@ -309,6 +339,7 @@ export function Admin() {
           )}
           {tab === 'analytics' && <AdminAnalytics people={data.participants} />}
           {tab === 'prizes' && <AdminPrizes settings={data.prizes} onSaved={load} />}
+          {tab === 'security' && role === 'admin' && <AdminSecurity />}
           {tab === 'overview' && (
             <>
               <section className="stats-grid">

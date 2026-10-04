@@ -8,3 +8,7 @@ tmp/
 test-results/
 # Licensed font source stays on this device.
 Thmanyah-Font-Family.zip
+
+/public/books/
+/public/pdfjs/
+/tmp-book-*

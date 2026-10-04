@@ -1,6 +1,6 @@
 import { connectDatabase } from '../src/lib/database.ts';
 import { migrate } from '../src/lib/migrations.ts';
-const db = await connectDatabase();
+const db = await connectDatabase({ operator: true });
 try {
   await migrate(db);
   console.log('Database migrations applied.');

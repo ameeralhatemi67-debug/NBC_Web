@@ -2,6 +2,7 @@ import type { NextConfig } from 'next';
 const config: NextConfig = {
   serverExternalPackages: ['@electric-sql/pglite', 'pg'],
   poweredByHeader: false,
+  outputFileTracingIncludes: { '/api/*': ['./public/books/*.pdf'] },
   async headers() {
     return [
       {

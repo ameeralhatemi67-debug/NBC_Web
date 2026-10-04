@@ -1,4 +1,16 @@
 'use client';
+import { AdminCompetition } from './admin-competition';
+import { AdminQuestionBank, QuestionCoverage } from './admin-question-bank';
+import { AdminTestRun } from './admin-test-run';
+import { AdminQuestionCredit } from './admin-question-credit';
+import { AdminRecovery } from './admin-recovery';
+import {
+  stageKeys,
+  stageNames,
+  type Competition,
+  type CompetitionQuestion,
+  type BookVersion,
+} from '@/lib/competition-domain';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -11,8 +23,8 @@ import {
   Loading,
   OrganizationsBar,
 } from './ui';
-import { bookChapters, regions, stages } from '@/lib/content';
-import { tieGroups, type Question } from '@/lib/domain';
+import { regions, stages } from '@/lib/content';
+import { tieGroups } from '@/lib/domain';
 import { AdminAnalytics } from './admin-analytics';
 import { AdminSecurity } from './admin-security';
 import { AdminPrizes } from './admin-prizes';
@@ -34,12 +46,18 @@ type Participant = {
 };
 type AdminData = {
   participants: Participant[];
-  questions: Question[];
+  questions: CompetitionQuestion[];
+  competition?: Competition;
+  book?: BookVersion;
+  history?: Record<string, unknown>[];
   audit: { id: string; action: string; detail: string; actor: string; created_at: string }[];
   published: boolean;
   prizes: PrizeSettings;
 };
 const tabs = [
+  { id: 'competition', name: 'إدارة المسابقة', icon: 'clock' },
+  { id: 'coverage', name: 'تغطية الكتاب', icon: 'book' },
+  { id: 'test-run', name: 'تجربة الإدارة', icon: 'shield' },
   { id: 'security', name: 'إعداد التحقق والأمان', icon: 'shield' },
   { id: 'overview', name: 'نظرة عامة', icon: 'chart' },
   { id: 'participants', name: 'المشاركون', icon: 'user' },
@@ -62,6 +80,7 @@ export function Admin({
   loginFailed?: boolean;
 }) {
   const [data, setData] = useState<AdminData | null>(null);
+  const [dataReady, setDataReady] = useState(false);
   const [role, setRole] = useState('');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -72,7 +91,6 @@ export function Admin({
   const [stage, setStage] = useState('');
   const [region, setRegion] = useState('');
   const [search, setSearch] = useState('');
-  const [editing, setEditing] = useState<Question | null>(null);
   const [notice, setNotice] = useState('');
   const [reminder, setReminder] = useState<{
     recipients: { name: string }[];
@@ -83,6 +101,7 @@ export function Admin({
   async function load() {
     const state = await api<AdminData>('admin');
     setData(state);
+    setDataReady(true);
   }
   useEffect(() => {
     api<{ session: { role: string } | null }>('admin/session')
@@ -94,6 +113,7 @@ export function Admin({
             await load();
           } catch (e) {
             if (s.session.role !== 'admin') throw e;
+            setDataReady(false);
             setData({
               participants: [],
               questions: [],
@@ -130,9 +150,10 @@ export function Admin({
       await api(path, body);
       await load();
       setNotice(message);
-      setEditing(null);
+      return true;
     } catch (e) {
       setError((e as Error).message);
+      return false;
     } finally {
       setBusy(false);
     }
@@ -181,6 +202,7 @@ export function Admin({
             </div>
           )}
           <ErrorMessage message={error} />
+
           {demo ? (
             <div className="button-row centered">
               <button className="button primary" disabled={busy} onClick={() => login('admin')}>
@@ -228,7 +250,9 @@ export function Admin({
   );
   const submitted = data.participants.filter((p) => p.submitted_at);
   const completed = rows.filter((p) => p.submitted_at).length;
-  const ties = tieGroups(data.participants);
+  const ties = stageKeys.flatMap((s) =>
+    tieGroups(data.participants.filter((p) => p.stage === stageNames[s])),
+  );
   const approved = data.questions.filter((q) => q.approved).length;
   const ranked = [...submitted].sort(
     (a, b) => (b.score ?? 0) - (a.score ?? 0) || a.name.localeCompare(b.name, 'ar'),
@@ -291,7 +315,7 @@ export function Admin({
         <span className="sidebar-caption">مساحة اللجنة</span>
         <nav aria-label="لوحة التحكم">
           {tabs
-            .filter((t) => role === 'admin' || t.id === 'questions')
+            .filter((t) => role === 'admin' || ['questions', 'coverage'].includes(t.id))
             .map((t) => (
               <button
                 key={t.id}
@@ -365,13 +389,40 @@ export function Admin({
             )}
           </div>
           <ErrorMessage message={error} />
+          {!dataReady && (
+            <div className="notice" role="status">
+              <p>
+                بيانات المسابقة غير متصلة. إعدادات الجوائز المعروضة افتراضية ولم تُحفظ. يلزم اتصال
+                قاعدة البيانات وتشغيل الترحيلات قبل حفظ التغييرات.
+              </p>
+              <button
+                className="text-link"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  try {
+                    await load();
+                    setError('');
+                  } catch (e) {
+                    setError((e as Error).message);
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                إعادة الاتصال ببيانات المسابقة
+              </button>
+            </div>
+          )}
           {notice && (
             <div role="status" className="success-message">
               {notice}
             </div>
           )}
           {tab === 'analytics' && <AdminAnalytics people={data.participants} />}
-          {tab === 'prizes' && <AdminPrizes settings={data.prizes} onSaved={load} />}
+          {tab === 'prizes' && (
+            <AdminPrizes settings={data.prizes} storageReady={dataReady} onSaved={load} />
+          )}
           {tab === 'security' && role === 'admin' && <AdminSecurity />}
           {tab === 'overview' && (
             <>
@@ -399,7 +450,7 @@ export function Admin({
                     label: 'أسئلة معتمدة',
                     value: `${approved} / ${data.questions.length}`,
                     icon: 'book',
-                    note: 'من النص التجريبي',
+                    note: 'من بنك المسابقة',
                   },
                 ].map((s) => (
                   <div key={s.label} className="stat-card">
@@ -466,7 +517,7 @@ export function Admin({
               </div>
               <section className="panel">
                 <div className="panel-heading">
-                  <h2>المشاركون في العرض</h2>
+                  <h2>{demo ? 'المشاركون في العرض' : 'المشاركون في المسابقة'}</h2>
                   <a className="text-link" href="/api/admin/backup">
                     نسخة احتياطية <Icon name="download" size={17} />
                   </a>
@@ -557,124 +608,34 @@ export function Admin({
               </section>
             </>
           )}
-          {tab === 'questions' && (
-            <>
-              <div className="notice">
-                <Icon name="book" />
-                <span>
-                  ١٠ أسئلة من نص أصلي تجريبي. تعديل السؤال ينشئ إصدارًا غير معتمد؛ المحاولات القائمة
-                  تحتفظ بنسختها الأصلية.
-                </span>
-              </div>
-              <div className="question-bank">
-                {data.questions.map((q, i) => (
-                  <section className="panel bank-item" key={q.id}>
-                    <div className="bank-item-heading">
-                      <span className="small-index">{String(i + 1).padStart(2, '0')}</span>
-                      <div>
-                        <h3>{q.title}</h3>
-                        <p>
-                          {bookChapters.find((c) => c.id === q.source)?.title} · الإصدار {q.version}
-                        </p>
-                      </div>
-                      <span className={`badge ${q.approved ? 'success' : 'warning'}`}>
-                        {q.approved ? 'معتمد' : 'مسودة'}
-                      </span>
-                    </div>
-                    {editing?.id === q.id ? (
-                      <form
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          mutate('admin/question', editing, 'تم حفظ إصدار جديد بانتظار الاعتماد.');
-                        }}
-                      >
-                        <fieldset disabled={busy}>
-                          <label>
-                            نص السؤال
-                            <textarea
-                              value={editing.title}
-                              onChange={(e) => setEditing({ ...editing, title: e.target.value })}
-                              required
-                            />
-                          </label>
-                          <div className="form-grid">
-                            {editing.options.map((o, j) => (
-                              <label key={j}>
-                                الخيار {j + 1}
-                                <input
-                                  value={o}
-                                  required
-                                  onChange={(e) =>
-                                    setEditing({
-                                      ...editing,
-                                      options: editing.options.map((v, k) =>
-                                        k === j ? e.target.value : v,
-                                      ),
-                                    })
-                                  }
-                                />
-                              </label>
-                            ))}
-                          </div>
-                          <label>
-                            الإجابة الصحيحة (للمحررين فقط)
-                            <select
-                              value={editing.correct}
-                              onChange={(e) =>
-                                setEditing({ ...editing, correct: Number(e.target.value) })
-                              }
-                            >
-                              {editing.options.map((_, j) => (
-                                <option key={j} value={j}>
-                                  الخيار {j + 1}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-                          <div className="button-row">
-                            <button className="button primary" type="submit">
-                              حفظ كمسودة
-                            </button>
-                            <button
-                              className="button outline"
-                              type="button"
-                              onClick={() => setEditing(null)}
-                            >
-                              إلغاء
-                            </button>
-                          </div>
-                        </fieldset>
-                      </form>
-                    ) : (
-                      <div className="bank-actions">
-                        <span>المصدر: النص التجريبي · {q.source}</span>
-                        <button
-                          className="text-link"
-                          onClick={() => setEditing({ ...q, options: [...q.options] })}
-                        >
-                          تحرير السؤال
-                        </button>
-                        {!q.approved && role === 'admin' && (
-                          <button
-                            className="button outline small-button"
-                            disabled={busy}
-                            onClick={() =>
-                              mutate(
-                                'admin/question',
-                                { id: q.id, version: q.version, approve: true },
-                                'تم اعتماد السؤال.',
-                              )
-                            }
-                          >
-                            اعتماد السؤال <Icon name="check" size={16} />
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </section>
-                ))}
-              </div>
-            </>
+          {tab === 'competition' && data.competition && data.book && (
+            <AdminCompetition
+              key={data.competition.version + data.competition.id}
+              competition={data.competition}
+              book={data.book}
+              busy={busy}
+              mutate={mutate}
+            />
+          )}
+          {tab === 'questions' && data.book && (
+            <AdminQuestionBank
+              questions={data.questions}
+              canApprove={role === 'admin'}
+              book={data.book}
+              history={data.history ?? []}
+              busy={busy}
+              mutate={mutate}
+            />
+          )}
+          {tab === 'coverage' && data.book && (
+            <QuestionCoverage questions={data.questions} book={data.book} />
+          )}
+          {tab === 'test-run' && role === 'admin' && <AdminTestRun />}
+          {tab === 'participants' && role === 'admin' && (
+            <AdminRecovery participants={data.participants} busy={busy} mutate={mutate} />
+          )}
+          {tab === 'results' && role === 'admin' && (
+            <AdminQuestionCredit questions={data.questions} busy={busy} mutate={mutate} />
           )}
           {tab === 'results' && (
             <>
@@ -683,8 +644,8 @@ export function Admin({
                   <span className="eyebrow">اعتماد الدرجات</span>
                   <h2>{data.published ? 'الدرجات متاحة للمشاركين' : 'الدرجات بانتظار الاعتماد'}</h2>
                   <p>
-                    عند النشر، يرى كل مشارك درجته فقط دون الإجابات الصحيحة. يُحجب النشر تلقائيًا عند
-                    وصول مشاركة جديدة لمراجعتها.
+                    تتحكم سياسة المسابقة في النتيجة الشخصية والترتيب. يتطلب النشر إغلاق المسابقة
+                    وانتهاء مهلة المزامنة والمعالجة التقنية.
                   </p>
                 </div>
                 <button
@@ -693,7 +654,7 @@ export function Admin({
                   onClick={() =>
                     mutate(
                       'admin/publish',
-                      { published: !data.published },
+                      { published: !data.published, version: data.competition?.version },
                       data.published
                         ? 'تم حجب الدرجات.'
                         : 'تم اعتماد نشر الدرجات. اختيار الفائزين يبقى قرارًا منفصلًا.',
@@ -714,8 +675,8 @@ export function Admin({
                 </span>
               </div>
               {ties.map((t) => (
-                <div className="tie-card" key={t.score}>
-                  <strong>درجة متساوية: {t.score} / 10</strong>
+                <div className="tie-card" key={t.ids.join('-')}>
+                  <strong>درجة متساوية: {t.score} / 20</strong>
                   <span>
                     {data.participants
                       .filter((p) => t.ids.includes(p.id))
@@ -730,7 +691,12 @@ export function Admin({
                   <h2>الدرجات المحتسبة</h2>
                   <span className="muted">الترتيب بالدرجة؛ تساويها لا يحدد فائزًا</span>
                 </div>
-                <Table people={ranked} />
+                {stageKeys.map((s) => (
+                  <section key={s}>
+                    <h3>{stageNames[s]}</h3>
+                    <Table people={ranked.filter((p) => p.stage === stageNames[s])} />
+                  </section>
+                ))}
               </section>
             </>
           )}
@@ -754,7 +720,7 @@ export function Admin({
                             ? 'محرر المحتوى'
                             : event.actor === 'system'
                               ? 'النظام'
-                              : 'مشارك تجريبي'}{' '}
+                              : event.actor}{' '}
                         ·{' '}
                         {new Date(event.created_at).toLocaleString('ar-SA', {
                           dateStyle: 'medium',
@@ -768,7 +734,7 @@ export function Admin({
             </section>
           )}
           <div className="admin-footer">
-            نسخة محلية تجريبية · لا تُستخدم بيانات مشاركين حقيقية · الدرجات ليست إعلانًا للفائزين
+            الدرجات لا تمثل إعلان الفائزين. اختيار الجوائز واعتمادها يخضعان للجنة.
           </div>
         </main>
       </div>

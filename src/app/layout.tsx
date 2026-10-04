@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     template: '%s | الانتماء واللحمة الوطنية',
   },
   description:
-    'تصوّر تجريبي لمنصة مسابقة الانتماء واللحمة الوطنية. رحلة قراءة ومشاركة بتجربة عربية معاصرة.',
+    'منصة مسابقة الانتماء واللحمة الوطنية. اقرأ الكتاب وشارك في 20 سؤالًا لمرحلتك التعليمية.',
   robots: { index: false, follow: false },
 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -4,6 +4,8 @@ import { isProduction, isLocalMode } from './runtime';
 import { AppError } from './domain';
 import { seedQuestions } from './seed';
 import { defaultPrizes } from './prizes';
+import { initializeCompetition } from './competition-service';
+import { verifyIdentityKey } from './identity-key';
 const globalDb = globalThis as unknown as { nbcDb?: Promise<Database> };
 export function getDb(): Promise<Database> {
   globalDb.nbcDb ??= initialize().catch((error) => {
@@ -19,6 +21,7 @@ async function initialize() {
       if (!(await migrationsCurrent(db)))
         throw new AppError('نفّذ ترحيلات قاعدة البيانات قبل التشغيل.', 503);
     } else await migrate(db);
+    if (isProduction()) await verifyIdentityKey(db);
   } catch (error) {
     await db.close();
     throw error;
@@ -31,7 +34,7 @@ async function initialize() {
     if (db.kind === 'postgres') await tx.query('SELECT pg_advisory_xact_lock(72831005)');
     const { rows } = await tx.query('SELECT id FROM settings WHERE id = $1', ['initialized']);
     if (rows.length) return;
-    for (const q of seedQuestions)
+    for (const q of isProduction() ? [] : seedQuestions)
       await tx.query('INSERT INTO questions VALUES ($1,$2)', [
         q.id,
         JSON.stringify(isProduction() ? { ...q, approved: false } : q),
@@ -110,5 +113,6 @@ async function initialize() {
       ],
     );
   }
+  await initializeCompetition(db);
   return db;
 }

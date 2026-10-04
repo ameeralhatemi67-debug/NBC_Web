@@ -4551,3 +4551,251 @@ td bdi {
 .security-setup bdi {
   overflow-wrap: anywhere;
 }
+/* Book competition additions */
+.test-run-banner {
+  background: #fff3cc;
+  color: #574516;
+  border: 1px solid #d8b963;
+  padding: 14px 20px;
+  border-radius: 6px;
+  margin-block: 16px;
+  font-weight: 600;
+}
+.competition-grid.with-book {
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+}
+fieldset.answer-options {
+  border: 0;
+  padding: 0;
+  margin: 0 0 22px;
+  min-width: 0;
+}
+.answer-option input {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  accent-color: var(--olive);
+}
+.answer-option:focus-within {
+  outline: 2px solid var(--olive);
+  outline-offset: 3px;
+}
+fieldset:disabled .answer-option {
+  cursor: default;
+}
+.question-tip {
+  flex-wrap: wrap;
+}
+.save-status {
+  font-size: 12px;
+  max-width: 55%;
+}
+.save-status.local {
+  color: #805414;
+}
+.pdf-canvas-container {
+  overflow: auto;
+  max-height: 65vh;
+  padding: 8px;
+  background: #e5e5df;
+  min-height: 200px;
+}
+.pdf-canvas-container canvas {
+  display: block;
+  margin: auto;
+  max-width: none;
+  background: white;
+}
+.pdf-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+.pdf-navigation input {
+  width: 72px;
+  min-width: 0;
+  padding: 6px;
+}
+.pdf-navigation .button {
+  min-height: 44px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+.reader [role='status'] {
+  text-align: center;
+  min-height: 24px;
+}
+.reader-toolbar strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.admin-panel {
+  padding: 28px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  margin-block: 20px;
+  min-width: 0;
+}
+.admin-panel label,
+.test-controls label {
+  display: flex;
+  gap: 8px;
+  flex-direction: column;
+  margin-block: 10px;
+}
+.admin-panel label:has(input[type='checkbox']),
+.test-controls label:has(input[type='checkbox']),
+.editor-option label:has(input[type='radio']) {
+  flex-direction: row;
+  align-items: center;
+}
+.admin-panel input[type='checkbox'],
+.admin-panel input[type='radio'],
+.test-controls input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+}
+.admin-panel textarea {
+  min-height: 100px;
+  width: 100%;
+}
+.competition-settings,
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.competition-settings .button {
+  align-self: end;
+}
+.checksum,
+.version-history {
+  display: block;
+  overflow: auto;
+  direction: ltr;
+  text-align: left;
+  font-size: 12px;
+  max-width: 100%;
+}
+.admin-actions {
+  margin-block: 20px;
+  flex-wrap: wrap;
+}
+.editor-option {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.editor-option label:first-child {
+  flex: 1;
+}
+.question-editor {
+  padding: 24px;
+  margin-block: 20px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+.question-admin-list {
+  display: grid;
+  gap: 16px;
+  margin-block: 20px;
+}
+.question-admin-card {
+  border: 1px solid var(--line);
+  padding: 20px;
+  border-radius: 6px;
+}
+.admin-book-preview {
+  max-width: 750px;
+  margin-block: 20px;
+}
+.coverage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+  margin-block: 20px;
+}
+.coverage-cell {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  border: 1px solid var(--line);
+  min-height: 90px;
+  gap: 6px;
+  overflow-wrap: anywhere;
+}
+.coverage-cell.covered {
+  background: #e4e9da;
+}
+.coverage-cell.crowded {
+  background: #fff3cc;
+}
+.test-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.admin-test-area {
+  min-width: 0;
+}
+.admin-test-area .competition-heading {
+  max-width: none;
+}
+.leaderboard {
+  text-align: right;
+  margin-block: 30px;
+}
+@media (max-width: 900px) {
+  .competition-grid.with-book {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pdf-canvas-container {
+    max-height: none;
+    flex: 1;
+  }
+  .competition-settings,
+  .field-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .admin-panel {
+    padding: 18px;
+  }
+}
+@media (max-width: 480px) {
+  .question-toolbar {
+    flex-wrap: wrap;
+    padding: 16px;
+    gap: 8px;
+  }
+  .question-body {
+    padding: 20px;
+  }
+  .editor-option {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+  .test-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+.question-body .answer-option {
+  flex-direction: row;
+  cursor: pointer;
+}
+.question-body .answer-option input {
+  margin: 0;
+}
+.question-body .notice {
+  display: block;
+}
+.question-body .notice p {
+  margin-top: 8px;
+}

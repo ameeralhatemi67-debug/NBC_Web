@@ -43,7 +43,7 @@ export default function Book() {
               sizes="(max-width: 760px) 220px, 280px"
             />
             <p className="muted">٦٦ صفحة · PDF · ٨ ميغابايت تقريبًا</p>
-            <p>يمكنك الرجوع إلى الكتاب أثناء الإجابة، ومراجعة اختياراتك قبل إرسال المشاركة.</p>
+            <p>يمكنك الرجوع إلى الكتاب أثناء الإجابة، وتثبيت إجاباتك بعد القراءة.</p>
             <Link className="text-link" href="/participate">
               إلى مساحة المشاركة <Icon />
             </Link>
@@ -85,14 +85,7 @@ export default function Book() {
             </details>
           </section>
         </div>
-        <details className="sample-reading">
-          <summary>نصوص الأسئلة التجريبية</summary>
-          <p>
-            أسئلة العرض الحالي مرتبطة بهذه النصوص الأصلية التجريبية. تُستبدل بعد اعتماد بنك أسئلة
-            الكتاب من اللجنة.
-          </p>
-          <BookReader />
-        </details>
+        <BookReader />
       </main>
       <Footer />
     </>

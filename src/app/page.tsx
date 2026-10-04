@@ -5,6 +5,7 @@ import { Header, Footer, Icon, Reveal, OrganizationsBar } from '@/components/ui'
 import { faqs } from '@/lib/content';
 import { connection } from 'next/server';
 import { readPrizes } from '@/lib/service';
+import { isLocalMode } from '@/lib/runtime';
 export default async function Home() {
   await connection();
   // Public information must remain readable while the production database is being configured.
@@ -189,7 +190,9 @@ export default async function Home() {
               ابدأ المشاركة <Icon />
             </Link>
             <p className="closing-note">
-              عرض تجريبي · المواعيد النهائية بانتظار اعتماد الجهة المنظمة
+              {isLocalMode()
+                ? 'عرض محلي بمحتوى اصطناعي للاختبار'
+                : 'تُتاح المشاركة خلال فترة المسابقة التي تعتمدها الجهة المنظمة'}
             </p>
           </Reveal>
         </section>

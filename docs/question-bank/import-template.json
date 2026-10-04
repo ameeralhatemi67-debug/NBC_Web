@@ -1,0 +1,21 @@
+[
+  {
+    "id": "format_example_middle_01",
+    "title": "مثال اصطناعي لشرح صيغة الاستيراد فقط: اختر الخيار الأول",
+    "stage": "middle",
+    "type": "single_choice",
+    "options": ["الخيار الأول التجريبي", "الخيار الثاني التجريبي"],
+    "correctAnswers": [0],
+    "pdfPage": 29,
+    "printedPage": 27,
+    "hintPdfPageStart": 28,
+    "hintPdfPageEnd": 29,
+    "source": "مثال تنسيق غير صالح للمسابقة الرسمية",
+    "sourceExcerpt": "مثال اصطناعي؛ لا يمثل اقتباسًا من الكتاب",
+    "answerExplanation": "هذا مثال للحقول فقط، وليس سؤالًا معتمدًا من الكتاب.",
+    "topic": "مثال تنسيق",
+    "difficulty": "easy",
+    "active": true,
+    "fixture": true
+  }
+]

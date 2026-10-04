@@ -33,6 +33,8 @@ export function configFingerprint() {
       JSON.stringify(
         [
           'DATABASE_URL',
+          'NBC_DATABASE_SCHEMA',
+          'NBC_SUPABASE_PROJECT_REF',
           'NBC_RUNTIME_MODE',
           'OTP_PROVIDER',
           'UNIFONIC_APP_SID',

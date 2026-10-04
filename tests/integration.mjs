@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { spawn, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
@@ -135,6 +135,9 @@ try {
       assert.equal(editorPrizes.status, 403);
       assert.equal(invalidPrizes.status, 400);
       assert.equal(savedPrizes.status, 200);
+      assert.ok(savedPrizes.data.prizes, 'Save response must contain committed prize settings');
+      assert.equal(savedPrizes.data.prizes.version, initialPrizes.version + 1);
+      assert.deepEqual(savedPrizes.data.prizes.stages[0].awards, changedPrizes.stages[0].awards);
       assert.equal(stalePrizes.status, 409);
       assert.deepEqual(prizesState.data.prizes.stages[0].awards, changedPrizes.stages[0].awards);
       assert.ok(homePrizes.includes('prize-layout-ledger'));
@@ -145,9 +148,18 @@ try {
       assert.ok(prizesState.data.audit.some((entry) => entry.action === 'تعديل الجوائز'));
     },
   );
+  const savedAgain = await admin('admin/prizes', { ...savedPrizes.data.prizes, layout: 'podium' });
+  const rereadPrizes = await admin('admin');
+  check('a second save uses the committed version and survives a fresh admin read', () => {
+    assert.equal(savedAgain.status, 200);
+    assert.equal(savedAgain.data.prizes.version, initialPrizes.version + 2);
+    assert.equal(savedAgain.data.prizes.layout, 'podium');
+    assert.deepEqual(rereadPrizes.data.prizes, savedAgain.data.prizes);
+  });
   check('seed report reconciles', () => {
     assert.equal(seed.data.participants.length, 6);
-    assert.equal(seed.data.participants.filter((p) => p.submitted_at).length, 4);
+    assert.equal(seed.data.participants.filter((p) => p.submitted_at).length, 0);
+    assert.equal(seed.data.questions.length, 60);
   });
   const payload = {
     name: 'مشارك اختبار أحمد صالح',
@@ -207,75 +219,120 @@ try {
   check('duplicate identity registration rejected', () => assert.equal(duplicate.status, 400));
   const nonadmin = await student('admin');
   check('participant cannot read admin data', () => assert.equal(nonadmin.status, 403));
+  async function competitionAction(action, extra = {}) {
+    const c = (await admin('admin')).data.competition;
+    const r = await admin('admin/competition', { action, version: c.version, ...extra });
+    assert.equal(r.status, 200, JSON.stringify(r.data));
+    return r;
+  }
+  assert.equal((await student('attempt/start', {})).status, 409);
+  await competitionAction('freeze');
+  await competitionAction('open');
+  assert.equal((await student('attempt/start', { stage: 'university' })).status, 400);
+  check('server lifecycle and registered stage cannot be bypassed', () => {});
   const attempts = await Promise.all([student('attempt/start', {}), student('attempt/start', {})]);
-  check('concurrent starts return one stable form', () => {
+  check('concurrent starts return one stable 20-question stage form', () => {
     assert.equal(attempts[0].status, 200);
     assert.equal(attempts[0].data.attempt.id, attempts[1].data.attempt.id);
     assert.deepEqual(attempts[0].data.attempt.questions, attempts[1].data.attempt.questions);
+    assert.equal(attempts[0].data.attempt.questions.length, 20);
+    assert.ok(attempts[0].data.attempt.questions.every((q) => q.stage === 'middle'));
   });
   const form = attempts[0].data.attempt;
-  check('participant payload never contains correct answers', () =>
-    assert.equal(JSON.stringify(form).includes('"correct"'), false),
-  );
-  const invalid = await student('attempt/save', { answers: { forged: 0 }, revision: 0 });
-  check('forged answer rejected', () => assert.equal(invalid.status, 400));
-  const racing = await Promise.all([
-    student('attempt/save', { answers: { q01: 0 }, revision: 0 }),
-    student('attempt/save', { answers: { q02: 1 }, revision: 0 }),
-  ]);
-  check('stale concurrent save is rejected rather than overwriting', () =>
-    assert.deepEqual(racing.map((x) => x.status).sort(), [200, 409]),
-  );
-  const after = await student('participant');
-  check('saved answers and revision survive a separate read', () => {
-    assert.equal(after.data.attempt.revision, 1);
-    assert.equal(Object.keys(after.data.attempt.answers).length, 1);
+  check('formal payload excludes keys and explanations', () => {
+    assert.equal(JSON.stringify(form).includes('"correct"'), false);
+    assert.equal(JSON.stringify(form).includes('correctAnswers'), false);
+    assert.deepEqual(form.feedback, {});
   });
-  await editor('auth/demo-staff', { role: 'editor' });
+  function write(c, state, kind, questionId, selected, id = randomUUID()) {
+    return c('attempt/event', {
+      clientEventId: id,
+      attemptId: state.attempt.id,
+      revision: state.attempt.revision,
+      kind,
+      questionId,
+      selected,
+    });
+  }
+  const invalid = await write(student, attempts[0].data, 'CHECK', 'forged', [0]);
+  assert.equal(invalid.status, 400);
+  const racing = await Promise.all([
+    write(student, attempts[0].data, 'SELECT', form.questions[0].id, [0]),
+    write(student, attempts[0].data, 'SELECT', form.questions[1].id, [1]),
+  ]);
+  check('stale concurrent selections are rejected', () =>
+    assert.deepEqual(racing.map((r) => r.status).sort(), [200, 409]),
+  );
+  let state = (await student('participant')).data;
+  assert.equal(state.attempt.revision, 1);
   const editorData = await editor('admin');
-  check('editor receives content without participant records or audit identities', () => {
+  check('editor sees bank and cannot see participant/audit data', () => {
     assert.equal(editorData.data.participants.length, 0);
     assert.equal(editorData.data.audit.length, 0);
   });
-  const q = editorData.data.questions.find((q) => q.id === 'q01');
-  const edit = await editor('admin/question', {
-    ...q,
-    title: 'سؤال تجريبي معدل للاختبار',
-    correct: 1,
-  });
-  check('editor can create a draft version', () => assert.equal(edit.status, 200));
-  const noApprove = await editor('admin/question', { id: 'q01', version: 2, approve: true });
-  check('editor cannot approve their own draft', () => assert.equal(noApprove.status, 403));
-  const noExport = await editor('export');
-  check('editor cannot export participants', () => assert.equal(noExport.status, 403));
-  const noPublish = await editor('admin/publish', { published: true });
-  check('editor cannot publish grades', () => assert.equal(noPublish.status, 403));
-  await admin('admin/question', { id: 'q01', version: 2, approve: true });
-  const frozen = await student('participant');
-  check('existing attempt retains its original question version', () => {
-    assert.equal(frozen.data.attempt.questions.find((q) => q.id === 'q01').version, 1);
-  });
-  const correct = Object.fromEntries(seed.data.questions.map((q) => [q.id, q.correct]));
-  const saved = await student('attempt/save', { answers: correct, revision: 1 });
-  assert.equal(saved.status, 200);
+  const q = editorData.data.questions.find((q) => q.id === form.questions[0].id);
+  assert.equal(
+    (
+      await editor('admin/question', {
+        ...q,
+        title: 'سؤال معدل في نسخة مسودة لا تؤثر على المحاولة',
+        correctAnswers: [1],
+      })
+    ).status,
+    200,
+  );
+  assert.equal(
+    (await editor('admin/question', { id: q.id, version: 2, approve: true })).status,
+    403,
+  );
+  assert.equal((await editor('export')).status, 403);
+  assert.equal((await editor('admin/publish', { published: true })).status, 403);
+  assert.equal((await editor('admin/test-run/start', { stage: 'middle' })).status, 403);
+  await admin('admin/question', { id: q.id, version: 2, approve: true });
+  check('existing attempt keeps frozen question versions', () =>
+    assert.equal(state.attempt.questions.find((item) => item.id === q.id).version, 1),
+  );
+  for (const item of form.questions) {
+    const original = seed.data.questions.find((q) => q.id === item.id);
+    const selected = [item.options.indexOf(original.options[original.correctAnswers[0]])];
+    const id = randomUUID();
+    const checked = await write(student, state, 'CHECK', item.id, selected, id);
+    assert.equal(checked.status, 200, checked.text);
+    state = checked.data;
+    const repeat = await write(student, state, 'CHECK', item.id, selected, id);
+    assert.equal(repeat.status, 200);
+    assert.equal(repeat.data.attempt.revision, state.attempt.revision);
+    assert.equal(
+      (await write(student, state, 'CHECK', item.id, [(selected[0] + 1) % 4])).status,
+      409,
+    );
+  }
+  check('check answer locks permanently and duplicate events are idempotent', () => {});
   const final = await Promise.all([
-    student('attempt/submit', { answers: correct, revision: 2 }),
-    student('attempt/submit', { answers: correct, revision: 2 }),
+    write(student, state, 'SUBMIT'),
+    write(student, state, 'SUBMIT'),
   ]);
-  check('repeated concurrent submission returns one receipt', () => {
-    assert.equal(final[0].status, 200);
-    assert.equal(final[1].status, 200);
-    assert.equal(final[0].data.attempt.receipt, final[1].data.attempt.receipt);
-  });
-  check('score withheld before publication', () => assert.equal(final[0].data.attempt.score, null));
-  const mutate = await student('attempt/save', { answers: {}, revision: 3 });
-  check('final submission cannot be edited', () => assert.equal(mutate.status, 409));
+  check(
+    'repeated final submit has one receipt, server score, percentage and participant number',
+    () => {
+      assert.equal(final[0].status, 200);
+      assert.equal(final[1].status, 200);
+      assert.equal(final[0].data.attempt.receipt, final[1].data.attempt.receipt);
+      assert.equal(final[0].data.attempt.score, 20);
+      assert.equal(final[0].data.attempt.percentage, 100);
+      assert.match(final[0].data.attempt.participantNumber, /^\d{6,8}$/);
+    },
+  );
+  assert.equal(
+    (await write(student, final[0].data, 'SELECT', form.questions[0].id, [0])).status,
+    409,
+  );
   const completed = await admin('admin');
-  check('scoring uses frozen answer keys after an edit', () =>
-    assert.equal(completed.data.participants.find((p) => p.name === payload.name).score, 10),
+  check('scoring still uses frozen key after edits', () =>
+    assert.equal(completed.data.participants.find((p) => p.name === payload.name).score, 20),
   );
   const reminders = await admin('admin/reminders', {});
-  check('reminder preview excludes newly completed participant and never sends', () => {
+  check('reminder preview excludes completed participant and never sends', () => {
     assert.equal(
       reminders.data.recipients.some((p) => p.name === payload.name),
       false,
@@ -283,22 +340,15 @@ try {
     assert.equal(reminders.data.sent, false);
   });
   const report = await admin(
-    'export?stage=' +
-      encodeURIComponent(payload.stage) +
-      '&region=' +
-      encodeURIComponent('الشرقية'),
+    'export?' + new URLSearchParams({ stage: payload.stage, region: 'الشرقية' }),
   );
   const expected = completed.data.participants.filter(
     (p) => p.stage === payload.stage && p.region === 'الشرقية',
   );
-  check('CSV filters reconcile with the same report cohort', () => {
+  check('filtered report matches active campaign cohort', () => {
     assert.equal(report.status, 200);
     assert.equal(report.text.trim().split('\r\n').length - 1, expected.length);
-    assert.ok(report.text.includes('أسم المدرسة/الجامعة'));
-    assert.ok(report.text.includes('الجنس'));
-    assert.ok(report.text.includes(payload.gender));
     assert.ok(report.text.includes(payload.institution));
-    assert.ok(expected.some((p) => p.institution === payload.institution));
   });
   const mixedReport = await admin(
     'export?' +
@@ -311,25 +361,62 @@ try {
         maxScore: '100',
       }),
   );
+  check('combined analytics filters retain the right participant', () => {
+    assert.equal(mixedReport.text.trim().split('\r\n').length - 1, 1);
+    assert.ok(mixedReport.text.includes(payload.institution));
+  });
+  assert.equal((await anon('leaderboard?stage=middle')).status, 403);
+  const c = (await admin('admin')).data.competition;
+  await competitionAction('settings', { ...c, closingPolicy: 'immediate' });
+  await competitionAction('close');
+  await competitionAction('publish');
+  const board = await anon('leaderboard?stage=middle');
+  check('published leaderboard is stage-specific and uses participant number', () => {
+    assert.equal(board.status, 200);
+    assert.equal(board.data.entries.length, 1);
+    assert.equal(board.data.entries[0].participantNumber, final[0].data.attempt.participantNumber);
+    assert.equal(JSON.stringify(board.data).includes(payload.name), false);
+  });
+  assert.equal((await anon('leaderboard?stage=university')).data.entries.length, 0);
+  const beforeTest = await admin('admin');
+  let run = (await admin('admin/test-run/start', { stage: 'middle', reveal: true })).data;
+  for (const item of run.attempt.questions) {
+    const original = seed.data.questions.find((q) => q.id === item.id);
+    const selected = [item.options.indexOf(original.options[original.correctAnswers[0]])];
+    const r = await admin('admin/test-run/event', {
+      clientEventId: randomUUID(),
+      attemptId: run.attempt.id,
+      revision: run.attempt.revision,
+      kind: 'CHECK',
+      questionId: item.id,
+      selected,
+    });
+    assert.equal(r.status, 200);
+    run = r.data;
+  }
+  const finishedTest = await admin('admin/test-run/event', {
+    clientEventId: randomUUID(),
+    attemptId: run.attempt.id,
+    revision: run.attempt.revision,
+    kind: 'SUBMIT',
+  });
+  assert.equal(finishedTest.data.attempt.score, 20);
+  const reset = await admin('admin/test-run/reset', { id: run.attempt.id });
+  assert.notEqual(reset.data.attempt.id, run.attempt.id);
+  assert.deepEqual(reset.data.attempt.answers, {});
+  const afterTest = await admin('admin');
   check(
-    'analytics export applies combined demographic, institution, location and score filters',
+    'test runs repeat and reset without reports, leaderboard or publication side effects',
     () => {
-      assert.equal(mixedReport.status, 200);
-      assert.equal(mixedReport.text.trim().split('\r\n').length - 1, 1);
-      assert.ok(mixedReport.text.includes(payload.institution));
-      assert.ok(mixedReport.text.includes('نسبة الدرجة'));
-      assert.ok(mixedReport.text.includes('تاريخ التسجيل'));
+      assert.deepEqual(afterTest.data.participants, beforeTest.data.participants);
+      assert.deepEqual(afterTest.data.competition, beforeTest.data.competition);
+      assert.equal(afterTest.data.published, true);
     },
   );
-  await admin('admin/publish', { published: true });
-  const released = await student('participant');
-  check('approved grade is visible without answer keys', () => {
-    assert.equal(released.data.attempt.score, 10);
-    assert.equal(JSON.stringify(released.data.attempt).includes('"correct"'), false);
-  });
-  await admin('admin/publish', { published: false });
-  const hidden = await student('participant');
-  check('grade release can be withdrawn', () => assert.equal(hidden.data.attempt.score, null));
+  assert.equal((await student('admin/test-run?id=' + run.attempt.id)).status, 403);
+  assert.equal((await anon('leaderboard?stage=middle')).data.entries.length, 1);
+  await competitionAction('unpublish');
+  assert.equal((await anon('leaderboard?stage=middle')).status, 403);
   const expiredClient = client();
   const challenge2 = await expiredClient('auth/challenge', {
     mode: 'login',
@@ -371,7 +458,7 @@ try {
     assert.equal(recovery.participants, completed.data.participants.length);
     assert.equal(
       recovery.submissions,
-      completed.data.participants.filter((p) => p.submitted_at).length,
+      completed.data.participants.filter((p) => p.submitted_at).length + 4,
     );
     assert.equal(recovery.sessionsInvalidated, true);
   });

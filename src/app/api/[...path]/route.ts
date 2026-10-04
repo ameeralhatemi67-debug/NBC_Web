@@ -1,3 +1,6 @@
+import { CompetitionService } from '@/lib/competition-service';
+import { backendReadiness } from '@/lib/backend-readiness';
+import type { Stage, WriteEvent } from '@/lib/competition-domain';
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getDb } from '@/lib/db';
@@ -57,15 +60,39 @@ async function respond(req: NextRequest) {
       else if (route === 'admin/security') {
         role(session, ['admin']);
         result = await readiness(await getDb().catch(() => null));
+      } else if (route === 'admin/backend') {
+        role(session, ['admin']);
+        result = await backendReadiness(await getDb());
       } else if (route === 'participant')
-        result = await participantState(role(session, ['participant']));
+        result = await participantState(
+          role(session, ['participant']),
+          req.nextUrl.searchParams.get('competitionId') ?? undefined,
+        );
       else if (route === 'admin') {
         const staff = role(session, ['admin', 'editor']);
-        const state = await adminState();
+        const state = {
+          ...(await adminState()),
+          ...(await new CompetitionService(await getDb()).admin(staff)),
+        };
         result =
           staff.role === 'editor'
             ? { ...state, participants: [], audit: [], published: false }
             : state;
+      } else if (route === 'leaderboard') {
+        result = await new CompetitionService(await getDb()).leaderboard(
+          req.nextUrl.searchParams.get('competitionId') ?? undefined,
+          req.nextUrl.searchParams.get('stage') as Stage,
+        );
+      } else if (route === 'admin/test-run/leaderboard') {
+        result = await new CompetitionService(await getDb()).testLeaderboard(
+          role(session, ['admin']),
+          req.nextUrl.searchParams.get('id') ?? '',
+        );
+      } else if (route === 'admin/test-run') {
+        result = await new CompetitionService(await getDb()).testState(
+          role(session, ['admin']),
+          req.nextUrl.searchParams.get('id') ?? '',
+        );
       } else if (route === 'admin/backup') {
         role(session, ['admin']);
         const db = await getDb();
@@ -91,7 +118,7 @@ async function respond(req: NextRequest) {
         const rows = filterParticipants(state.participants, filters);
         const csv = [
           [
-            'الاسم (بيانات افتراضية)',
+            isLocalMode() ? 'الاسم (بيانات افتراضية)' : 'الاسم',
             'المرحلة',
             'أسم المدرسة/الجامعة',
             'الجنس',
@@ -124,7 +151,7 @@ async function respond(req: NextRequest) {
         return new NextResponse('\uFEFF' + csv, {
           headers: {
             'Content-Type': 'text/csv; charset=utf-8',
-            'Content-Disposition': 'attachment; filename="nbc-demo-report.csv"',
+            'Content-Disposition': `attachment; filename="${isLocalMode() ? 'nbc-demo-report' : 'nbc-report'}.csv"`,
             'Cache-Control': 'no-store',
           },
         });
@@ -168,40 +195,76 @@ async function respond(req: NextRequest) {
         if (token) await revokeSession(token);
         jar.delete(cookieName);
         result = { ok: true };
-      } else if (route === 'attempt/start')
+      } else if (route === 'attempt/start') {
+        strictKeys(body, []);
         result = await startAttempt(role(session, ['participant']));
-      else if (route === 'attempt/save')
+      } else if (route === 'attempt/save') {
+        strictKeys(body, [
+          'clientEventId',
+          'attemptId',
+          'kind',
+          'questionId',
+          'selected',
+          'revision',
+        ]);
         result = await changeAttempt(role(session, ['participant']), body);
-      else if (route === 'attempt/submit')
-        result = await changeAttempt(role(session, ['participant']), body, true);
+      } else if (route === 'attempt/event' || route === 'attempt/submit') {
+        strictKeys(body, [
+          'clientEventId',
+          'attemptId',
+          'kind',
+          'questionId',
+          'selected',
+          'revision',
+        ]);
+        result = await changeAttempt(role(session, ['participant']), body);
+      } else if (route === 'admin/competition')
+        result = await new CompetitionService(await getDb()).configure(
+          role(session, ['admin']),
+          body,
+        );
+      else if (route === 'admin/question-credit') {
+        await new CompetitionService(await getDb()).creditInvalidQuestion(
+          role(session, ['admin']),
+          body,
+        );
+        result = { ok: true };
+      } else if (route === 'admin/recovery') {
+        await new CompetitionService(await getDb()).recover(role(session, ['admin']), body);
+        result = { ok: true };
+      } else if (route === 'admin/test-run/start')
+        result = await new CompetitionService(await getDb()).startTest(
+          role(session, ['admin']),
+          body,
+        );
+      else if (route === 'admin/test-run/reset')
+        result = await new CompetitionService(await getDb()).resetTest(
+          role(session, ['admin']),
+          String(body.id),
+        );
+      else if (route === 'admin/test-run/event')
+        result = await new CompetitionService(await getDb()).write(
+          role(session, ['admin']),
+          body as unknown as WriteEvent,
+          true,
+        );
       else if (route === 'admin/question') {
         await updateQuestion(role(session, ['admin', 'editor']), body);
         result = { ok: true };
       } else if (route === 'admin/prizes') {
-        role(session, ['admin']);
-        await updatePrizes(body);
-        result = { ok: true };
+        const staff = role(session, ['admin']);
+        result = { prizes: await updatePrizes(body, staff.actor ?? 'admin') };
       } else if (route === 'admin/publish') {
-        role(session, ['admin']);
-        const db = await getDb();
-        await db.transaction(async (tx) => {
-          await tx.query('UPDATE settings SET value=$1 WHERE id=$2', [
-            JSON.stringify(body.published === true),
-            'published',
-          ]);
-          await tx.query('INSERT INTO audit (actor,action,detail) VALUES ($1,$2,$3)', [
-            'admin',
-            body.published ? 'نشر الدرجات' : 'حجب الدرجات',
-            'اعتماد الدرجات فقط؛ اختيار الفائزين وحالات التعادل قيد قرار اللجنة.',
-          ]);
+        result = await new CompetitionService(await getDb()).configure(role(session, ['admin']), {
+          ...body,
+          action: body.published === true ? 'publish' : 'unpublish',
         });
-        result = { ok: true };
       } else if (route === 'admin/reminders') {
         role(session, ['admin']);
         const db = await getDb();
         const rows = (
           await db.query(
-            'SELECT p.name FROM participants p LEFT JOIN attempts a ON a.participant_id=p.id WHERE a.submitted_at IS NULL ORDER BY p.name',
+            "SELECT p.name FROM participants p LEFT JOIN attempts a ON a.participant_id=p.id AND a.competition_id=(SELECT value #>> '{}' FROM settings WHERE id='current_competition') WHERE a.submitted_at IS NULL ORDER BY p.name",
           )
         ).rows;
         result = {

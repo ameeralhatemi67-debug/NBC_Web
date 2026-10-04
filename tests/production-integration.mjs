@@ -231,19 +231,56 @@ try {
   assert.equal((await student('session')).data.session.role, 'participant');
   check('refresh and navigation reuse the verified session');
   assert.equal((await student('attempt/start', {})).status, 409);
-  const questions = (await admin('admin')).data.questions;
-  for (const q of questions)
-    assert.equal(
-      (await admin('admin/question', { id: q.id, version: q.version, approve: true })).status,
-      200,
-    );
+  const initialCompetition = (await admin('admin')).data.competition;
+  for (const stage of ['middle', 'highschool', 'university'])
+    for (let i = 0; i < 20; i++) {
+      const q = {
+        id: `prod-test-${stage}-${i}`,
+        version: 0,
+        title: `Isolated production HTTP test ${stage} ${i}`,
+        stage,
+        type: 'single_choice',
+        options: ['A', 'B', 'C', 'D'],
+        correctAnswers: [0],
+        pdfPage: 8 + i,
+        printedPage: 6 + i,
+        hintPdfPageStart: 7 + i,
+        hintPdfPageEnd: 8 + i,
+        answerExplanation: 'Isolated automated test data',
+        topic: 'test',
+        difficulty: 'easy',
+        sourceExcerpt: 'Synthetic data in disposable test database; not real competition content.',
+        active: true,
+      };
+      const added = await admin('admin/question', q);
+      assert.equal(added.status, 200, JSON.stringify(added.data));
+      assert.equal(
+        (await admin('admin/question', { id: q.id, version: 1, approve: true })).status,
+        200,
+      );
+    }
+  async function action(action) {
+    const c = (await admin('admin')).data.competition;
+    const r = await admin('admin/competition', { action, version: c.version });
+    assert.equal(r.status, 200, JSON.stringify(r.data));
+  }
+  await action('approve-book');
+  await action('freeze');
+  await action('open');
   const attempt = await student('attempt/start', {});
   assert.equal(attempt.status, 200);
-  const answers = { [attempt.data.attempt.questions[0].id]: 0 };
-  assert.equal(
-    (await student('attempt/save', { answers, revision: attempt.data.attempt.revision })).status,
-    200,
-  );
+  assert.equal(attempt.data.attempt.questions.length, 20);
+  const questionId = attempt.data.attempt.questions[0].id;
+  const saved = await student('attempt/event', {
+    clientEventId: 'production-save-0001',
+    attemptId: attempt.data.attempt.id,
+    kind: 'CHECK',
+    questionId,
+    selected: [0],
+    revision: 0,
+  });
+  assert.equal(saved.status, 200);
+  const answers = saved.data.attempt.answers;
   await student('auth/logout', {});
   assert.equal((await student('participant')).status, 401);
   const login = await student('auth/challenge', {

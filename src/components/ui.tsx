@@ -348,11 +348,16 @@ export class ApiError extends Error {
     message: string,
     public code?: string,
     public retryAfter?: number,
+    public status?: number,
   ) {
     super(message);
   }
 }
-export async function api<T = Record<string, unknown>>(path: string, body?: unknown): Promise<T> {
+export async function api<T = Record<string, unknown>>(
+  path: string,
+  body?: unknown,
+  signal?: AbortSignal,
+): Promise<T> {
   let response: Response;
   try {
     response = await fetch(
@@ -362,8 +367,9 @@ export async function api<T = Record<string, unknown>>(path: string, body?: unkn
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
+            signal,
           }
-        : { cache: 'no-store' },
+        : { cache: 'no-store', signal },
     );
   } catch {
     throw new Error('تعذّر الاتصال. تحقق من الاتصال ثم أعد المحاولة.');
@@ -372,6 +378,11 @@ export async function api<T = Record<string, unknown>>(path: string, body?: unkn
     throw new Error('الخدمة غير متاحة مؤقتًا. أعد المحاولة بعد قليل.');
   const data = await response.json();
   if (!response.ok)
-    throw new ApiError(data.error ?? 'تعذّر الاتصال. حاول مرة أخرى.', data.code, data.retryAfter);
+    throw new ApiError(
+      data.error ?? 'تعذّر الاتصال. حاول مرة أخرى.',
+      data.code,
+      data.retryAfter,
+      response.status,
+    );
   return data;
 }

@@ -14,7 +14,10 @@
     "db:migrate": "tsx scripts/migrate.mjs",
     "db:cleanup": "tsx scripts/cleanup.mjs",
     "test:postgres": "node tests/postgres.mjs",
-    "test:admin-access": "node tests/admin-access.mjs"
+    "test:admin-access": "node tests/admin-access.mjs",
+    "prebuild": "node scripts/prepare-book.mjs",
+    "predev": "node scripts/prepare-book.mjs",
+    "questions:import": "tsx scripts/import-questions.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "0.5.8",
@@ -24,6 +27,7 @@
     "motion": "13.2.0",
     "next": "16.3.8",
     "openid-client": "6.8.8",
+    "pdfjs-dist": "6.4.299",
     "pg": "8.23.1",
     "react": "19.2.8",
     "react-dom": "19.2.8"
@@ -34,6 +38,7 @@
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
     "embedded-postgres": "18.4.0-beta.17",
+    "fake-indexeddb": "6.2.5",
     "prettier": "3.9.6",
     "tsx": "4.23.13",
     "typescript": "7.0.2"

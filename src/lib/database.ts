@@ -4,6 +4,7 @@ import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { AppError } from './domain';
 import { isProduction, requireLocalMode } from './runtime';
+import { postgresPoolConfig } from './database-config';
 
 export interface Queryable {
   query<T = Record<string, unknown>>(sql: string, params?: unknown[]): Promise<{ rows: T[] }>;
@@ -17,12 +18,9 @@ export interface Database extends Queryable {
 }
 export async function connectDatabase(): Promise<Database> {
   if (process.env.DATABASE_URL) {
-    const pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      max: 10,
-      connectionTimeoutMillis: 5000,
-      idleTimeoutMillis: 30000,
-    });
+    const pool = new Pool(
+      postgresPoolConfig(process.env.DATABASE_URL, process.env.DATABASE_SSL_CA),
+    );
     pool.on('error', () => console.error('NBC database connection failure'));
     const query: Queryable['query'] = async (sql, params) => ({
       rows: (await pool.query(sql, params)).rows,

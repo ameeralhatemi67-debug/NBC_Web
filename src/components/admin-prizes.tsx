@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { prizeTotal, type PrizeSettings } from '@/lib/prizes';
 import { api, ErrorMessage, Icon } from './ui';
 import { CompetitionPrizes } from './competition-prizes';
@@ -7,11 +7,14 @@ import { CompetitionPrizes } from './competition-prizes';
 export function AdminPrizes({
   settings,
   onSaved,
+  storageReady = true,
 }: {
   settings: PrizeSettings;
   onSaved: () => Promise<void>;
+  storageReady?: boolean;
 }) {
   const [draft, setDraft] = useState<PrizeSettings>(() => structuredClone(settings));
+  const [saved, setSaved] = useState(settings);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -19,16 +22,30 @@ export function AdminPrizes({
   const validAmount = (n: number) => Number.isSafeInteger(n) && n >= 0 && n <= 10000000;
   const valid =
     validAmount(draft.mediaPrize) && draft.stages.every((s) => s.awards.every(validAmount));
-  const changed = JSON.stringify(draft) !== JSON.stringify(settings);
+  const changed = JSON.stringify(draft) !== JSON.stringify(saved);
+  useEffect(() => {
+    if (settings.version > saved.version) {
+      if (JSON.stringify(draft) === JSON.stringify(saved)) setDraft(structuredClone(settings));
+      setSaved(settings);
+    }
+  }, [settings, saved, draft]);
   async function save() {
+    if (!storageReady || !valid || !changed || busy) return;
     setBusy(true);
     setError('');
     setNotice('');
     try {
-      await api('admin/prizes', draft);
-      await onSaved();
-      setDraft({ ...draft, version: draft.version + 1 });
+      const result = await api<{ prizes: PrizeSettings }>('admin/prizes', draft);
+      setDraft(result.prizes);
+      setSaved(result.prizes);
       setNotice('تم حفظ الجوائز والتصميم. تظهر التغييرات عند فتح الموقع أو تحديثه.');
+      try {
+        await onSaved();
+      } catch {
+        setError(
+          'تم الحفظ على الخادم، لكن تعذّر تحديث لوحة اللجنة. أعد تحميل الصفحة قبل إجراء تعديلات أخرى.',
+        );
+      }
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -59,7 +76,7 @@ export function AdminPrizes({
             {notice}
           </p>
         )}
-        <fieldset disabled={busy}>
+        <fieldset disabled={busy || !storageReady}>
           <div className="prize-editor-grid">
             {draft.stages.map((stage, i) => (
               <fieldset key={stage.name}>
@@ -132,7 +149,11 @@ export function AdminPrizes({
             الثلاثة. استخدم زر تغيير التصميم لمعاينة كل هوية.
           </p>
           <div className="button-row">
-            <button className="button primary" disabled={busy || !valid || !changed} type="submit">
+            <button
+              className="button primary"
+              disabled={busy || !storageReady || !valid || !changed}
+              type="submit"
+            >
               <Icon name="check" size={18} />
               {busy ? 'جارٍ الحفظ…' : 'حفظ الجوائز والتصميم'}
             </button>
@@ -140,7 +161,7 @@ export function AdminPrizes({
               className="button outline"
               type="button"
               onClick={() => {
-                setDraft(structuredClone(settings));
+                setDraft(structuredClone(saved));
                 setError('');
                 setNotice('');
               }}

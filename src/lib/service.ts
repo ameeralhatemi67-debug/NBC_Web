@@ -199,10 +199,10 @@ export async function readPrizes() {
     await db.query<{ value: PrizeSettings }>('SELECT value FROM settings WHERE id=$1', ['prizes'])
   ).rows[0].value;
 }
-export async function updatePrizes(body: Record<string, unknown>) {
+export async function updatePrizes(body: Record<string, unknown>, actor = 'admin') {
   const next = validatePrizes(body);
   const db = await getDb();
-  await db.transaction(async (tx) => {
+  return db.transaction(async (tx) => {
     const current = (
       await tx.query<{ value: PrizeSettings }>(
         'SELECT value FROM settings WHERE id=$1 FOR UPDATE',
@@ -211,15 +211,14 @@ export async function updatePrizes(body: Record<string, unknown>) {
     ).rows[0].value;
     if (current.version !== next.version)
       throw new AppError('توجد إعدادات أحدث. حدّث الصفحة قبل الحفظ.', 409);
-    await tx.query('UPDATE settings SET value=$1 WHERE id=$2', [
-      JSON.stringify({ ...next, version: next.version + 1 }),
-      'prizes',
-    ]);
+    const saved = { ...next, version: next.version + 1 };
+    await tx.query('UPDATE settings SET value=$1 WHERE id=$2', [JSON.stringify(saved), 'prizes']);
     await tx.query('INSERT INTO audit (actor,action,detail) VALUES ($1,$2,$3)', [
-      'admin',
+      actor,
       'تعديل الجوائز',
-      JSON.stringify({ before: current, after: { ...next, version: next.version + 1 } }),
+      JSON.stringify({ before: current, after: saved }),
     ]);
+    return saved;
   });
 }
 export async function updateQuestion(session: Session, body: Record<string, unknown>) {

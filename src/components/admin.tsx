@@ -62,6 +62,7 @@ export function Admin({
   loginFailed?: boolean;
 }) {
   const [data, setData] = useState<AdminData | null>(null);
+  const [dataReady, setDataReady] = useState(false);
   const [role, setRole] = useState('');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -83,6 +84,7 @@ export function Admin({
   async function load() {
     const state = await api<AdminData>('admin');
     setData(state);
+    setDataReady(true);
   }
   useEffect(() => {
     api<{ session: { role: string } | null }>('admin/session')
@@ -94,6 +96,7 @@ export function Admin({
             await load();
           } catch (e) {
             if (s.session.role !== 'admin') throw e;
+            setDataReady(false);
             setData({
               participants: [],
               questions: [],
@@ -181,6 +184,7 @@ export function Admin({
             </div>
           )}
           <ErrorMessage message={error} />
+
           {demo ? (
             <div className="button-row centered">
               <button className="button primary" disabled={busy} onClick={() => login('admin')}>
@@ -365,13 +369,40 @@ export function Admin({
             )}
           </div>
           <ErrorMessage message={error} />
+          {!dataReady && (
+            <div className="notice" role="status">
+              <p>
+                بيانات المسابقة غير متصلة. إعدادات الجوائز المعروضة افتراضية ولم تُحفظ. يلزم اتصال
+                قاعدة البيانات وتشغيل الترحيلات قبل حفظ التغييرات.
+              </p>
+              <button
+                className="text-link"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  try {
+                    await load();
+                    setError('');
+                  } catch (e) {
+                    setError((e as Error).message);
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                إعادة الاتصال ببيانات المسابقة
+              </button>
+            </div>
+          )}
           {notice && (
             <div role="status" className="success-message">
               {notice}
             </div>
           )}
           {tab === 'analytics' && <AdminAnalytics people={data.participants} />}
-          {tab === 'prizes' && <AdminPrizes settings={data.prizes} onSaved={load} />}
+          {tab === 'prizes' && (
+            <AdminPrizes settings={data.prizes} storageReady={dataReady} onSaved={load} />
+          )}
           {tab === 'security' && role === 'admin' && <AdminSecurity />}
           {tab === 'overview' && (
             <>

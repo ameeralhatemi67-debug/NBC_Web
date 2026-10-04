@@ -113,6 +113,24 @@ try {
   assert.equal(data.checks.databaseConnected, false);
   assert.equal(data.checks.staffAuthentication, true);
   pass('real OAuth callback opens admin readiness without a competition database');
+  const missingData = await request('/api/admin', cookie);
+  assert.equal(missingData.status, 503);
+  const prizeSave = await request('/api/admin/prizes', cookie, {
+    method: 'POST',
+    headers: { Origin: 'https://nbc.example', 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      version: 1,
+      layout: 'podium',
+      mediaPrize: 2500,
+      stages: ['المرحلة المتوسطة', 'المرحلة الثانوية', 'المرحلة الجامعية'].map((name) => ({
+        name,
+        awards: [4000, 3000, 2000, 1000, 1000, 1000],
+      })),
+    }),
+  });
+  assert.equal(prizeSave.status, 503);
+  assert.ok(!(await prizeSave.json()).prizes);
+  pass('missing database cannot load prize settings or report a successful prize save');
   const editor = await login('editor');
   const editorCookie = editor.headers
     .getSetCookie()

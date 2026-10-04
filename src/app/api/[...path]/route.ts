@@ -178,8 +178,8 @@ async function respond(req: NextRequest) {
         await updateQuestion(role(session, ['admin', 'editor']), body);
         result = { ok: true };
       } else if (route === 'admin/prizes') {
-        role(session, ['admin']);
-        await updatePrizes(body);
+        const staff = role(session, ['admin']);
+        result = { prizes: await updatePrizes(body, staff.actor ?? 'admin') };
         result = { ok: true };
       } else if (route === 'admin/publish') {
         role(session, ['admin']);

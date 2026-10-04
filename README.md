@@ -6,6 +6,8 @@ For direct admin sign-in on the Vercel domain, use the [Vercel account sign-in s
 
 The OTP code and deployment path are implemented. Real SMS activation still requires the organization's Unifonic account, approved Saudi sender, production secrets, managed PostgreSQL, and staff identity setup. See [the deployment guide](docs/implementation/2026-10-04-production-otp.md) and [the implementation specification](docs/implementation/NBC_OTP_Production_Implementation_Spec.md).
 
+Prize persistence and the isolated Supabase connection are documented in the [prize save repair](docs/implementation/2026-10-04-prize-save-fix.md).
+
 ## Local development
 
 Requires Node.js 22.19 or newer supported Node.js. Install pinned dependencies with `npm ci`. For a new checkout, copy `.env.example` to `.env.local`, then run:

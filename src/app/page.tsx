@@ -7,14 +7,22 @@ import { connection } from 'next/server';
 import { readPrizes } from '@/lib/service';
 export default async function Home() {
   await connection();
-  const prizes = await readPrizes();
+  // Public information must remain readable while the production database is being configured.
+  const prizes = await readPrizes().catch(() => null);
   return (
     <>
       <Header />
       <main id="main">
         <CompetitionHero />
         <OrganizationsBar prominent />
-        <CompetitionPrizes settings={prizes} />
+        {prizes ? (
+          <CompetitionPrizes settings={prizes} />
+        ) : (
+          <section id="prizes" className="section container">
+            <h2>جوائز المسابقة</h2>
+            <p role="status">تفاصيل الجوائز غير متاحة مؤقتًا. يرجى العودة لاحقًا.</p>
+          </section>
+        )}
         <section className="principle-strip">
           <div className="container principles">
             <span>

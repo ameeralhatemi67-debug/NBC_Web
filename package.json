@@ -13,7 +13,8 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"tests/*.{ts,mjs}\" \"scripts/*.mjs\" next.config.ts package.json tsconfig.json",
     "db:migrate": "tsx scripts/migrate.mjs",
     "db:cleanup": "tsx scripts/cleanup.mjs",
-    "test:postgres": "node tests/postgres.mjs"
+    "test:postgres": "node tests/postgres.mjs",
+    "test:admin-access": "node tests/admin-access.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "0.5.8",
@@ -22,6 +23,7 @@
     "jose": "6.2.12",
     "motion": "13.2.0",
     "next": "16.3.8",
+    "openid-client": "6.8.8",
     "pg": "8.23.1",
     "react": "19.2.8",
     "react-dom": "19.2.8"

@@ -20,6 +20,7 @@ import { readiness, healthCheck, updateSecurity } from '@/lib/otp-readiness';
 import { cleanupSecurity } from '@/lib/security-store';
 import { isProduction, isLocalMode } from '@/lib/runtime';
 import { staffSession } from '@/lib/staff-auth';
+import { staffCookie, vercelStaffSession } from '@/lib/vercel-staff';
 import { assertRequest, jsonBody, requestIp } from '@/lib/request-security';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -37,7 +38,10 @@ async function respond(req: NextRequest) {
     const token = jar.get(cookieName)?.value;
     let session: Session | null = null;
     if (route.startsWith('admin') || route === 'export') {
-      const staff = await staffSession(req.headers.get('cf-access-jwt-assertion'));
+      const staff =
+        process.env.NBC_STAFF_AUTH === 'vercel'
+          ? await vercelStaffSession(jar.get(staffCookie)?.value)
+          : await staffSession(req.headers.get('cf-access-jwt-assertion'));
       if (staff) session = staff;
     }
     if (!session) session = await sessionFor(token);

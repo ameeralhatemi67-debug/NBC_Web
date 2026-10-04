@@ -2,6 +2,8 @@
 
 Arabic RTL competition application with participant SMS OTP, saved participation, and an admin security setup center.
 
+For direct admin sign-in on the Vercel domain, use the [Vercel account sign-in setup](docs/implementation/2026-10-04-admin-access-fix.md). Cloudflare Access is an alternative. Both require explicitly allowlisted staff accounts; the demo role picker remains local-only.
+
 The OTP code and deployment path are implemented. Real SMS activation still requires the organization's Unifonic account, approved Saudi sender, production secrets, managed PostgreSQL, and staff identity setup. See [the deployment guide](docs/implementation/2026-10-04-production-otp.md) and [the implementation specification](docs/implementation/NBC_OTP_Production_Implementation_Spec.md).
 
 ## Local development
@@ -37,6 +39,7 @@ npm test
 npm run build
 npm run test:integration
 npm run test:postgres
+npm run test:admin-access
 npm run format:check
 ```
 

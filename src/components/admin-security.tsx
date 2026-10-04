@@ -164,11 +164,13 @@ export function AdminSecurity() {
             المزورة من مسؤولية إعداد الوكيل.
           </li>
           <li>
-            اربط منطقة الموظفين بـCloudflare Access وهوية المؤسسة مع سياسة MFA إلزامية. اضبط{' '}
-            <bdi>CF_ACCESS_ISSUER</bdi> و<bdi>CF_ACCESS_AUD</bdi>، وقوائم{' '}
-            <bdi>NBC_ADMIN_SUBJECTS</bdi> و<bdi>NBC_EDITOR_SUBJECTS</bdi> بمعرفات الموظفين الثابتة.
-            بعد فحص سياسة MFA اضبط <bdi>NBC_STAFF_MFA_CONFIRMED=true</bdi>. لا يوجد اختيار دور
-            تجريبي في الإنتاج.
+            يمكن استخدام تسجيل الدخول عبر Vercel على نطاق vercel.app مع قائمة حسابات مسموحة ومصادقة
+            متعددة العوامل. اضبط NBC_STAFF_AUTH=vercel وVERCEL_APP_CLIENT_ID
+            وNBC_STAFF_SESSION_SECRET وNBC_VERCEL_ADMIN_SUBJECTS في النشر. أو اربط منطقة الموظفين
+            بـCloudflare Access وهوية المؤسسة مع سياسة MFA إلزامية. اضبط <bdi>CF_ACCESS_ISSUER</bdi>{' '}
+            و<bdi>CF_ACCESS_AUD</bdi>، وقوائم <bdi>NBC_ADMIN_SUBJECTS</bdi> و
+            <bdi>NBC_EDITOR_SUBJECTS</bdi> بمعرفات الموظفين الثابتة. بعد فحص سياسة MFA اضبط{' '}
+            <bdi>NBC_STAFF_MFA_CONFIRMED=true</bdi>. لا يوجد اختيار دور تجريبي في الإنتاج.
           </li>
           <li>
             احذف إعدادات المحاكاة من الإنتاج، وأعد النشر. افحص الاتصال، ثم أرسل رمزًا إلى جوال

@@ -50,12 +50,24 @@ const tabs = [
   { id: 'reports', name: 'التقارير', icon: 'download' },
   { id: 'audit', name: 'سجل العمليات', icon: 'clock' },
 ];
-export function Admin({ demo }: { demo: boolean }) {
+export function Admin({
+  demo,
+  staffAuth = 'cloudflare',
+  signInReady = false,
+  loginFailed = false,
+}: {
+  demo: boolean;
+  staffAuth?: 'cloudflare' | 'vercel';
+  signInReady?: boolean;
+  loginFailed?: boolean;
+}) {
   const [data, setData] = useState<AdminData | null>(null);
   const [role, setRole] = useState('');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(
+    loginFailed ? 'تعذّر تسجيل الدخول. استخدم حساب Vercel المصرح له ثم أعد المحاولة.' : '',
+  );
   const [tab, setTab] = useState('overview');
   const [stage, setStage] = useState('');
   const [region, setRegion] = useState('');
@@ -141,7 +153,8 @@ export function Admin({ demo }: { demo: boolean }) {
       setBusy(false);
     }
   }
-  if (loading) return <Loading />;
+  // Render the real sign-in link in the initial HTML, including before hydration.
+  if (loading && !signInReady) return <Loading />;
   if (!role || !data)
     return (
       <main id="main" className="staff-entry container">
@@ -177,6 +190,19 @@ export function Admin({ demo }: { demo: boolean }) {
                 دخول محرر المحتوى
               </button>
             </div>
+          ) : staffAuth === 'vercel' ? (
+            <>
+              <p>سجّل الدخول بحساب Vercel المصرح له لإدارة المسابقة.</p>
+              {signInReady ? (
+                <a className="button primary" href="/api/staff/login">
+                  تسجيل الدخول عبر Vercel <Icon />
+                </a>
+              ) : (
+                <p role="status">
+                  إعداد تسجيل الدخول غير مكتمل. يلزم ربط تطبيق Vercel بإعدادات النشر.
+                </p>
+              )}
+            </>
           ) : (
             <p>
               دخول الموظفين عبر Cloudflare Access مع المصادقة متعددة العوامل. إذا تعذّر الدخول، اطلب
@@ -291,7 +317,14 @@ export function Admin({ demo }: { demo: boolean }) {
           <button
             onClick={async () => {
               if (!demo) {
-                window.location.assign('/cdn-cgi/access/logout');
+                if (staffAuth === 'vercel') {
+                  try {
+                    await api('staff/logout', {});
+                    window.location.assign('/admin');
+                  } catch (e) {
+                    setError((e as Error).message);
+                  }
+                } else window.location.assign('/cdn-cgi/access/logout');
                 return;
               }
               await api('auth/logout', {});

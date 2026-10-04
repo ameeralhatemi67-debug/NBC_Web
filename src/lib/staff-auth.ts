@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { createRemoteJWKSet, jwtVerify, type JWTVerifyGetKey } from 'jose';
 import { AppError } from './domain';
 import type { Session } from './service';
+import { vercelStaffReady } from './vercel-staff';
 
 function issuer() {
   const value = process.env.CF_ACCESS_ISSUER ?? '';
@@ -13,6 +14,7 @@ const subjects = (name: string) =>
     .map((s) => s.trim())
     .filter(Boolean);
 export function staffReady() {
+  if (process.env.NBC_STAFF_AUTH === 'vercel') return vercelStaffReady();
   return Boolean(
     issuer() &&
     process.env.CF_ACCESS_AUD &&
@@ -26,6 +28,7 @@ export async function staffSession(
   testKeys?: JWTVerifyGetKey,
 ): Promise<Session | null> {
   if (!assertion) return null;
+  if (process.env.NBC_STAFF_AUTH === 'vercel') return null;
   if (!staffReady() || assertion.length > 16000) throw new AppError('دخول الموظفين غير مهيأ.', 503);
   const iss = issuer()!;
   if (!cached || cached.issuer !== iss)

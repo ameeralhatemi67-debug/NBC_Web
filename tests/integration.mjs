@@ -135,6 +135,9 @@ try {
       assert.equal(editorPrizes.status, 403);
       assert.equal(invalidPrizes.status, 400);
       assert.equal(savedPrizes.status, 200);
+      assert.ok(savedPrizes.data.prizes, 'Save response must contain committed prize settings');
+      assert.equal(savedPrizes.data.prizes.version, initialPrizes.version + 1);
+      assert.deepEqual(savedPrizes.data.prizes.stages[0].awards, changedPrizes.stages[0].awards);
       assert.equal(stalePrizes.status, 409);
       assert.deepEqual(prizesState.data.prizes.stages[0].awards, changedPrizes.stages[0].awards);
       assert.ok(homePrizes.includes('prize-layout-ledger'));
@@ -145,6 +148,14 @@ try {
       assert.ok(prizesState.data.audit.some((entry) => entry.action === 'تعديل الجوائز'));
     },
   );
+  const savedAgain = await admin('admin/prizes', { ...savedPrizes.data.prizes, layout: 'podium' });
+  const rereadPrizes = await admin('admin');
+  check('a second save uses the committed version and survives a fresh admin read', () => {
+    assert.equal(savedAgain.status, 200);
+    assert.equal(savedAgain.data.prizes.version, initialPrizes.version + 2);
+    assert.equal(savedAgain.data.prizes.layout, 'podium');
+    assert.deepEqual(rereadPrizes.data.prizes, savedAgain.data.prizes);
+  });
   check('seed report reconciles', () => {
     assert.equal(seed.data.participants.length, 6);
     assert.equal(seed.data.participants.filter((p) => p.submitted_at).length, 4);

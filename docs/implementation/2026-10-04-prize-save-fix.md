@@ -33,7 +33,7 @@ Commands run on the isolated production source:
 npm run typecheck
 npm test                         # 41 passed
 npm run build
-npm run test:integration         # 43 passed
+npm run test:integration         # 44 passed
 npm run test:admin-access        # 9 passed
 npm run test:postgres            # 17 PostgreSQL + 17 production HTTP checks passed
 ```

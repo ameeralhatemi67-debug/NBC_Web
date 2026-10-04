@@ -36,6 +36,10 @@ export function AdminPrizes({
     setNotice('');
     try {
       const result = await api<{ prizes: PrizeSettings }>('admin/prizes', draft);
+      if (!result?.prizes)
+        throw new Error(
+          'استجابة الحفظ غير مكتملة. أعد تحميل لوحة اللجنة للتحقق من الإعدادات المحفوظة.',
+        );
       setDraft(result.prizes);
       setSaved(result.prizes);
       setNotice('تم حفظ الجوائز والتصميم. تظهر التغييرات عند فتح الموقع أو تحديثه.');

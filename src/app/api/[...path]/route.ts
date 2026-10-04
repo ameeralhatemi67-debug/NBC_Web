@@ -180,7 +180,6 @@ async function respond(req: NextRequest) {
       } else if (route === 'admin/prizes') {
         const staff = role(session, ['admin']);
         result = { prizes: await updatePrizes(body, staff.actor ?? 'admin') };
-        result = { ok: true };
       } else if (route === 'admin/publish') {
         role(session, ['admin']);
         const db = await getDb();

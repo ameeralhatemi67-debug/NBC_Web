@@ -3,14 +3,18 @@ import { CompetitionPrizes } from '@/components/competition-prizes';
 import { CompetitionHero } from '@/components/competition-hero';
 import { Header, Footer, Icon, Reveal, OrganizationsBar } from '@/components/ui';
 import { faqs } from '@/lib/content';
-export default function Home() {
+import { connection } from 'next/server';
+import { readPrizes } from '@/lib/service';
+export default async function Home() {
+  await connection();
+  const prizes = await readPrizes();
   return (
     <>
       <Header />
       <main id="main">
         <CompetitionHero />
         <OrganizationsBar prominent />
-        <CompetitionPrizes />
+        <CompetitionPrizes settings={prizes} />
         <section className="principle-strip">
           <div className="container principles">
             <span>

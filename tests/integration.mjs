@@ -111,6 +111,35 @@ try {
   const staff = await admin('auth/demo-staff', { role: 'admin' });
   check('explicit local demo staff session works', () => assert.equal(staff.status, 200));
   const seed = await admin('admin');
+  const initialPrizes = seed.data.prizes;
+  const changedPrizes = structuredClone(initialPrizes);
+  changedPrizes.stages[0].awards = [4500, 3000, 2000, 950, 850, 750];
+  changedPrizes.layout = 'ledger';
+  const anonPrizes = await anon('admin/prizes', changedPrizes);
+  await editor('auth/demo-staff', { role: 'editor' });
+  const editorPrizes = await editor('admin/prizes', changedPrizes);
+  const invalidPrizes = await admin('admin/prizes', { ...changedPrizes, mediaPrize: -1 });
+  const savedPrizes = await admin('admin/prizes', changedPrizes);
+  const stalePrizes = await admin('admin/prizes', changedPrizes);
+  const prizesState = await admin('admin');
+  const homePrizes = await (await fetch(base)).text();
+  check(
+    'prize changes enforce admin role, amounts and version, persist and reach public page',
+    () => {
+      assert.equal(anonPrizes.status, 401);
+      assert.equal(editorPrizes.status, 403);
+      assert.equal(invalidPrizes.status, 400);
+      assert.equal(savedPrizes.status, 200);
+      assert.equal(stalePrizes.status, 409);
+      assert.deepEqual(prizesState.data.prizes.stages[0].awards, changedPrizes.stages[0].awards);
+      assert.ok(homePrizes.includes('prize-layout-ledger'));
+      assert.ok(homePrizes.includes('4,500'));
+      assert.ok(
+        homePrizes.includes('950') && homePrizes.includes('850') && homePrizes.includes('750'),
+      );
+      assert.ok(prizesState.data.audit.some((entry) => entry.action === 'تعديل الجوائز'));
+    },
+  );
   check('seed report reconciles', () => {
     assert.equal(seed.data.participants.length, 6);
     assert.equal(seed.data.participants.filter((p) => p.submitted_at).length, 4);
@@ -263,6 +292,27 @@ try {
     assert.ok(report.text.includes(payload.institution));
     assert.ok(expected.some((p) => p.institution === payload.institution));
   });
+  const mixedReport = await admin(
+    'export?' +
+      new URLSearchParams({
+        gender: payload.gender,
+        institution: payload.institution,
+        locality: payload.locality,
+        status: 'completed',
+        minScore: '0',
+        maxScore: '100',
+      }),
+  );
+  check(
+    'analytics export applies combined demographic, institution, location and score filters',
+    () => {
+      assert.equal(mixedReport.status, 200);
+      assert.equal(mixedReport.text.trim().split('\r\n').length - 1, 1);
+      assert.ok(mixedReport.text.includes(payload.institution));
+      assert.ok(mixedReport.text.includes('نسبة الدرجة'));
+      assert.ok(mixedReport.text.includes('تاريخ التسجيل'));
+    },
+  );
   await admin('admin/publish', { published: true });
   const released = await student('participant');
   check('approved grade is visible without answer keys', () => {

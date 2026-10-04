@@ -117,7 +117,7 @@ export function BrandMark({ size = 44 }: { size?: number }) {
       </svg>
       <Image
         className="official-brand-mark"
-        src="/images/identity/authority-logo.png"
+        src="/images/organizations/general-presidency.png"
         alt=""
         loading="eager"
         width={size}

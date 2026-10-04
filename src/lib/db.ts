@@ -2,6 +2,7 @@ import { PGlite } from '@electric-sql/pglite';
 import path from 'node:path';
 import { mkdir } from 'node:fs/promises';
 import { seedQuestions } from './seed';
+import { defaultPrizes } from './prizes';
 const globalDb = globalThis as unknown as { nbcDb?: Promise<PGlite> };
 export function getDb(): Promise<PGlite> {
   globalDb.nbcDb ??= initialize();
@@ -23,6 +24,10 @@ async function initialize() {
     ALTER TABLE participants ADD COLUMN IF NOT EXISTS institution TEXT;
     ALTER TABLE participants ADD COLUMN IF NOT EXISTS gender TEXT;
   `);
+  await db.query('INSERT INTO settings (id,value) VALUES ($1,$2) ON CONFLICT (id) DO NOTHING', [
+    'prizes',
+    JSON.stringify(defaultPrizes),
+  ]);
   await db.transaction(async (tx) => {
     const { rows } = await tx.query('SELECT id FROM settings WHERE id = $1', ['initialized']);
     if (rows.length) return;
@@ -85,5 +90,21 @@ async function initialize() {
       'سجلات افتراضية للتوضيح فقط؛ لا تمثل مشاركة حقيقية.',
     ]);
   });
+  // Enrich only the built-in synthetic records; never infer demographics for registrations.
+  for (let i = 0; i < 6; i++) {
+    await db.query(
+      'UPDATE participants SET gender=COALESCE(gender,$1),institution=COALESCE(institution,$2) WHERE id=$3 AND identity=$4',
+      [
+        i % 2 === 0 ? 'أنثى' : 'ذكر',
+        [
+          'مدرسة المعرفة المتوسطة (تجريبية)',
+          'مدرسة الأفق الثانوية (تجريبية)',
+          'جامعة المعرفة (تجريبية)',
+        ][i % 3],
+        `sample-${i + 1}`,
+        `DEMO-${i + 1}`,
+      ],
+    );
+  }
   return db;
 }

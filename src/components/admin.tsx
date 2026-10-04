@@ -13,6 +13,9 @@ import {
 } from './ui';
 import { bookChapters, regions, stages } from '@/lib/content';
 import { tieGroups, type Question } from '@/lib/domain';
+import { AdminAnalytics } from './admin-analytics';
+import { AdminPrizes } from './admin-prizes';
+import type { PrizeSettings } from '@/lib/prizes';
 type Participant = {
   id: string;
   name: string;
@@ -23,6 +26,8 @@ type Participant = {
   locality: string;
   village: string;
   score: number | null;
+  max_score: number | null;
+  created_at: string;
   submitted_at: string | null;
   attempt_id: string | null;
 };
@@ -31,10 +36,13 @@ type AdminData = {
   questions: Question[];
   audit: { id: string; action: string; detail: string; actor: string; created_at: string }[];
   published: boolean;
+  prizes: PrizeSettings;
 };
 const tabs = [
   { id: 'overview', name: 'نظرة عامة', icon: 'chart' },
   { id: 'participants', name: 'المشاركون', icon: 'user' },
+  { id: 'analytics', name: 'تحليلات المسابقة', icon: 'chart' },
+  { id: 'prizes', name: 'الجوائز والتصميم', icon: 'trophy' },
   { id: 'questions', name: 'بنك الأسئلة', icon: 'book' },
   { id: 'results', name: 'النتائج والاعتماد', icon: 'shield' },
   { id: 'reports', name: 'التقارير', icon: 'download' },
@@ -216,7 +224,7 @@ export function Admin() {
                   </span>
                 </td>
                 <td>
-                  <bdi>{p.score !== null ? `${p.score} / 10` : '—'}</bdi>
+                  <bdi>{p.score !== null ? `${p.score} / ${p.max_score}` : '—'}</bdi>
                 </td>
               </tr>
             ))}
@@ -299,6 +307,8 @@ export function Admin() {
               {notice}
             </div>
           )}
+          {tab === 'analytics' && <AdminAnalytics people={data.participants} />}
+          {tab === 'prizes' && <AdminPrizes settings={data.prizes} onSaved={load} />}
           {tab === 'overview' && (
             <>
               <section className="stats-grid">

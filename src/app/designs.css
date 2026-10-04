@@ -150,8 +150,8 @@
     display: none;
   }
   .competition-hero-grid {
-    grid-template-columns: 1.35fr 1fr;
-    gap: 65px;
+    grid-template-columns: 1.18fr 1fr;
+    gap: 70px;
     padding-block: 42px 28px;
   }
   .competition-hero-copy .eyebrow {
@@ -222,18 +222,18 @@
     background: white;
   }
   .competition-book-scene {
-    min-height: 400px;
+    min-height: 540px;
   }
   .book-halo,
   .book-orbit {
     display: none;
   }
   .competition-book-float {
-    width: 225px;
+    width: min(72%, 318px);
     animation: none;
   }
   .competition-book-link {
-    transform: rotate(-3deg);
+    transform: rotate(-5deg) rotateY(-9deg);
   }
   .competition-hero-bottom {
     border-color: #ffffff30;
@@ -647,26 +647,20 @@
       padding-top: 12px;
     }
     .competition-book-scene {
-      display: grid;
-      grid-template-columns: 84px auto;
-      grid-template-rows: auto auto;
-      align-items: center;
-      justify-content: center;
-      column-gap: 24px;
-      min-height: 105px;
-      width: 100%;
+      display: flex;
+      width: min(100%, 400px);
+      min-height: 430px;
     }
     .competition-book-float {
-      grid-row: 1 / 3;
-      width: 78px;
-      margin: 0;
+      width: 59%;
+      margin: 4px 0 18px;
     }
     .book-scene-caption {
-      align-self: end;
+      align-self: center;
       font-size: 12px;
     }
     .book-scene-author {
-      align-self: start;
+      align-self: center;
       font-size: 10px;
     }
     .competition-hero-bottom {
@@ -827,5 +821,237 @@
   }
   .header-inner {
     gap: 6px;
+  }
+}
+
+/* Prize presentation inherits each identity's palette. */
+:root:is([data-design='official'], [data-design='hybrid']) .competition-prizes {
+  background: var(--cream);
+}
+:root:is([data-design='official'], [data-design='hybrid']) .prizes-total {
+  background: var(--olive-deep);
+  color: white;
+  padding: 24px 32px;
+  border: 0;
+  border-radius: 12px;
+}
+:root:is([data-design='official'], [data-design='hybrid']) .prizes-total > strong {
+  color: white;
+}
+:root:is([data-design='official'], [data-design='hybrid']) .prize-stage-card {
+  border: 0;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 12px 28px #17384e0c;
+  overflow: hidden;
+}
+:root:is([data-design='official'], [data-design='hybrid']) .prize-stage-heading {
+  background: white;
+  padding-block: 26px 20px;
+}
+:root:is([data-design='official'], [data-design='hybrid']) .first-prize {
+  background: var(--olive-deep);
+  color: white;
+  border: 0;
+  margin: 18px 20px;
+  border-radius: 8px;
+}
+:root:is([data-design='official'], [data-design='hybrid']) .first-prize > span,
+:root:is([data-design='official'], [data-design='hybrid']) .first-prize p > span {
+  color: white;
+}
+:root:is([data-design='official'], [data-design='hybrid']) .prize-medal {
+  color: #f0cf76;
+  border: 0;
+}
+:root:is([data-design='official'], [data-design='hybrid']) .recognition-card {
+  background: white;
+  border: 0;
+  border-radius: 12px;
+}
+:root:is([data-design='official'], [data-design='hybrid']) .recognition-card.media-award {
+  background: var(--olive-deep);
+  color: white;
+}
+:root:is([data-design='official'], [data-design='hybrid']) .media-award :is(h4, p, strong, svg) {
+  color: white;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root:is([data-design='official'], [data-design='hybrid']) .competition-book-link,
+  :root:is([data-design='official'], [data-design='hybrid']) .competition-book-link:hover,
+  :root:is([data-design='official'], [data-design='hybrid']) .competition-book-link:focus-visible {
+    transform: none;
+    transition: none;
+  }
+}
+:root:is([data-design='official'], [data-design='hybrid']) .prize-layout-ledger .prize-stage-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+:root:is([data-design='official'], [data-design='hybrid']) .prize-layout-ledger .prize-stage-card {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1.5fr 1fr;
+  align-items: stretch;
+}
+:root:is([data-design='official'], [data-design='hybrid'])
+  .prize-layout-ledger
+  .prize-stage-heading {
+  border: 0;
+}
+:root:is([data-design='official'], [data-design='hybrid']) .prize-layout-ledger .first-prize {
+  margin: 12px;
+  padding: 16px;
+}
+:root:is([data-design='official'], [data-design='hybrid']) .prize-layout-ledger .prize-medal {
+  display: none;
+}
+:root:is([data-design='official'], [data-design='hybrid']) .prize-layout-ledger .remaining-prizes {
+  margin: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
+.analytics-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+.analytics-filters label,
+.analytics-table-heading label,
+.prize-editor label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+.analytics-filter-panel .fine-print {
+  margin: 20px 24px;
+}
+.analytics-filter-panel .analytics-filters {
+  padding: 20px 24px 0;
+}
+.analytics-filter-panel .error-message {
+  margin: 16px 24px;
+}
+.analytics-scores .fine-print {
+  margin: 20px 24px;
+}
+.analytics-summary {
+  flex-wrap: wrap;
+  gap: 22px;
+}
+.analytics-bar-row {
+  margin: 20px 24px;
+}
+.analytics-bar-row > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.analytics-bar-row small {
+  font-weight: 400;
+}
+.analytics-bar-row .chart-track {
+  height: 10px;
+}
+.analytics-table-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--line);
+}
+.analytics-table-heading h2 {
+  font: 600 18px/1.7 var(--body);
+}
+.analytics-table-heading select {
+  min-width: 180px;
+}
+.admin-main table {
+  font-variant-numeric: tabular-nums;
+}
+:root .analytics-table th,
+:root .analytics-table td small {
+  color: var(--muted);
+}
+.prize-editor > p {
+  margin: 20px 24px;
+}
+.prize-editor > fieldset {
+  margin: 24px;
+}
+.prize-editor > .error-message {
+  margin: 20px 24px;
+}
+:root:is([data-design='official'], [data-design='hybrid']) .prize-layout-ledger .prize-finalists {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+:root:is([data-design='official'], [data-design='hybrid'])
+  .prize-layout-ledger
+  .prize-finalists
+  .remaining-prizes {
+  flex: 1;
+}
+.prize-editor fieldset {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+}
+.prize-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+  margin-block: 24px 32px;
+}
+.prize-editor-grid > fieldset {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.prize-editor legend {
+  font-size: 19px;
+  font-weight: 600;
+  padding-inline-end: 12px;
+}
+.prize-amount-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.prize-editor .button-row {
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+.prize-editor-preview .container {
+  width: calc(100% - 32px);
+}
+@media (max-width: 1100px) {
+  :root:is([data-design='official'], [data-design='hybrid'])
+    .prize-layout-ledger
+    .prize-stage-card {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .prize-editor-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .analytics-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .analytics-table-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  :root:is([data-design='official'], [data-design='hybrid'])
+    .prize-layout-ledger
+    .prize-stage-card {
+    display: block;
   }
 }

@@ -10,6 +10,7 @@ import {
   type Question,
 } from './domain';
 import { easternCities, genders, stages } from './content';
+import { validatePrizes, type PrizeSettings } from './prizes';
 export type Session = { role: 'participant' | 'admin' | 'editor'; participant_id: string | null };
 export type ParticipantReport = {
   id: string;
@@ -21,6 +22,8 @@ export type ParticipantReport = {
   locality: string;
   village: string;
   score: number | null;
+  max_score: number | null;
+  created_at: string;
   submitted_at: string | null;
   attempt_id: string | null;
   receipt: string | null;
@@ -264,7 +267,7 @@ export async function adminState() {
   return db.transaction(async (tx) => ({
     participants: (
       await tx.query<ParticipantReport>(
-        'SELECT p.id,p.name,p.stage,p.institution,p.gender,p.region,p.locality,p.village,a.score,a.submitted_at,a.receipt,a.id AS attempt_id FROM participants p LEFT JOIN attempts a ON a.participant_id=p.id ORDER BY p.created_at',
+        'SELECT p.id,p.name,p.stage,p.institution,p.gender,p.region,p.locality,p.village,p.created_at,a.score,jsonb_array_length(a.questions) AS max_score,a.submitted_at,a.receipt,a.id AS attempt_id FROM participants p LEFT JOIN attempts a ON a.participant_id=p.id ORDER BY p.created_at',
       )
     ).rows,
     questions: (
@@ -278,7 +281,39 @@ export async function adminState() {
     published: (
       await tx.query<{ value: boolean }>('SELECT value FROM settings WHERE id=$1', ['published'])
     ).rows[0].value,
+    prizes: (
+      await tx.query<{ value: PrizeSettings }>('SELECT value FROM settings WHERE id=$1', ['prizes'])
+    ).rows[0].value,
   }));
+}
+export async function readPrizes() {
+  const db = await getDb();
+  return (
+    await db.query<{ value: PrizeSettings }>('SELECT value FROM settings WHERE id=$1', ['prizes'])
+  ).rows[0].value;
+}
+export async function updatePrizes(body: Record<string, unknown>) {
+  const next = validatePrizes(body);
+  const db = await getDb();
+  await db.transaction(async (tx) => {
+    const current = (
+      await tx.query<{ value: PrizeSettings }>(
+        'SELECT value FROM settings WHERE id=$1 FOR UPDATE',
+        ['prizes'],
+      )
+    ).rows[0].value;
+    if (current.version !== next.version)
+      throw new AppError('توجد إعدادات أحدث. حدّث الصفحة قبل الحفظ.', 409);
+    await tx.query('UPDATE settings SET value=$1 WHERE id=$2', [
+      JSON.stringify({ ...next, version: next.version + 1 }),
+      'prizes',
+    ]);
+    await tx.query('INSERT INTO audit (actor,action,detail) VALUES ($1,$2,$3)', [
+      'admin',
+      'تعديل الجوائز',
+      JSON.stringify({ before: current, after: { ...next, version: next.version + 1 } }),
+    ]);
+  });
 }
 export async function updateQuestion(session: Session, body: Record<string, unknown>) {
   const db = await getDb();

@@ -1,15 +1,27 @@
-import { mediaPrize, prizeStages, totalPrizes } from '@/lib/content';
+import { defaultPrizes, prizeTotal, type PrizeSettings } from '@/lib/prizes';
 import { Icon, Reveal } from './ui';
 
 const money = new Intl.NumberFormat('en-US');
-export function CompetitionPrizes() {
+export function CompetitionPrizes({
+  settings = defaultPrizes,
+  preview = false,
+}: {
+  settings?: PrizeSettings;
+  preview?: boolean;
+}) {
+  const { stages: prizeStages, mediaPrize, layout } = settings;
+  const totalPrizes = prizeTotal(settings);
   return (
-    <section id="prizes" className="section competition-prizes" aria-labelledby="prizes-title">
+    <section
+      id={preview ? undefined : 'prizes'}
+      className={`section competition-prizes prize-layout-${layout}`}
+      aria-labelledby={preview ? 'preview-prizes-title' : 'prizes-title'}
+    >
       <div className="container">
         <Reveal className="prizes-heading">
           <div>
             <span className="eyebrow">تقدير للمعرفة والمشاركة</span>
-            <h2 id="prizes-title">
+            <h2 id={preview ? 'preview-prizes-title' : 'prizes-title'}>
               لمعرفتكم قيمة.
               <br />
               <em>ولتميّزكم تقدير.</em>
@@ -68,13 +80,26 @@ export function CompetitionPrizes() {
                   </div>
                 ))}
               </div>
-              <div className="remaining-prizes">
-                <span>
-                  المراكز <bdi>4 – 6</bdi>
-                </span>
-                <strong>
-                  <bdi>{money.format(stage.awards[3])}</bdi> ريال <small>لكل مركز</small>
-                </strong>
+              <div className="prize-finalists">
+                {stage.awards.slice(3).every((amount) => amount === stage.awards[3]) ? (
+                  <div className="remaining-prizes">
+                    <span>
+                      المراكز <bdi>4 – 6</bdi>
+                    </span>
+                    <strong>
+                      <bdi>{money.format(stage.awards[3])}</bdi> ريال <small>لكل مركز</small>
+                    </strong>
+                  </div>
+                ) : (
+                  stage.awards.slice(3).map((amount, i) => (
+                    <div className="remaining-prizes" key={i}>
+                      <span>المركز {i + 4}</span>
+                      <strong>
+                        <bdi>{money.format(amount)}</bdi> ريال
+                      </strong>
+                    </div>
+                  ))
+                )}
               </div>
             </Reveal>
           ))}

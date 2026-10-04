@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getDb } from '@/lib/db';
 import { AppError, csvCell } from '@/lib/domain';
+import { emptyFilters, filterParticipants, scorePercentage } from '@/lib/analytics';
 import {
   adminState,
   challenge,
@@ -12,6 +13,7 @@ import {
   sessionFor,
   startAttempt,
   updateQuestion,
+  updatePrizes,
   verify,
   type Session,
 } from '@/lib/service';
@@ -84,11 +86,10 @@ async function respond(req: NextRequest) {
       } else if (route === 'export') {
         role(session, ['admin']);
         const state = await adminState();
-        const stage = req.nextUrl.searchParams.get('stage');
-        const region = req.nextUrl.searchParams.get('region');
-        const rows = state.participants.filter(
-          (p) => (!stage || p.stage === stage) && (!region || p.region === region),
+        const filters = Object.fromEntries(
+          Object.keys(emptyFilters).map((key) => [key, req.nextUrl.searchParams.get(key) || '']),
         );
+        const rows = filterParticipants(state.participants, filters);
         const csv = [
           [
             'الاسم (بيانات افتراضية)',
@@ -100,6 +101,9 @@ async function respond(req: NextRequest) {
             'القرية / المركز',
             'حالة المشاركة',
             'الدرجة',
+            'عدد الأسئلة',
+            'نسبة الدرجة',
+            'تاريخ التسجيل',
           ],
           ...rows.map((p) => [
             p.name,
@@ -111,6 +115,9 @@ async function respond(req: NextRequest) {
             p.village,
             p.submitted_at ? 'مكتملة' : p.attempt_id ? 'قيد المشاركة' : 'لم تبدأ',
             p.score ?? '',
+            p.max_score ?? '',
+            scorePercentage(p) === null ? '' : scorePercentage(p)!.toFixed(2) + '%',
+            p.created_at,
           ]),
         ]
           .map((row) => row.map(csvCell).join(','))
@@ -144,6 +151,10 @@ async function respond(req: NextRequest) {
         result = await changeAttempt(role(session, ['participant']), body, true);
       else if (route === 'admin/question') {
         await updateQuestion(role(session, ['admin', 'editor']), body);
+        result = { ok: true };
+      } else if (route === 'admin/prizes') {
+        role(session, ['admin']);
+        await updatePrizes(body);
         result = { ok: true };
       } else if (route === 'admin/publish') {
         role(session, ['admin']);

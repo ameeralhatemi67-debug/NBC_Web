@@ -1,6 +1,6 @@
 # NBC Web — Book-Based Competition System v1
 
-**Project:** `ameeralhatemi67-debug/NBC_Web`  
+**Project:** `ameeralhatemi67-debug/NBC_Web`<br>
 **Purpose:** Expand the existing Arabic RTL competition platform into a production-ready, book-based competition experience using *الانتماء واللحمة الوطنية* as the approved source material.
 
 ---
@@ -468,7 +468,7 @@ Recommended behavior:
 
 Example:
 
-> 💡 تحتاج إلى مساعدة؟  
+> 💡 تحتاج إلى مساعدة؟<br>
 > راجع الصفحتين 26–27
 
 The admin must be able to configure the hint range manually.

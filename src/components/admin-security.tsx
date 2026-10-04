@@ -60,6 +60,14 @@ const metrics: Record<string, string> = {
   test_verified: 'اختبارات التحقق الناجحة',
 };
 export function AdminSecurity() {
+  const [backend, setBackend] = useState<{
+    project: string | null;
+    adapter: string;
+    role: string;
+    schema: string;
+    migrationsCurrent: boolean;
+    counts: Record<string, number>;
+  } | null>(null);
   const [data, setData] = useState<Readiness | null>(null),
     [error, setError] = useState(''),
     [notice, setNotice] = useState(''),
@@ -71,6 +79,7 @@ export function AdminSecurity() {
     const r = await api<Readiness>('admin/security');
     setData(r);
     setChecks(r.acknowledgements);
+    setBackend(await api<NonNullable<typeof backend>>('admin/backend').catch(() => null));
   }
   useEffect(() => {
     void load().catch((e) => setError(e.message));
@@ -105,6 +114,28 @@ export function AdminSecurity() {
   if (!data) return error ? <ErrorMessage message={error} /> : <Loading />;
   return (
     <div className="security-setup">
+      <section className="admin-panel" aria-label="تشخيص التخزين">
+        <h2>تشخيص التخزين</h2>
+        {backend ? (
+          <>
+            <p>
+              المشروع: <bdi>{backend.project ?? 'local'}</bdi>
+            </p>
+            <p>
+              التخزين: <bdi>{backend.adapter}</bdi> · المخطط: <bdi>{backend.schema}</bdi> · الدور:{' '}
+              <bdi>{backend.role}</bdi>
+            </p>
+            <p>الترحيلات: {backend.migrationsCurrent ? 'مكتملة' : 'غير مكتملة'}</p>
+            <p>
+              المشاركون: {backend.counts.participants} · المحاولات: {backend.counts.attempts} ·
+              أسئلة البنك: {backend.counts.questions} · تجارب الإدارة:{' '}
+              {backend.counts.admin_test_runs}
+            </p>
+          </>
+        ) : (
+          <p>تشخيص التخزين غير متاح.</p>
+        )}
+      </section>
       <section className="admin-panel">
         <h2>{statusLabels[data.status]}</h2>
         <p>

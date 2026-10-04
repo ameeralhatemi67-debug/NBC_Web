@@ -94,14 +94,16 @@ async function respond(req: NextRequest) {
           req.nextUrl.searchParams.get('id') ?? '',
         );
       } else if (route === 'admin/backup') {
-        role(session, ['admin']);
+        const staff = role(session, ['admin']);
         const db = await getDb();
+        if (db.kind !== 'pglite')
+          throw new AppError('تُدار نسخ PostgreSQL الاحتياطية وفق دليل التشغيل.', 503);
+        const blob = await db.dumpDataDir('gzip');
         await db.query('INSERT INTO audit (actor,action,detail) VALUES ($1,$2,$3)', [
-          'admin',
+          staff.actor ?? 'demo-admin',
           'نسخة احتياطية',
           'تصدير لقطة خاصة بقاعدة العرض المحلي بصيغة PGlite.',
         ]);
-        const blob = await db.dumpDataDir('gzip');
         return new NextResponse(await blob.arrayBuffer(), {
           headers: {
             'Content-Type': 'application/gzip',

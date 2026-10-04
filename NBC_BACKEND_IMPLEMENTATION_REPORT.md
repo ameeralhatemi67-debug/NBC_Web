@@ -1,6 +1,6 @@
 # NBC backend implementation report
 
-The competition expansion has been completed for private PostgreSQL storage in the dedicated NBC Supabase project `eerfhnaduachqluowsdo`. Deployment/live verification is being completed before final handover. The real campaign remains DRAFT and participant OTP is inactive.
+The competition expansion is deployed with private PostgreSQL storage in the dedicated NBC Supabase project `eerfhnaduachqluowsdo`. Real staff sign-in, prize persistence and the shared competition test flow are verified live. The real campaign remains DRAFT and participant OTP is inactive.
 
 ## Implemented architecture
 
@@ -18,7 +18,7 @@ The validated ignored snapshot restored prize version 5, podium amounts totaling
 
 ## Verification
 
-Current automated evidence is recorded below; final live evidence and release IDs are added after deployment.
+Automated and live evidence is recorded below. External-provider mocks do not certify actual SMS delivery.
 
 | Command | Result |
 | --- | --- |
@@ -30,10 +30,22 @@ Current automated evidence is recorded below; final live evidence and release ID
 | `npm run build` | Passed; immutable PDF included in API trace |
 | `npm run format:check` | Passed |
 | `git diff --check` | Passed |
+| `node scripts/verify-live.mjs` | 14 live HTTP checks passed; SAR 52,000 and exact PDF hash verified |
 
 The new PostgreSQL runner repeats competition/migration tests against isolated loopback schemas, adds actual anon/authenticated/service-role/runtime privilege tests, owner/RLS behavior, operator/runtime separation, initial key enrollment, stale row-lock rejection and checksum verification. Startup/phase failure can no longer silently pass; it chooses a free local database port. OTP/provider/JWKS HTTP suites mock external network services only, never live SMS.
 
-Direct NBC pooler verification confirmed `tlsEncrypted=true`, `tlsAuthorized=true`, runtime user `nbc_runtime` and schema `nbc`. Supabase read-only metadata confirms all tables have RLS, private access is denied to anon/authenticated/service_role, and no real participants/attempts exist. The security advisor has no findings after the forward path fix. Live authenticated save/test-run verification is pending release.
+Direct NBC pooler verification confirmed `tlsEncrypted=true`, `tlsAuthorized=true`, runtime user `nbc_runtime` and schema `nbc`. Supabase read-only metadata confirms all tables have RLS, private access is denied to anon/authenticated/service_role, and no real participants/attempts exist. The security advisor has no findings after the forward path fix.
+
+## Live verification
+
+Production release `dpl_6h7TxZ1r5KAYarkiahS4RukN9AC2`, source `8f3732e95b83b979696227c175d9c6b7032b8673`, reached READY on https://nbc-web-two.vercel.app/. Upstream prize hotfix ancestry was merged while preserving the existing expansion and unrelated local work. The follow-up verification release adds the operator storage panel and prevents a PostgreSQL backup request from falsely recording a local backup action.
+
+- Real Vercel staff sign-in opened the database-backed admin dashboard. Successive layout saves committed versions 6 and 7; a fresh staff reload retained podium layout and all original amounts. An independent public browser displayed SAR 52,000. NBC audit identifies the authenticated staff actor; four imported historical entries retain their original attribution.
+- The complete middle-stage shared test flow locked all 20 answers, replayed ordered offline events, submitted once, and displayed `TEST-613419`, 5/20, 25%, and its stage leaderboard. Supabase confirms revision 41, 20 locks and matching receipt/score. These are synthetic admin test results, never real participants or winners.
+- High-school educational testing disclosed no key before Check and showed feedback after the accepted lock. Reset with queued offline work invalidated the old session, preserving its one server lock; the replacement had revision 0 and no answers. University sessions contain 20 stage-specific snapshots. All three stage forms run through the same engine.
+- The real PDF reader rendered the pinned book, page 29 and source/hint jumps, with zoom controls. Read-only live checks confirm the original and immutable PDFs, worker and public book/terms are available. Anonymous staff/participant endpoints deny access, demo staff is disabled, hidden leaderboard returns 403, and foreign-origin mutations return 403.
+- Mobile staff/test UI at a 390px viewport has RTL layout without page overflow (375px content width). The reader opens as a focused dialog; Shift+Tab/Tab wrap between its last link and first button, and Escape returns focus to the source button. Browser error/warning capture was empty after the test flow. Temporary viewport overrides were removed.
+- Evidence: [prize save](docs/implementation/nbc-backend-prize-save.jpg), [completed test receipt](docs/implementation/nbc-backend-test-receipt.jpg), [mobile flow](docs/implementation/nbc-backend-mobile.jpg). The final handover includes a repeat live check after the verification redeployment, confirming persistent prizes, test locks and campaign gates.
 
 ## Operations and remaining launch work
 

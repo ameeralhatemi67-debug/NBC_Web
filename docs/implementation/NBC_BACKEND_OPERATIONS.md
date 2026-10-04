@@ -52,7 +52,7 @@ Admin > تجربة الإدارة runs the same engine, Participation/PDF/leader
 
 ## Diagnostics, incidents and retention
 
-An authenticated admin can inspect `/api/admin/backend` for project/schema/role, migration readiness and aggregate real/test counts. It contains no connection URL, secret or answer key. `/api/admin/security` checks identity-key agreement and OTP/provider readiness. Unauthenticated/editor access is denied. Public homepage/book availability alone is not database evidence.
+The admin **إعداد التحقق والأمان → تشخيص التخزين** panel reads `/api/admin/backend` for project/schema/role, migration readiness and aggregate real/test counts. It contains no connection URL, secret or answer key. `/api/admin/security` checks identity-key agreement and OTP/provider readiness. Unauthenticated/editor access is denied. Public homepage/book availability alone is not database evidence. Run `node scripts/verify-live.mjs` for read-only public availability, exact PDF hash and unauthorized API/CSRF checks against the canonical live domain.
 
 If saves fail, keep pending IndexedDB events and retry after restoring auth/connectivity. Do not clear browser storage or create another participant attempt. The server's first locks win; lost responses retry idempotently. Grace/technical deadlines use server receipt time. No service worker caches the app shell, so a completely offline cold reload is not guaranteed. Do not promise recovery from erased local storage/device loss. Reset admin namespaces remain separate from participants.
 

@@ -164,6 +164,13 @@ export function BookReader({
   const [paged, setPaged] = useState(false);
   const [contents, setContents] = useState<BookContentsEntry[]>(fallbackContents(book));
   const [contentsOpen, setContentsOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [zoomOpen, setZoomOpen] = useState(false);
+  const moreButton = useRef<HTMLButtonElement>(null);
+  const moreMenu = useRef<HTMLDivElement>(null);
+  const zoomGroup = useRef<HTMLDivElement>(null);
+  const zoomButton = useRef<HTMLButtonElement>(null);
+  const moreId = useId();
   const [headerHidden, setHeaderHidden] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(44);
   const container = useRef<HTMLDivElement>(null);
@@ -324,6 +331,24 @@ export function BookReader({
       cancelAnimationFrame(frame);
     };
   }, [contentsOpen]);
+  useEffect(() => {
+    if (!moreOpen && !zoomOpen) return;
+    function outside(event: PointerEvent) {
+      if (
+        !moreMenu.current?.contains(event.target as Node) &&
+        !moreButton.current?.contains(event.target as Node)
+      )
+        setMoreOpen(false);
+      if (!zoomGroup.current?.contains(event.target as Node)) setZoomOpen(false);
+    }
+    document.addEventListener('pointerdown', outside);
+    return () => {
+      document.removeEventListener('pointerdown', outside);
+    };
+  }, [moreOpen, zoomOpen]);
+  useLayoutEffect(() => {
+    if (moreOpen) moreMenu.current?.querySelector<HTMLButtonElement>('button')?.focus();
+  }, [moreOpen]);
   function rememberAnchor() {
     const view = container.current;
     if (!view) return;
@@ -362,7 +387,13 @@ export function BookReader({
   function trackPage() {
     const view = container.current;
     if (!view) return;
-    if (phone && !contentsOpen && !header.current?.contains(document.activeElement)) {
+    if (
+      phone &&
+      !contentsOpen &&
+      !moreOpen &&
+      !zoomOpen &&
+      !header.current?.contains(document.activeElement)
+    ) {
       if (view.scrollTop > priorTop.current + 8) setHeaderHidden(true);
       else if (view.scrollTop < priorTop.current - 8) setHeaderHidden(false);
     }
@@ -465,6 +496,27 @@ export function BookReader({
       view.removeEventListener('touchend', end);
     };
   }, [width, phone, pdf, paged, rangeKey, zoom, onPageChange]);
+  const contentsControl = (
+    <button
+      ref={contentsButton}
+      className="icon-button reader-contents-button"
+      role={phone ? 'menuitem' : undefined}
+      aria-label="المحتويات"
+      title="المحتويات"
+      aria-haspopup="menu"
+      aria-expanded={contentsOpen}
+      aria-controls={contentsId}
+      disabled={!pdf}
+      onClick={() => {
+        setContentsOpen(!contentsOpen);
+        setMoreOpen(false);
+        setHeaderHidden(false);
+      }}
+    >
+      <Icon name="book" size={18} />
+      {phone && <span>المحتويات</span>}
+    </button>
+  );
   return (
     <section
       className={`reader ${embedded ? 'embedded-reader' : ''} ${phone ? 'phone-reader' : ''} ${night ? 'night-reader' : ''} ${headerHidden ? 'toolbar-hidden' : ''}`}
@@ -476,6 +528,15 @@ export function BookReader({
         className="reader-toolbar"
         inert={headerHidden && phone}
         aria-hidden={(headerHidden && phone) || undefined}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape' && phone && (moreOpen || zoomOpen)) {
+            event.preventDefault();
+            event.stopPropagation();
+            setMoreOpen(false);
+            setZoomOpen(false);
+            (moreOpen ? moreButton : zoomButton).current?.focus();
+          }
+        }}
       >
         {onClose && (
           <button
@@ -488,22 +549,7 @@ export function BookReader({
             {phone && <span>السؤال</span>}
           </button>
         )}
-        <button
-          ref={contentsButton}
-          className="icon-button"
-          aria-label="المحتويات"
-          title="المحتويات"
-          aria-haspopup="menu"
-          aria-expanded={contentsOpen}
-          aria-controls={contentsId}
-          disabled={!pdf}
-          onClick={() => {
-            setContentsOpen(!contentsOpen);
-            setHeaderHidden(false);
-          }}
-        >
-          <Icon name="book" size={18} />
-        </button>
+        {!phone && contentsControl}
         <div className="reader-page-controls" aria-label="التنقل في الكتاب" dir="ltr">
           <button
             className="icon-button"
@@ -535,66 +581,152 @@ export function BookReader({
             ›
           </button>
         </div>
-        <div className="reader-zoom-controls" dir="ltr" aria-label="تكبير الكتاب">
-          <button
-            className="icon-button"
-            disabled={zoom <= (phone ? 1 : 0.75)}
-            onClick={() => changeZoom(zoom - 0.25)}
-            aria-label="تصغير الصفحة"
-            title="تصغير الصفحة"
-          >
-            −
-          </button>
-          <bdi dir="ltr">{Math.round(zoom * 100)}%</bdi>
-          <button
-            className="icon-button"
-            disabled={zoom >= 3}
-            onClick={() => changeZoom(zoom + 0.25)}
-            aria-label="تكبير الصفحة"
-            title="تكبير الصفحة"
-          >
-            +
-          </button>
+        <div ref={zoomGroup} className="reader-zoom-controls" dir="ltr" aria-label="تكبير الكتاب">
+          {phone && (
+            <button
+              ref={zoomButton}
+              className="icon-button reader-zoom-toggle"
+              aria-label="خيارات التكبير"
+              aria-expanded={zoomOpen}
+              onClick={() => {
+                setZoomOpen(!zoomOpen);
+                setMoreOpen(false);
+              }}
+            >
+              <bdi dir="ltr">{Math.round(zoom * 100)}%</bdi>
+            </button>
+          )}
+          {(!phone || zoomOpen) && (
+            <div
+              className={`reader-zoom-adjustments ${phone ? 'reader-zoom-popover' : ''}`}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape' && phone) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setZoomOpen(false);
+                  zoomButton.current?.focus();
+                }
+              }}
+            >
+              <button
+                className="icon-button"
+                disabled={zoom <= (phone ? 1 : 0.75)}
+                onClick={() => changeZoom(zoom - 0.25)}
+                aria-label="تصغير الصفحة"
+                title="تصغير الصفحة"
+              >
+                −
+              </button>
+              <bdi dir="ltr">{Math.round(zoom * 100)}%</bdi>
+              <button
+                className="icon-button"
+                disabled={zoom >= 3}
+                onClick={() => changeZoom(zoom + 0.25)}
+                aria-label="تكبير الصفحة"
+                title="تكبير الصفحة"
+              >
+                +
+              </button>
+            </div>
+          )}
         </div>
-        <button
-          className="icon-button"
-          aria-label="القراءة الليلية"
-          title="القراءة الليلية"
-          aria-pressed={night}
-          onClick={() => {
-            setNight(!night);
-            try {
-              localStorage.setItem('nbc-reader-night', night ? '0' : '1');
-            } catch {}
+        {phone && (
+          <button
+            ref={moreButton}
+            className="icon-button reader-more-button"
+            aria-haspopup="menu"
+            aria-controls={moreId}
+            aria-expanded={moreOpen}
+            onClick={() => {
+              setMoreOpen(!moreOpen);
+              setZoomOpen(false);
+              setContentsOpen(false);
+            }}
+          >
+            <span>المزيد</span>
+          </button>
+        )}
+        <div
+          ref={moreMenu}
+          id={moreId}
+          className={phone ? 'reader-more-popover' : 'reader-extra-controls'}
+          hidden={phone && !moreOpen}
+          role={phone ? 'menu' : undefined}
+          aria-label={phone ? 'المزيد' : undefined}
+          onKeyDown={(event) => {
+            if (!phone) return;
+            if (event.key === 'Escape') {
+              event.preventDefault();
+              event.stopPropagation();
+              setMoreOpen(false);
+              moreButton.current?.focus();
+            }
+            if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+              event.preventDefault();
+              event.stopPropagation();
+              const items = Array.from(
+                event.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled),a[href]'),
+              );
+              const index = items.indexOf(document.activeElement as HTMLElement);
+              items[
+                (index + (event.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length
+              ]?.focus();
+            }
           }}
         >
-          <Icon name="moon" size={18} />
-        </button>
-        <button
-          className="icon-button"
-          aria-label="صفحة بصفحة"
-          title="صفحة بصفحة"
-          aria-pressed={paged}
-          onClick={() => {
-            rememberAnchor();
-            setPaged(!paged);
-            try {
-              localStorage.setItem('nbc-reader-paged', paged ? '0' : '1');
-            } catch {}
-          }}
-        >
-          <Icon name="pages" size={18} />
-        </button>
-        <a
-          className="icon-button"
-          href={book.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="فتح الكتاب الكامل في نافذة جديدة"
-          title="فتح الكتاب الكامل في نافذة جديدة"
-        >
-          <Icon name="download" size={18} />
-        </a>
+          {phone && contentsControl}
+          <button
+            className="icon-button"
+            role={phone ? 'menuitemcheckbox' : undefined}
+            aria-label="القراءة الليلية"
+            title="القراءة الليلية"
+            aria-pressed={night}
+            aria-checked={phone ? night : undefined}
+            onClick={() => {
+              setNight(!night);
+              setMoreOpen(false);
+              if (phone) moreButton.current?.focus();
+              try {
+                localStorage.setItem('nbc-reader-night', night ? '0' : '1');
+              } catch {}
+            }}
+          >
+            <Icon name="moon" size={18} />
+            {phone && <span>وضع القراءة الليلي</span>}
+          </button>
+          <button
+            className="icon-button"
+            role={phone ? 'menuitemcheckbox' : undefined}
+            aria-label="صفحة بصفحة"
+            title="صفحة بصفحة"
+            aria-pressed={paged}
+            aria-checked={phone ? paged : undefined}
+            onClick={() => {
+              rememberAnchor();
+              setPaged(!paged);
+              setMoreOpen(false);
+              if (phone) moreButton.current?.focus();
+              try {
+                localStorage.setItem('nbc-reader-paged', paged ? '0' : '1');
+              } catch {}
+            }}
+          >
+            <Icon name="pages" size={18} />
+            {phone && <span>صفحة بصفحة</span>}
+          </button>
+          <a
+            className="icon-button"
+            role={phone ? 'menuitem' : undefined}
+            href={book.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="فتح الكتاب الكامل في نافذة جديدة"
+            title="فتح الكتاب الكامل في نافذة جديدة"
+          >
+            <Icon name="download" size={18} />
+            {phone && <span>فتح الكتاب الكامل في نافذة جديدة</span>}
+          </a>
+        </div>
       </header>
       {contentsOpen && (
         <div
@@ -608,7 +740,7 @@ export function BookReader({
               event.preventDefault();
               event.stopPropagation();
               setContentsOpen(false);
-              contentsButton.current?.focus();
+              (phone ? moreButton : contentsButton).current?.focus();
             }
             if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
               event.preventDefault();

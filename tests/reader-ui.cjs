@@ -58,6 +58,41 @@ fs.mkdirSync(output, { recursive: true });
         );
         const reader = page.locator('.book-panel .reader');
         const view = reader.locator('.pdf-canvas-container');
+        async function moreAction(name, role = 'menuitemcheckbox') {
+          await reader.getByRole('button', { name: 'المزيد', exact: true }).tap();
+          await reader.getByRole(role, { name, exact: true }).tap();
+        }
+        const toolbarCenters = await reader
+          .locator('.reader-toolbar > *')
+          .evaluateAll((items) =>
+            items
+              .filter((e) => e.getClientRects().length && e.getBoundingClientRect().height > 0)
+              .map((e) => e.getBoundingClientRect().top + e.getBoundingClientRect().height / 2),
+          );
+        assert.ok(
+          Math.max(...toolbarCenters) - Math.min(...toolbarCenters) <= 1,
+          'phone toolbar must fit one row',
+        );
+        assert.ok((await reader.locator('.reader-toolbar').boundingBox()).height <= 56);
+        assert.ok(
+          (await reader.getByRole('button', { name: 'المزيد', exact: true }).boundingBox())
+            .height >= 44,
+        );
+        await reader.getByRole('button', { name: 'المزيد', exact: true }).tap();
+        const moreMenu = reader.getByRole('menu', { name: 'المزيد', exact: true });
+        for (const label of [
+          'المحتويات',
+          'وضع القراءة الليلي',
+          'صفحة بصفحة',
+          'فتح الكتاب الكامل في نافذة جديدة',
+        ])
+          assert.ok((await moreMenu.innerText()).includes(label));
+        await moreMenu.getByRole('menuitem', { name: 'المحتويات', exact: true }).focus();
+        await page.keyboard.press('Escape');
+        assert.ok(
+          await page.locator('.book-panel').isVisible(),
+          'Escape from More must keep the reader open',
+        );
         assert.equal(await reader.locator('input[type=search],[role=searchbox]').count(), 0);
         assert.equal(await reader.getByLabel('رقم صفحة PDF', { exact: true }).inputValue(), '63');
         assert.ok(
@@ -66,10 +101,10 @@ fs.mkdirSync(output, { recursive: true });
             .first()
             .evaluate((e) => e.getBoundingClientRect().width <= innerWidth),
         );
-        await reader.getByRole('button', { name: 'المحتويات', exact: true }).tap();
+        await moreAction('المحتويات', 'menuitem');
         await reader.getByRole('menuitem', { name: /المطلب الأول/ }).tap();
         assert.equal(await reader.getByLabel('رقم صفحة PDF', { exact: true }).inputValue(), '13');
-        await reader.getByRole('button', { name: 'المحتويات', exact: true }).tap();
+        await moreAction('المحتويات', 'menuitem');
         await reader.locator('summary').getByText('صفحات أخرى').tap();
         await reader.getByRole('menuitem', { name: 'صفحة PDF 10', exact: true }).tap();
         await page.waitForFunction(
@@ -176,7 +211,7 @@ fs.mkdirSync(output, { recursive: true });
         );
         await touch('touchStart', [[cx, cy]]);
         await touch('touchEnd', []);
-        await reader.getByRole('button', { name: 'تكبير الصفحة', exact: true }).waitFor();
+        await reader.getByRole('button', { name: 'خيارات التكبير', exact: true }).tap();
         await reader.getByRole('button', { name: 'تكبير الصفحة', exact: true }).tap();
         await page.waitForFunction(
           () => document.querySelector('.reader-zoom-controls bdi').textContent === '225%',
@@ -193,7 +228,7 @@ fs.mkdirSync(output, { recursive: true });
         await page.waitForFunction(
           () => document.querySelector('.reader-zoom-controls bdi').textContent === '100%',
         );
-        await reader.getByRole('button', { name: 'القراءة الليلية', exact: true }).tap();
+        await moreAction('القراءة الليلية');
         assert.equal(
           await reader.getAttribute('class').then((s) => s.includes('night-reader')),
           true,
@@ -206,7 +241,7 @@ fs.mkdirSync(output, { recursive: true });
           'invert(0.9) hue-rotate(180deg)',
         );
         await reader.getByLabel('رقم صفحة PDF', { exact: true }).fill('10');
-        await reader.getByRole('button', { name: 'صفحة بصفحة', exact: true }).tap();
+        await moreAction('صفحة بصفحة');
         await page.waitForFunction(() => document.querySelectorAll('.pdf-page').length === 1);
         const initial = Number(
           await reader.getByLabel('رقم صفحة PDF', { exact: true }).inputValue(),
@@ -220,7 +255,7 @@ fs.mkdirSync(output, { recursive: true });
         );
         await touch('touchStart', [[cx, cy]]);
         await touch('touchEnd', []);
-        await reader.getByRole('button', { name: 'صفحة بصفحة', exact: true }).tap();
+        await moreAction('صفحة بصفحة');
         await page.waitForFunction(() => document.querySelectorAll('.pdf-page').length === 66);
         await reader.getByLabel('رقم صفحة PDF', { exact: true }).fill('10');
         await page.setViewportSize({ width: 844, height: 390 });

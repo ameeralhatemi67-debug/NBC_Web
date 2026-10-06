@@ -167,3 +167,21 @@ All 12 touch viewport/identity cases and three desktop reader cases passed. The
 swipe fixture now explicitly navigates to PDF 10 before testing a next-page
 gesture, so it cannot inadvertently begin at the last page. Format check passed.
 The run log is `test-results/phase3-contents-reader.log`.
+
+## Phase 3 review follow-up B: compact phone header
+
+The phone header now has a single row at 320–430px: labelled question return,
+LTR page stepper, current zoom with an adjustment popover, and a 44px "المزيد"
+button. More contains visible labels for contents, page-by-page mode, night mode,
+and opening the full PDF. Desktop controls keep their existing labels and layout.
+Menus focus their first item, support arrow keys and Escape, and close on outside
+interaction. Escape consumes the menu action before the document's reader-close
+shortcut. Open menus keep the auto-hiding header visible.
+
+All 12 touch cases and three desktop cases passed, including single-row height,
+the More target, visible option labels, reader retention after menu Escape, and
+the existing zoom/gesture/dock/hint/restore checks. The log is
+`test-results/phase3-phone-header-reader.log`; refreshed `reader-*`, `zoom-*`,
+`dock-*`, and `question-*` captures remain under `test-results/exam-ux/phase-3/`.
+Typecheck passed. The design docs and Journey Lab were separately committed as
+`e2a6624`, per review sub-task C. The contents follow-up is `3955e74`.

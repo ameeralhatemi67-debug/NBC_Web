@@ -4,9 +4,9 @@ import { spawn, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { tmpdir } from 'node:os';
 const root = process.cwd();
-await mkdir(path.join(root, '.data'), { recursive: true });
-const dataDir = await mkdtemp(path.join(root, '.data', 'integration-'));
+const dataDir = await mkdtemp(path.join(tmpdir(), 'nbc-exam-integration-'));
 const base = 'http://127.0.0.1:43187';
 const server = spawn(
   process.execPath,
@@ -447,11 +447,11 @@ try {
   });
   const backupPath = path.join(dataDir, 'test-backup.tar.gz');
   await writeFile(backupPath, backup.raw);
-  const restoredPath = path.join(root, '.data', 'restored-' + path.basename(dataDir));
+  const restoredPath = path.join(dataDir, '.data', 'restored');
   const restored = await promisify(execFile)(
     process.execPath,
-    ['scripts/restore.mjs', backupPath, restoredPath],
-    { cwd: root, windowsHide: true },
+    [path.join(root, 'scripts/restore.mjs'), backupPath, restoredPath],
+    { cwd: dataDir, windowsHide: true },
   );
   const recovery = JSON.parse(restored.stdout.trim());
   check('restore preserves participants and submissions while invalidating sessions', () => {

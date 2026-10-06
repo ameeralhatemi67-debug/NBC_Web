@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { after, before, beforeEach, test, mock } from 'node:test';
-import { mkdtemp, mkdir } from 'node:fs/promises';
+import { mkdtemp } from 'node:fs/promises';
 import path from 'node:path';
+import { tmpdir } from 'node:os';
 import { randomBytes } from 'node:crypto';
 import { connectDatabase, type Database } from '../src/lib/database';
 import { migrate, migrationsCurrent } from '../src/lib/migrations';
@@ -69,8 +70,7 @@ before(async () => {
     process.env.DATABASE_URL = process.env.NBC_TEST_DATABASE_URL;
   else {
     delete process.env.DATABASE_URL;
-    await mkdir('.data', { recursive: true });
-    process.env.NBC_DATA_DIR = await mkdtemp(path.resolve('.data/security-test-'));
+    process.env.NBC_DATA_DIR = await mkdtemp(path.join(tmpdir(), 'nbc-exam-security-test-'));
   }
   db = await connectDatabase();
   await migrate(db);

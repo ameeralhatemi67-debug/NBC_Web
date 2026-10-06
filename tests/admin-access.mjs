@@ -105,6 +105,12 @@ try {
   for (const flag of ['Secure', 'HttpOnly', 'SameSite=strict', 'Path=/'])
     assert.ok(set.includes(flag));
   const cookie = set.split(';')[0];
+  const returningAdminHtml = await (await request('/admin', cookie)).text();
+  assert.ok(returningAdminHtml.includes('جارٍ تحميل المساحة'));
+  assert.ok(!returningAdminHtml.includes('href="/api/staff/login"'));
+  const forgedAdminHtml = await (await request('/admin', '__Host-nbc-staff=forged')).text();
+  assert.ok(forgedAdminHtml.includes('جارٍ تحميل المساحة'));
+  pass('returning staff see loading HTML while the API verifies their session');
   const status = await (await request('/api/admin/session', cookie)).json();
   assert.equal(status.session.role, 'admin');
   const setup = await request('/api/admin/security', cookie);

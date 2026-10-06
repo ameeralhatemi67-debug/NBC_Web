@@ -73,17 +73,21 @@ export function Admin({
   staffAuth = 'cloudflare',
   signInReady = false,
   loginFailed = false,
+  hasStaffCookie = false,
 }: {
   demo: boolean;
   staffAuth?: 'cloudflare' | 'vercel';
   signInReady?: boolean;
   loginFailed?: boolean;
+  hasStaffCookie?: boolean;
 }) {
   const [data, setData] = useState<AdminData | null>(null);
   const [dataReady, setDataReady] = useState(false);
   const [role, setRole] = useState('');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [signingIn, setSigningIn] = useState(false);
+  const signInStarted = useRef(false);
   const [error, setError] = useState(
     loginFailed ? 'تعذّر تسجيل الدخول. استخدم حساب Vercel المصرح له ثم أعد المحاولة.' : '',
   );
@@ -104,6 +108,13 @@ export function Admin({
     setDataReady(true);
   }
   useEffect(() => {
+    // Back/forward cache can restore the page after leaving for OAuth.
+    const resetSignIn = (event: PageTransitionEvent) => {
+      if (!event.persisted) return;
+      signInStarted.current = false;
+      setSigningIn(false);
+    };
+    window.addEventListener('pageshow', resetSignIn);
     api<{ session: { role: string } | null }>('admin/session')
       .then(async (s) => {
         if (s.session && ['admin', 'editor'].includes(s.session.role)) {
@@ -128,6 +139,7 @@ export function Admin({
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
+    return () => window.removeEventListener('pageshow', resetSignIn);
   }, []);
   async function login(selected: string) {
     setBusy(true);
@@ -174,8 +186,9 @@ export function Admin({
       setBusy(false);
     }
   }
-  // Render the real sign-in link in the initial HTML, including before hydration.
-  if (loading && !signInReady) return <Loading />;
+  // Cookie presence only controls the loading UI; the API still verifies access.
+  // Anonymous visitors keep the native sign-in link, even without JavaScript.
+  if (loading && (!signInReady || (hasStaffCookie && !loginFailed) || role)) return <Loading />;
   if (!role || !data)
     return (
       <main id="main" className="staff-entry container">
@@ -216,8 +229,29 @@ export function Admin({
             <>
               <p>سجّل الدخول بحساب Vercel المصرح له لإدارة المسابقة.</p>
               {signInReady ? (
-                <a className="button primary" href="/api/staff/login">
-                  تسجيل الدخول عبر Vercel <Icon />
+                <a
+                  className="button primary"
+                  href="/api/staff/login"
+                  aria-disabled={signingIn || undefined}
+                  aria-busy={signingIn || undefined}
+                  onClick={(event) => {
+                    if (
+                      event.button !== 0 ||
+                      event.metaKey ||
+                      event.ctrlKey ||
+                      event.shiftKey ||
+                      event.altKey
+                    )
+                      return;
+                    if (signInStarted.current) {
+                      event.preventDefault();
+                      return;
+                    }
+                    signInStarted.current = true;
+                    setSigningIn(true);
+                  }}
+                >
+                  {signingIn ? 'جارٍ الاتصال بـ Vercel…' : 'تسجيل الدخول عبر Vercel'} <Icon />
                 </a>
               ) : (
                 <p role="status">

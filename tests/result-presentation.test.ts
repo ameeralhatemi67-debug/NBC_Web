@@ -56,7 +56,7 @@ test('result review requires locked server feedback and visible score, deduplica
 });
 test('all four committee leaderboard policies have the approved distinct copy', () => {
   assert.deepEqual(leaderboardModeLines, {
-    hidden: 'نتيجتك تظهر لك فقط. لا يُعلن ترتيب المشاركين.',
+    hidden: 'لا تُعرض النتيجة ولا ترتيب المشاركين. تعتمد اللجنة الفائزين وتعلنهم بنفسها.',
     own_result_only: 'نتيجتك تظهر لك فقط. تعتمد اللجنة الفائزين وتعلنهم بنفسها.',
     publish_after_close:
       'يُعلن الترتيب بعد إغلاق المسابقة واعتماد اللجنة. التعادل لا يُحسم بسرعة المشاركة.',

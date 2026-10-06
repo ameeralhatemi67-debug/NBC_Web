@@ -5,6 +5,7 @@ import { api, ApiError, ErrorMessage, Icon, Loading } from './ui';
 import { BookReader } from './book-reader';
 import { CompetitionIntro } from './competition-intro';
 import { CompetitionResult } from './competition-result';
+import { AnswerFeedback, AnswerOption } from './question-card-parts';
 import { ExamDialog, ExamReview, QuestionStrip } from './exam-controls';
 import { arPlural, riyadhDateTime } from '@/lib/format';
 import {
@@ -484,49 +485,37 @@ export function Participation({
           <legend className="sr-only">
             {q.type === 'multi_select' ? 'حدد كل الإجابات الصحيحة' : 'اختر إجابة واحدة'}
           </legend>
-          {q.options.map((option, i) => (
-            <label
-              key={`${q.id}-${i}`}
-              className={`answer-option ${answer?.selected.includes(i) ? 'selected' : ''} ${feedback?.correctAnswers.includes(i) ? 'correct' : feedback && answer?.selected.includes(i) ? 'incorrect' : feedback ? 'dimmed' : ''}`}
-            >
-              <input
-                type={q.type === 'multi_select' ? 'checkbox' : 'radio'}
+          {q.options.map((option, i) => {
+            const chosen = answer?.selected.includes(i) ?? false;
+            const correct = feedback?.correctAnswers.includes(i) ?? false;
+            return (
+              <AnswerOption
+                key={`${q.id}-${i}`}
                 name={q.id}
-                checked={answer?.selected.includes(i) ?? false}
+                type={q.type}
+                index={i}
+                text={option}
+                checked={chosen}
+                state={`${chosen ? 'selected' : ''} ${correct ? 'correct' : feedback && chosen ? 'incorrect' : feedback ? 'dimmed' : ''}`}
+                result={
+                  correct
+                    ? chosen
+                      ? 'correct-chosen'
+                      : 'correct'
+                    : feedback && chosen
+                      ? 'incorrect'
+                      : null
+                }
                 onChange={() => selectOption(i)}
               />
-              <span className="answer-letter">{['أ', 'ب', 'ج', 'د', 'هـ', 'و'][i]}</span>
-              <span className="answer-text">{option}</span>
-              {feedback?.correctAnswers.includes(i) ? (
-                <span className="answer-result">
-                  <Icon name="check" size={16} />
-                  <span className="answer-result-label">
-                    {answer?.selected.includes(i) ? 'إجابتك صحيحة' : 'الصحيحة'}
-                  </span>
-                </span>
-              ) : feedback && answer?.selected.includes(i) ? (
-                <span className="answer-result">
-                  <Icon name="close" size={16} />
-                  <span className="answer-result-label">غير صحيحة</span>
-                </span>
-              ) : null}
-            </label>
-          ))}
+            );
+          })}
         </fieldset>
         {answer?.locked && (
-          <div
-            className={`answer-feedback ${feedback ? (feedback.isCorrect ? 'correct' : 'incorrect') : ''}`}
-            role="status"
+          <AnswerFeedback
+            status={feedback ? (feedback.isCorrect ? 'correct' : 'incorrect') : 'pending'}
+            explanation={feedback?.explanation ?? ''}
           >
-            <strong>
-              <Icon name={feedback ? (feedback.isCorrect ? 'check' : 'close') : 'lock'} size={18} />
-              {feedback
-                ? feedback.isCorrect
-                  ? 'إجابتك صحيحة'
-                  : 'إجابتك غير صحيحة'
-                : 'تم تثبيت إجابتك'}
-            </strong>
-            <p>{feedback ? feedback.explanation : 'ستظهر النتيجة عند عودة الاتصال.'}</p>
             {feedback && (
               <button
                 id={`${openerId}-source`}
@@ -537,7 +526,7 @@ export function Participation({
                 افتح الصفحة {q.pdfPage}
               </button>
             )}
-          </div>
+          </AnswerFeedback>
         )}
         <div className="question-tip">
           <button

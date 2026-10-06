@@ -9,6 +9,7 @@ import './designs.css';
 import './exam-ux.css';
 import './reader-ux.css';
 import './result-intro-ux.css';
+import './admin-ux.css';
 import { Providers } from '@/components/ui';
 export const metadata: Metadata = {
   title: {

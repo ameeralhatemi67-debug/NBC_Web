@@ -1,6 +1,5 @@
 'use client';
-import { useState } from 'react';
-import { BookReader } from './book-reader';
+import { useEffect, useRef, useState } from 'react';
 import {
   stageKeys,
   stageNames,
@@ -8,7 +7,59 @@ import {
   type CompetitionQuestion,
   type Stage,
 } from '@/lib/competition-domain';
+import { approvable, changedFields, coverageDensity, coverageSummary } from '@/lib/admin-workshop';
+import { QUESTIONS_PER_STAGE, stageReadiness } from '@/lib/admin-launch';
+import { riyadhDateTime } from '@/lib/format';
+import { AdminQuestionEditor } from './admin-question-editor';
+import { Icon } from './ui';
 type Mutation = (path: string, body: unknown, message: string) => Promise<unknown>;
+type VersionRow = Record<string, unknown>;
+
+function RowMenu({
+  label,
+  children,
+}: {
+  label: string;
+  children: (close: () => void) => React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const holder = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const away = (event: PointerEvent) => {
+      if (!holder.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('pointerdown', away);
+    document.addEventListener('keydown', escape);
+    return () => {
+      document.removeEventListener('pointerdown', away);
+      document.removeEventListener('keydown', escape);
+    };
+  }, [open]);
+  return (
+    <div className="row-menu" ref={holder}>
+      <button
+        type="button"
+        className="icon-button"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={label}
+        onClick={() => setOpen(!open)}
+      >
+        <span aria-hidden="true">⋯</span>
+      </button>
+      {open && (
+        <div role="menu" className="row-menu-list">
+          {children(() => setOpen(false))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function AdminQuestionBank({
   questions,
   book,
@@ -16,22 +67,28 @@ export function AdminQuestionBank({
   busy,
   mutate,
   canApprove,
+  initialStage = '',
 }: {
   questions: CompetitionQuestion[];
   book: BookVersion;
-  history: Record<string, unknown>[];
+  history: VersionRow[];
   busy: boolean;
   mutate: Mutation;
   canApprove: boolean;
+  initialStage?: Stage | '';
 }) {
-  const [stage, setStage] = useState('');
+  const [stage, setStage] = useState<string>(initialStage);
   const [approval, setApproval] = useState('');
   const [topic, setTopic] = useState('');
   const [difficulty, setDifficulty] = useState('');
   const [editing, setEditing] = useState<CompetitionQuestion | null>(null);
-  const [preview, setPreview] = useState<number | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [shownHistory, setShownHistory] = useState('');
+  const [bulkError, setBulkError] = useState('');
   const [importText, setImportText] = useState('');
   const [importError, setImportError] = useState('');
+  useEffect(() => setStage(initialStage), [initialStage]);
+  const readiness = stageReadiness(questions, book);
   const filtered = questions.filter(
     (q) =>
       (!stage || q.stage === stage) &&
@@ -39,10 +96,11 @@ export function AdminQuestionBank({
       (!topic || q.topic.includes(topic)) &&
       (!difficulty || q.difficulty === difficulty),
   );
+  const pending = approvable(filtered, selected);
   function create() {
     setEditing({
       id: crypto.randomUUID(),
-      stage: 'middle',
+      stage: (stage as Stage) || 'middle',
       title: '',
       type: 'single_choice',
       options: ['', '', '', ''],
@@ -62,6 +120,25 @@ export function AdminQuestionBank({
       bookVersionId: book.id,
       sourceExcerpt: '',
     });
+  }
+  const approveOne = (q: CompetitionQuestion) =>
+    mutate(
+      'admin/question',
+      { id: q.id, version: q.version, approve: true },
+      'اعتمدت اللجنة الإصدار.',
+    );
+  // Same pattern as the JSON import: stop at the first error; earlier approvals stand.
+  async function approveSelected() {
+    setBulkError('');
+    for (const q of pending) {
+      if ((await approveOne(q)) === false) {
+        setBulkError(
+          `توقف الاعتماد عند السؤال ${q.id}. الأسئلة السابقة اعتُمدت؛ راجع الخطأ ثم أعد المحاولة.`,
+        );
+        return;
+      }
+    }
+    setSelected(new Set());
   }
   async function importBank() {
     setImportError('');
@@ -86,9 +163,35 @@ export function AdminQuestionBank({
       setImportError((e as Error).message);
     }
   }
+  const allSelected = filtered.length > 0 && filtered.every((q) => selected.has(q.id));
   return (
-    <section className="admin-panel">
+    <section className="admin-panel question-workshop">
       <h2>بنك الأسئلة وإصداراته</h2>
+      <div className="stage-counters" aria-label="تقدم بنك الأسئلة">
+        {readiness.map((s) => (
+          <div key={s.stage} className={s.ok ? 'ok' : ''} data-stage={s.stage}>
+            <div className="stage-counter-head">
+              <span>{s.name}</span>
+              <b>
+                <bdi dir="ltr">
+                  {s.approved} / {QUESTIONS_PER_STAGE}
+                </bdi>
+              </b>
+            </div>
+            <div
+              className="check-bar"
+              role="progressbar"
+              aria-label={s.name}
+              aria-valuemin={0}
+              aria-valuemax={QUESTIONS_PER_STAGE}
+              aria-valuenow={s.approved}
+            >
+              <b style={{ width: `${Math.min(100, (s.approved / QUESTIONS_PER_STAGE) * 100)}%` }} />
+            </div>
+            <small>{s.ok ? 'جاهزة للاعتماد' : s.reason || `${s.drafts} مسودات نشطة`}</small>
+          </div>
+        ))}
+      </div>
       <div className="filter-row">
         <label>
           المرحلة
@@ -123,241 +226,92 @@ export function AdminQuestionBank({
           </select>
         </label>
       </div>
-      <button className="button primary" onClick={create}>
-        إضافة سؤال
-      </button>
+      <div className="bank-toolbar">
+        <button className="button primary" onClick={create}>
+          إضافة سؤال
+        </button>
+        {canApprove && (
+          <button
+            className="button outline"
+            disabled={busy || !pending.length}
+            onClick={() => void approveSelected()}
+          >
+            اعتمد المحدد ({pending.length})
+          </button>
+        )}
+        <span className="muted" role="status">
+          {filtered.length} من {questions.length} سؤالًا
+        </span>
+      </div>
+      {bulkError && (
+        <p role="alert" className="error-message">
+          {bulkError}
+        </p>
+      )}
       {editing && (
-        <form
-          className="question-editor"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            const result = await mutate(
-              'admin/question',
-              editing,
-              'تم إنشاء إصدار مسودة يتطلب الاعتماد.',
-            );
-            if (result !== false) setEditing(null);
-          }}
-        >
-          <h3>السؤال {editing.id}</h3>
-          <label>
-            المرحلة
-            <select
-              value={editing.stage}
-              onChange={(e) => setEditing({ ...editing, stage: e.target.value as Stage })}
-            >
-              {stageKeys.map((s) => (
-                <option key={s} value={s}>
-                  {stageNames[s]}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            النص
-            <textarea
-              required
-              value={editing.title}
-              onChange={(e) => setEditing({ ...editing, title: e.target.value })}
-            />
-          </label>
-          <label>
-            نوع السؤال
-            <select
-              value={editing.type}
-              onChange={(e) =>
-                setEditing({
-                  ...editing,
-                  type: e.target.value as CompetitionQuestion['type'],
-                  correctAnswers: [editing.correctAnswers[0]],
-                })
-              }
-            >
-              <option value="single_choice">اختيار واحد</option>
-              <option value="multi_select">اختيارات متعددة</option>
-            </select>
-          </label>
-          {editing.options.map((o, i) => (
-            <div className="editor-option" key={i}>
-              <label>
-                الخيار {i + 1}
-                <input
-                  required
-                  value={o}
-                  onChange={(e) =>
-                    setEditing({
-                      ...editing,
-                      options: editing.options.map((v, j) => (j === i ? e.target.value : v)),
-                    })
-                  }
-                />
-              </label>
-              <label>
-                <input
-                  type={editing.type === 'multi_select' ? 'checkbox' : 'radio'}
-                  name="correct-key"
-                  checked={editing.correctAnswers.includes(i)}
-                  onChange={() =>
-                    setEditing({
-                      ...editing,
-                      correctAnswers:
-                        editing.type === 'single_choice'
-                          ? [i]
-                          : editing.correctAnswers.includes(i)
-                            ? editing.correctAnswers.filter((v) => v !== i)
-                            : [...editing.correctAnswers, i],
-                    })
-                  }
-                />{' '}
-                إجابة صحيحة
-              </label>
-            </div>
-          ))}
-          <div className="field-grid">
-            {(
-              [
-                ['pdfPage', 'صفحة PDF'],
-                ['printedPage', 'الصفحة المطبوعة'],
-                ['hintPdfPageStart', 'بداية التلميح PDF'],
-                ['hintPdfPageEnd', 'نهاية التلميح PDF'],
-              ] as const
-            ).map(([key, label]) => (
-              <label key={key}>
-                {label}
-                <input
-                  type="number"
-                  required
-                  min={1}
-                  max={book.pageCount}
-                  value={editing[key]}
-                  onChange={(e) => setEditing({ ...editing, [key]: Number(e.target.value) })}
-                />
-              </label>
-            ))}
-          </div>
-          <label>
-            المحور
-            <input
-              value={editing.topic}
-              onChange={(e) => setEditing({ ...editing, topic: e.target.value })}
-            />
-          </label>
-          <label>
-            الصعوبة
-            <select
-              value={editing.difficulty}
-              onChange={(e) =>
-                setEditing({
-                  ...editing,
-                  difficulty: e.target.value as CompetitionQuestion['difficulty'],
-                })
-              }
-            >
-              <option value="easy">سهل</option>
-              <option value="medium">متوسط</option>
-              <option value="hard">صعب</option>
-            </select>
-          </label>
-          <label>
-            شاهد المصدر، للجنة فقط
-            <textarea
-              required={!editing.fixture}
-              value={editing.sourceExcerpt}
-              onChange={(e) => setEditing({ ...editing, sourceExcerpt: e.target.value })}
-            />
-          </label>
-          <label>
-            التفسير بعد التثبيت في الوضع التعليمي
-            <textarea
-              value={editing.answerExplanation}
-              onChange={(e) => setEditing({ ...editing, answerExplanation: e.target.value })}
-            />
-          </label>
-          <label>
+        <AdminQuestionEditor
+          key={editing.id}
+          draft={editing}
+          book={book}
+          busy={busy}
+          onClose={() => setEditing(null)}
+          onSave={(question) =>
+            mutate('admin/question', question, 'تم إنشاء إصدار مسودة يتطلب الاعتماد.')
+          }
+        />
+      )}
+      <div className={`question-list-wrap ${canApprove ? 'with-select' : ''}`}>
+        <div className="q-head" aria-hidden="true">
+          <span className="q-check" />
+          <span>السؤال</span>
+          <span>المرحلة</span>
+          <span>المصدر</span>
+          <span>الإصدار</span>
+          <span>الحالة</span>
+          <span className="q-menu" />
+        </div>
+        {canApprove && (
+          <label className="select-all">
             <input
               type="checkbox"
-              checked={editing.active}
-              onChange={(e) => setEditing({ ...editing, active: e.target.checked })}
+              checked={allSelected}
+              onChange={(e) =>
+                setSelected(e.target.checked ? new Set(filtered.map((q) => q.id)) : new Set())
+              }
             />{' '}
-            سؤال نشط
+            تحديد كل الأسئلة المعروضة
           </label>
-          <div className="button-row">
-            <button className="button primary" disabled={busy}>
-              حفظ مسودة إصدار جديد
-            </button>
-            <button
-              type="button"
-              className="button outline"
-              onClick={() => setPreview(editing.pdfPage)}
-            >
-              معاينة الصفحة المرتبطة
-            </button>
-            <button type="button" className="button outline" onClick={() => setEditing(null)}>
-              إغلاق المحرر
-            </button>
-          </div>
-        </form>
-      )}
-      {preview !== null && (
-        <div className="admin-book-preview">
-          <BookReader
-            book={book}
-            page={preview}
-            onPageChange={setPreview}
-            onClose={() => setPreview(null)}
-          />
-        </div>
-      )}
-      <div className="question-admin-list">
-        {filtered.map((q) => (
-          <article className="question-admin-card" key={q.id}>
-            <span>
-              {stageNames[q.stage]} · v{q.version} · {q.approved ? 'معتمد' : 'مسودة'} ·{' '}
-              {q.active ? 'نشط' : 'غير نشط'}
-            </span>
-            <h3>{q.title}</h3>
-            <p>
-              مطبوعة {q.printedPage} · PDF {q.pdfPage} · تلميح {q.hintPdfPageStart}–
-              {q.hintPdfPageEnd}
-            </p>
-            <div className="button-row">
-              <button className="button outline" onClick={() => setEditing(q)}>
-                تحرير
-              </button>
-              {canApprove && (
-                <button
-                  className="button outline"
-                  disabled={busy || q.approved}
-                  onClick={() =>
-                    mutate(
-                      'admin/question',
-                      { id: q.id, version: q.version, approve: true },
-                      'اعتمدت اللجنة الإصدار.',
-                    )
-                  }
-                >
-                  اعتماد اللجنة
-                </button>
-              )}
-              <button className="text-link" onClick={() => setPreview(q.pdfPage)}>
-                المصدر
-              </button>
-            </div>
-            <details>
-              <summary>تاريخ الإصدارات</summary>
-              {history
-                .filter((h) => h.question_id === q.id)
-                .map((h) => (
-                  <div key={String(h.version)}>
-                    <p>
-                      الإصدار {String(h.version)} · {String(h.created_at)}
-                    </p>
-                    <pre className="version-history">{JSON.stringify(h.body, null, 2)}</pre>
-                  </div>
-                ))}
-            </details>
-          </article>
-        ))}
+        )}
+        <ul className="question-list">
+          {filtered.map((q) => {
+            const versions = history
+              .filter((h) => h.question_id === q.id)
+              .sort((a, b) => Number(a.version) - Number(b.version));
+            return (
+              <QuestionRow
+                key={q.id}
+                q={q}
+                canApprove={canApprove}
+                busy={busy}
+                checked={selected.has(q.id)}
+                onCheck={(on) => {
+                  const next = new Set(selected);
+                  if (on) next.add(q.id);
+                  else next.delete(q.id);
+                  setSelected(next);
+                }}
+                onEdit={() => setEditing(q)}
+                onApprove={() => void approveOne(q)}
+                historyOpen={shownHistory === q.id}
+                onHistory={() => setShownHistory(shownHistory === q.id ? '' : q.id)}
+                versions={versions}
+              />
+            );
+          })}
+        </ul>
+        {!filtered.length && (
+          <div className="empty-inline">لا توجد أسئلة مطابقة لهذه المرشحات.</div>
+        )}
       </div>
       <details>
         <summary>استيراد وتصدير JSON للمراجعة</summary>
@@ -390,6 +344,140 @@ export function AdminQuestionBank({
     </section>
   );
 }
+
+function QuestionRow({
+  q,
+  canApprove,
+  busy,
+  checked,
+  onCheck,
+  onEdit,
+  onApprove,
+  historyOpen,
+  onHistory,
+  versions,
+}: {
+  q: CompetitionQuestion;
+  canApprove: boolean;
+  busy: boolean;
+  checked: boolean;
+  onCheck: (on: boolean) => void;
+  onEdit: () => void;
+  onApprove: () => void;
+  historyOpen: boolean;
+  onHistory: () => void;
+  versions: VersionRow[];
+}) {
+  return (
+    <li data-question={q.id} className={`q-row ${q.active ? '' : 'inactive'}`}>
+      <span className="q-check">
+        {canApprove && (
+          <input
+            type="checkbox"
+            aria-label={`تحديد السؤال ${q.title}`}
+            checked={checked}
+            disabled={q.approved || !q.active}
+            onChange={(e) => onCheck(e.target.checked)}
+          />
+        )}
+      </span>
+      <span className="q-title">
+        <button type="button" className="text-link" onClick={onEdit}>
+          {q.title}
+        </button>
+      </span>
+      <div className="q-meta">
+        <span className="q-stage">{stageNames[q.stage].replace('المرحلة ', '')}</span>
+        <span className="q-source">
+          PDF <bdi dir="ltr">{q.pdfPage}</bdi>
+          <small>
+            مطبوعة <bdi dir="ltr">{q.printedPage}</bdi>
+          </small>
+        </span>
+        <span className="q-version">
+          <bdi dir="ltr">v{q.version}</bdi>
+        </span>
+        <span className="q-status">
+          <span className={`status-chip ${q.approved ? 'approved' : 'draft'}`}>
+            <Icon name={q.approved ? 'check' : 'clock'} size={13} />
+            {q.approved ? 'معتمد' : 'مسودة'}
+          </span>
+          {!q.active && <span className="status-chip off">غير نشط</span>}
+        </span>
+      </div>
+      <span className="q-menu">
+        <RowMenu label={`إجراءات السؤال ${q.title}`}>
+          {(close) => (
+            <>
+              <button
+                role="menuitem"
+                type="button"
+                onClick={() => {
+                  close();
+                  onEdit();
+                }}
+              >
+                تحرير
+              </button>
+              {canApprove && (
+                <button
+                  role="menuitem"
+                  type="button"
+                  disabled={busy || q.approved}
+                  onClick={() => {
+                    close();
+                    onApprove();
+                  }}
+                >
+                  اعتماد اللجنة
+                </button>
+              )}
+              <button
+                role="menuitem"
+                type="button"
+                onClick={() => {
+                  close();
+                  onHistory();
+                }}
+              >
+                تاريخ الإصدارات
+              </button>
+            </>
+          )}
+        </RowMenu>
+      </span>
+      {historyOpen && (
+        <div className="q-history">
+          <ol className="version-list" aria-label="تاريخ الإصدارات">
+            {versions.map((v, i) => {
+              const body = v.body as Record<string, unknown>;
+              const previous = i > 0 ? (versions[i - 1].body as Record<string, unknown>) : null;
+              return (
+                <li key={String(v.version)}>
+                  <strong>
+                    الإصدار <bdi dir="ltr">{String(v.version)}</bdi>
+                  </strong>{' '}
+                  <span className="muted">
+                    {v.created_at ? riyadhDateTime(String(v.created_at)) : ''}
+                  </span>
+                  <span className="changed-fields">
+                    {changedFields(previous, body).join('، ') || 'بلا تغيير في الحقول'}
+                  </span>
+                  <details>
+                    <summary>عرض JSON</summary>
+                    <pre className="version-history">{JSON.stringify(body, null, 2)}</pre>
+                  </details>
+                </li>
+              );
+            })}
+            {!versions.length && <li className="muted">لا يوجد سجل إصدارات.</li>}
+          </ol>
+        </div>
+      )}
+    </li>
+  );
+}
+
 export function QuestionCoverage({
   questions,
   book,
@@ -398,7 +486,12 @@ export function QuestionCoverage({
   book: BookVersion;
 }) {
   const [stage, setStage] = useState('');
-  const rows = questions.filter((q) => q.active && (!stage || q.stage === stage));
+  const [picked, setPicked] = useState<number | null>(null);
+  const cells = coverageDensity(questions, book.pageCount, stage as Stage | '');
+  const summary = coverageSummary(cells);
+  const rows = questions.filter(
+    (q) => q.active && (!stage || q.stage === stage) && q.pdfPage === picked,
+  );
   return (
     <section className="admin-panel">
       <h2>تغطية صفحات الكتاب</h2>
@@ -414,29 +507,55 @@ export function QuestionCoverage({
         </select>
       </label>
       <p>
-        العدد يشمل المسودات النشطة. الصفحات الفارغة تظهر بصفر؛ راجع التركيز الكبير قبل اعتماد
-        النسخة.
+        العدد يشمل المسودات النشطة. الصفحات الفارغة بلا لون، وصفحة عليها ثلاثة أسئلة أو أكثر تظهر
+        بلون التنبيه. {summary.empty} صفحة بلا أسئلة، و{summary.crowded} صفحات مزدحمة.
       </p>
-      <div className="coverage-grid">
-        {Array.from({ length: book.pageCount }, (_, i) => {
-          const page = i + 1;
-          const used = rows.filter((q) => q.pdfPage === page);
-          return (
-            <div
-              key={page}
-              className={`coverage-cell ${used.length > 2 ? 'crowded' : used.length ? 'covered' : ''}`}
-            >
-              <strong>PDF {page}</strong>
-              <span>{used.length} أسئلة</span>
-              {used.map((q) => (
-                <small key={q.id}>
-                  {stageNames[q.stage]} · {q.id}
-                </small>
-              ))}
-            </div>
-          );
-        })}
+      <div className="coverage-strip" role="list" aria-label="كثافة الأسئلة لكل صفحة">
+        {cells.map((cell) => (
+          <button
+            key={cell.page}
+            type="button"
+            role="listitem"
+            className={`coverage-cell-strip level-${cell.level} ${picked === cell.page ? 'picked' : ''}`}
+            aria-label={`صفحة ${cell.page}: ${cell.count} أسئلة`}
+            aria-pressed={picked === cell.page}
+            title={`صفحة ${cell.page}: ${cell.count}`}
+            onClick={() => setPicked(picked === cell.page ? null : cell.page)}
+          />
+        ))}
       </div>
+      <div className="coverage-legend" aria-hidden="true">
+        <span>
+          <i className="level-0" /> بلا أسئلة
+        </span>
+        <span>
+          <i className="level-1" /> سؤال
+        </span>
+        <span>
+          <i className="level-2" /> سؤالان
+        </span>
+        <span>
+          <i className="level-3" /> ثلاثة أو أكثر
+        </span>
+      </div>
+      {picked !== null && (
+        <div className="coverage-detail" role="status">
+          <h3>
+            صفحة PDF <bdi dir="ltr">{picked}</bdi>
+          </h3>
+          {rows.length ? (
+            <ul>
+              {rows.map((q) => (
+                <li key={q.id}>
+                  {stageNames[q.stage]} · {q.title}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="muted">لا توجد أسئلة نشطة على هذه الصفحة.</p>
+          )}
+        </div>
+      )}
     </section>
   );
 }

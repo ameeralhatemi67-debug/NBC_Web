@@ -10,6 +10,7 @@ import {
   type Competition,
   type CompetitionQuestion,
   type BookVersion,
+  type Stage,
 } from '@/lib/competition-domain';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
@@ -92,6 +93,7 @@ export function Admin({
     loginFailed ? 'تعذّر تسجيل الدخول. استخدم حساب Vercel المصرح له ثم أعد المحاولة.' : '',
   );
   const [tab, setTab] = useState('overview');
+  const [questionStage, setQuestionStage] = useState<Stage | ''>('');
   const [stage, setStage] = useState('');
   const [region, setRegion] = useState('');
   const [search, setSearch] = useState('');
@@ -356,6 +358,7 @@ export function Admin({
                 className={tab === t.id ? 'active' : ''}
                 onClick={() => {
                   setTab(t.id);
+                  setQuestionStage('');
                   setNotice('');
                   setError('');
                 }}
@@ -406,7 +409,9 @@ export function Admin({
         <main id="main" className="admin-main">
           <div className="admin-page-heading">
             <div>
-              <span className="eyebrow">إدارة واعية. تجربة متكاملة.</span>
+              {!['competition', 'questions', 'coverage'].includes(tab) && (
+                <span className="eyebrow">إدارة واعية. تجربة متكاملة.</span>
+              )}
               <h1>{tabs.find((t) => t.id === tab)?.name}</h1>
               <p>
                 {tab === 'overview'
@@ -644,11 +649,21 @@ export function Admin({
           )}
           {tab === 'competition' && data.competition && data.book && (
             <AdminCompetition
-              key={data.competition.version + data.competition.id}
+              key={data.competition.id}
               competition={data.competition}
               book={data.book}
+              questions={data.questions}
+              counts={{
+                registered: data.participants.length,
+                inProgress: data.participants.filter((p) => p.attempt_id && !p.submitted_at).length,
+              }}
               busy={busy}
               mutate={mutate}
+              onOpenTestRun={() => setTab('test-run')}
+              onOpenQuestions={(stage) => {
+                setQuestionStage(stage);
+                setTab('questions');
+              }}
             />
           )}
           {tab === 'questions' && data.book && (
@@ -659,6 +674,7 @@ export function Admin({
               history={data.history ?? []}
               busy={busy}
               mutate={mutate}
+              initialStage={questionStage}
             />
           )}
           {tab === 'coverage' && data.book && (

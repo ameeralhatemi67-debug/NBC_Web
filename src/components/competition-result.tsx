@@ -9,6 +9,8 @@ import {
   copyWithFallback,
   leaderboardModeLines,
   missedQuestions,
+  resultHiddenLine,
+  resultReceivedTitle,
   revisitPages,
   selectedAnswerText,
 } from '@/lib/result-presentation';
@@ -84,7 +86,7 @@ export function CompetitionResult({
           <div className="result-top">
             <div className="result-headline">
               <h1>
-                <Icon name="check" size={22} /> تم استلام مشاركتك
+                <Icon name="check" size={22} /> {resultReceivedTitle}
               </h1>
               {!hidden ? (
                 <div className="result-sentence-line">
@@ -98,7 +100,7 @@ export function CompetitionResult({
                   )}
                 </div>
               ) : (
-                <p className="result-hidden">النتيجة محجوبة وفق سياسة المسابقة.</p>
+                <p className="result-hidden">{resultHiddenLine}</p>
               )}
             </div>
             <div className="result-book">

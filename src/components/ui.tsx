@@ -113,6 +113,27 @@ export function Icon({ name = 'arrow', size = 22 }: { name?: string; size?: numb
       </>
     ),
     dot: <circle cx="12" cy="12" r="3" />,
+    info: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 11v5m0-8h.01" />
+      </>
+    ),
+    warn: (
+      <>
+        <path d="M12 4 2.5 20h19L12 4Z" />
+        <path d="M12 10v4m0 3h.01" />
+      </>
+    ),
+    play: <path d="M8 5v14l11-7L8 5Z" />,
+    plus: <path d="M12 5v14M5 12h14" />,
+    minus: <path d="M5 12h14" />,
+    search: (
+      <>
+        <circle cx="11" cy="11" r="6" />
+        <path d="m20 20-4.5-4.5" />
+      </>
+    ),
   };
   return (
     <svg

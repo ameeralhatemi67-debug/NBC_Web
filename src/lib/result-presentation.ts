@@ -1,8 +1,12 @@
 import type { Competition, CompetitionState } from './competition-domain';
 import { questionStatus, type ExamAttempt } from './exam-presentation';
 
+// Shared by the student result screen and the committee's "what the student sees" preview.
+export const resultReceivedTitle = 'تم استلام مشاركتك';
+export const resultHiddenLine = 'النتيجة محجوبة وفق سياسة المسابقة.';
 export const leaderboardModeLines: Record<Competition['leaderboardMode'], string> = {
-  hidden: 'نتيجتك تظهر لك فقط. لا يُعلن ترتيب المشاركين.',
+  // The server withholds the score in this mode, so the line must not promise one.
+  hidden: 'لا تُعرض النتيجة ولا ترتيب المشاركين. تعتمد اللجنة الفائزين وتعلنهم بنفسها.',
   own_result_only: 'نتيجتك تظهر لك فقط. تعتمد اللجنة الفائزين وتعلنهم بنفسها.',
   publish_after_close:
     'يُعلن الترتيب بعد إغلاق المسابقة واعتماد اللجنة. التعادل لا يُحسم بسرعة المشاركة.',

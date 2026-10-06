@@ -135,6 +135,18 @@ fs.mkdirSync(output, { recursive: true });
           ['incorrect', 'rgb(154, 51, 40)', 'rgb(252, 235, 231)'],
         ]) {
           const rows = sheet.locator(`.answer-option.${status}`);
+          // The class arrives with server feedback; sample the settled paint,
+          // including the near-instant reduced-motion colour transition.
+          await page.waitForFunction(
+            ({ status, text, background }) =>
+              Array.from(
+                document.querySelectorAll(`.question-dock-sheet .answer-option.${status}`),
+              ).every((row) => {
+                const style = getComputedStyle(row);
+                return style.color === text && style.backgroundColor === background;
+              }),
+            { status, text, background },
+          );
           for (const row of await rows.all()) {
             assert.deepEqual(
               await row.evaluate((e) => [

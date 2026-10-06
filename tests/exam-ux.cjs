@@ -94,9 +94,11 @@ const labels = {
         await page.route('**/api/participant**', (route) => route.fulfill({ json: fixture }));
         await page.goto(base + '/participate');
         await page.getByText(labels.OPEN, { exact: false }).waitFor();
+        // Start becomes focusable only after the shared PDF verifier finishes.
+        await page.waitForFunction(() => document.querySelector('.book-cover-slot.cover-ready'));
         const introText = await page.locator('.participation-intro').innerText();
         assert.ok(introText.includes('المرحلة المتوسطة') && !introText.includes('middle'));
-        const opening = await page.locator('.participation-intro > p').last().innerText();
+        const opening = await page.locator('.intro-window').innerText();
         assert.ok(
           opening.includes('2026') && opening.includes('12:00') && !/[٠-٩]/.test(opening),
           opening,
@@ -126,6 +128,12 @@ const labels = {
         assert.ok(await page.locator('.competition-closing-time time').isHidden());
         await closing.click();
         assert.ok(await page.locator('.competition-closing-time time').isVisible());
+        await page.waitForFunction(
+          () =>
+            !Array.from(document.querySelectorAll('.participation-intro button')).find((button) =>
+              button.textContent.includes('ابدأ المشاركة'),
+            )?.disabled,
+        );
         assert.ok(await page.getByRole('button', { name: 'ابدأ المشاركة' }).isEnabled());
         assert.equal(await page.locator('html').getAttribute('data-design'), design);
         assert.ok(
@@ -148,7 +156,7 @@ const labels = {
           `receipt overflow ${design} ${width}`,
         );
         const reduced = await page
-          .locator('.receipt-card .button')
+          .locator('.result-ticket .button')
           .evaluate((element) => Number.parseFloat(getComputedStyle(element).transitionDuration));
         assert.ok(reduced <= 0.001, `reduced motion ${reduced}`);
         await page.screenshot({ path: path.join(output, `result-${design}-${width}.png`) });
@@ -172,6 +180,7 @@ const labels = {
       fixture.competition.state = state;
       await page.goto(base + '/participate');
       await page.getByText(label, { exact: false }).waitFor();
+      await page.waitForFunction(() => document.querySelector('.book-cover-slot.cover-ready'));
       const text = await page.locator('.participation-intro').innerText();
       assert.ok(!/\b(DRAFT|SCHEDULED|OPEN|CLOSED|RESULTS_PUBLISHED)\b/.test(text));
       assert.equal(

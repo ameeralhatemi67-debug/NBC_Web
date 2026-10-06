@@ -12,6 +12,7 @@ import {
 import type { PDFDocumentProxy, RenderTask } from 'pdfjs-dist';
 import type { BookVersion } from '@/lib/competition-domain';
 import { Icon } from './ui';
+import { useVerifiedBook } from './use-verified-book';
 
 const defaultBook: BookVersion = {
   id: 'national-belonging-ec07ef57',
@@ -154,10 +155,9 @@ export function BookReader({
   const [ownPage, setOwnPage] = useState(page ?? config.openingPage);
   const current = onPageChange ? (page ?? config.openingPage) : ownPage;
   const [zoom, setZoom] = useState(1);
-  const [pdf, setPdf] = useState<PDFDocumentProxy | null>(null);
   const [ratio, setRatio] = useState(1.42);
-  const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
+  const { pdf, error } = useVerifiedBook(book, retry);
   const [width, setWidth] = useState(480);
   const [renderWidth, setRenderWidth] = useState(480);
   const [night, setNight] = useState(false);
@@ -233,48 +233,18 @@ export function BookReader({
 
   useEffect(() => {
     let cancelled = false;
-    let task: ReturnType<(typeof import('pdfjs-dist'))['getDocument']> | undefined;
-    setPdf(null);
-    setError('');
-    (async () => {
-      const lib = await import('pdfjs-dist');
-      lib.GlobalWorkerOptions.workerSrc = '/pdfjs/pdf.worker.min.mjs';
-      const cache =
-        typeof caches !== 'undefined'
-          ? await caches.open('nbc-books-v1').catch(() => undefined)
-          : undefined;
-      let response = await cache?.match(book.url).catch(() => undefined);
-      if (!response) {
-        response = await fetch(book.url);
-        if (!response.ok) throw new Error('تعذّر تحميل الكتاب.');
-      }
-      const bytes = await response.clone().arrayBuffer();
-      const digest = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)))
-        .map((x) => x.toString(16).padStart(2, '0'))
-        .join('');
-      if (digest !== book.sha256) {
-        await cache?.delete(book.url).catch(() => false);
-        throw new Error('نسخة الكتاب تغيرت. تواصل مع الدعم.');
-      }
-      await cache?.put(book.url, response).catch(() => {});
-      if (cancelled) return;
-      task = lib.getDocument({ data: new Uint8Array(bytes) });
-      const doc = await task.promise;
-      if (doc.numPages !== book.pageCount) throw new Error('عدد صفحات الكتاب غير مطابق.');
-      const first = await doc.getPage(1);
-      const viewport = first.getViewport({ scale: 1 });
-      if (!cancelled) {
-        setRatio(viewport.height / viewport.width);
-        setPdf(doc);
-      }
-    })().catch((e) => {
-      if (!cancelled) setError((e as Error).message);
-    });
+    if (pdf)
+      void pdf
+        .getPage(1)
+        .then((first) => {
+          const viewport = first.getViewport({ scale: 1 });
+          if (!cancelled) setRatio(viewport.height / viewport.width);
+        })
+        .catch(() => {});
     return () => {
       cancelled = true;
-      if (task) void task.destroy();
     };
-  }, [book.url, book.sha256, book.pageCount, retry]);
+  }, [pdf]);
 
   useEffect(() => {
     if (!container.current) return;

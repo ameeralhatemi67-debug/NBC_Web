@@ -7,10 +7,12 @@ export function Leaderboard({
   competitionId,
   stage,
   testRunId,
+  participantNumber,
 }: {
   competitionId: string;
   stage: Stage;
   testRunId?: string;
+  participantNumber?: string;
 }) {
   const [entries, setEntries] = useState<LeaderboardEntry[] | null>(null);
   useEffect(() => {
@@ -32,6 +34,14 @@ export function Leaderboard({
   return (
     <section className="leaderboard">
       <h2>ترتيب {stageNames[stage]}</h2>
+      {participantNumber && entries?.some((row) => row.participantNumber === participantNumber) && (
+        <p className="result-current-rank">
+          ترتيبك الحالي{' '}
+          <bdi dir="ltr">
+            {entries.find((row) => row.participantNumber === participantNumber)!.rank}
+          </bdi>
+        </p>
+      )}
       {entries ? (
         <div className="table-scroll">
           <table>

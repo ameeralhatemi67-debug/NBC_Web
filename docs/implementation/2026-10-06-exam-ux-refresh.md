@@ -185,3 +185,127 @@ the existing zoom/gesture/dock/hint/restore checks. The log is
 `dock-*`, and `question-*` captures remain under `test-results/exam-ux/phase-3/`.
 Typecheck passed. The design docs and Journey Lab were separately committed as
 `e2a6624`, per review sub-task C. The contents follow-up is `3955e74`.
+
+## Phase 4: result, result reader and introduction
+
+The compact-header follow-up was committed as `0eeade5`. Phase 4 implements W8,
+D5 and W2; Phase 5 has not started.
+
+The result uses the existing server score in the Arabic sentence, with a small
+secondary percentage. Its read-only icon-labelled strip grows over 420ms with a
+40ms stagger, and skips animation under reduced motion. A dashed ticket keeps
+the participant number readable and offers "نسخ الرقم" / "تم النسخ" for 1.6s.
+Clipboard refusal falls back to the browser's copy action; if both paths fail,
+a labelled selected read-only field allows manual copying without claiming
+success. The four approved committee policy lines drive leaderboard visibility;
+the existing Leaderboard component supplies the current rank when available.
+
+Wrong answers produce distinct sorted page chips and expandable review rows
+with the student's answer, server-provided correct answer and explanation, and
+source-page action. All-correct results show the approved message without a
+review list. Hidden scores omit the sentence, coloured strip, correctness
+review, page chips and leaderboard; withheld feedback leaves only the student's
+own answers. "واصل القراءة" remains. Result content has two columns when review
+is available and stacks on narrow containers; results without a review column
+use a centered single column.
+
+Result page chips open a native modal dialog reusing the Phase 3 reader. The
+sticky 56px header has a filled secondary "إغلاق" button with an x icon and a
+96x44px minimum target at the RTL start. Button, Escape, wide-screen backdrop,
+safe-area-aware phone bottom button and touch header swipe close the modal.
+Opening focuses Close, keyboard focus stays inside, and closing restores the
+exact opener chip. Wide dialogs are inset 24px; phone dialogs fill the screen.
+The mounted reader retains page, zoom and night mode while closed. Layout-effect
+opening makes different-page review links jump after the dialog becomes visible.
+The PDF viewport fills the remaining dialog height and still keeps fewer than
+ten page canvases near the viewport.
+
+The introduction now greets the first name, displays the translated stage pill
+and four icon facts, and keeps one primary action beside the relative closing
+time where space permits. Phone typography and spacing fit the whole intro at
+320x740 through 430x932 in all three identities. Opening dates retain Gregorian
+Riyadh formatting with Latin digits. The flat cover renders the verified PDF's
+real page 1 at 1400px with its own aspect ratio; no cover asset or dependency was
+added. Its graceful loading/error/retry placeholder occupies the same slot.
+
+The cover and reader share one cancellable PDF loader: cached or fetched bytes
+must pass SHA-256 and PDF page-count checks before reuse or caching. Only a
+verified cached book gets the offline-readiness claim. Loading, blocked cache
+and verification failures keep the neutral "جارٍ تجهيز الكتاب" line; a verified
+PDF can enable Start even when caching is unavailable. Student search/indexing
+remains absent. Locked answers, server correctness, offline queue, hint rule and
+isolated test runs remain unchanged; no backend or schema work was needed.
+
+### Phase 4 verification and artifacts
+
+All requested gates passed in the real checkout with the safe local runner,
+fresh OS-temporary NBC_DATA_DIR and blocked environment-file loading:
+
+- `npm run typecheck` (`tsc --noEmit`), all 71 unit tests, all 38 integration
+  checks, `npm run format:check`, and `npm run build` passed. New unit coverage
+  checks server-feedback review/hidden-score gating, unique sorted page chips,
+  multi-select answer text, all four policy strings, clipboard fallback failure
+  paths and rejection of modified PDF bytes. Integration restore uses only the
+  previously authorized disposable source mirror.
+- A separate Prettier check passed for the `.cjs` browser scripts and local
+  isolation runners.
+- `tests/exam-ui.cjs`: all five existing scenarios passed.
+- `tests/exam-loop.cjs`: all 21 viewport/identity cases, actual online/offline
+  20-lock review/submission flows and the six-option/legacy hint fixture passed.
+- `tests/exam-ux.cjs`: all 21 viewport/identity cases and the complete Phase 1
+  state, touch disclosure, pending/reconnect and normal-motion regression passed.
+  Its intro selector now targets `.intro-window`, waits for PDF verification
+  before focusing Start, and scopes the result motion check to the ticket button.
+- `tests/reader-ui.cjs`: all 12 Chrome touch contexts (hasTouch, isMobile, DPR 2
+  at 320x740, 360x740, 390x844 and 430x932 in all identities) and three desktop
+  cases passed with the shared loader. The semantic-colour assertion now waits
+  for the server-feedback paint before checking the same approved values.
+- New `tests/result-intro-ui.cjs`: all 21 viewport/identity cases passed for
+  verified cover/readiness, four facts, intro vertical fit, result sentence and
+  small percentage, strip, server review content, sorted page chips, all-correct
+  and hidden-score cases, responsive columns and no horizontal overflow. At
+  390px and 1024px in every identity it checks native dialog focus/trapping,
+  source-page jumps, full-height viewport, fewer than ten canvases, button/Escape
+  closure, phone bottom-bar closure, wide backdrop closure, CDP touch swipe-down,
+  opener restoration and zoom/night retention across close/reopen. Clipboard
+  refusal, real legacy-copy fallback, both-copy-path refusal/manual selection,
+  all four leaderboard policies and current rank are exercised separately.
+  Four book-readiness cases passed: delayed bytes, denied caching, wrong SHA and
+  wrong page count. Normal and reduced result-strip motion both passed. No
+  browser page errors were reported.
+
+The final browser runs used the optimized build served only on 127.0.0.1 in demo
+mode; this was not a deployment. Screenshot review fixed unused desktop reader
+space and checked the complete phone intro and sensible first result screen.
+Result-reader captures use a real heading page instead of a blank verso when
+the available source chips permit it.
+
+Logs are `test-results/phase4-typecheck.log`, `phase4-unit.log`,
+`phase4-integration.log`, `phase4-format.log`, `phase4-browser-format.log`,
+`phase4-build.log`, `phase4-exam-ui.log`, `phase4-exam-loop.log`,
+`phase4-exam-ux.log`, `phase4-reader-ui.log`, and
+`phase4-result-intro-built.log`. Final Phase 4 screenshots are under
+`test-results/exam-ux/phase-4/`: intro, result, expanded review, all-correct and
+hidden states for all seven viewports and three identities; six result-reader
+captures, denied-clipboard/manual-copy and loading captures. Examples:
+`intro-official-320.png`, `intro-original-390.png`, `result-official-390.png`,
+`review-original-390.png`, `result-reader-official-390.png`,
+`result-reader-original-1024.png` and `all-correct-original-1366.png`.
+These screenshots/logs remain local ignored artifacts.
+
+Physical phones were unavailable. iOS Safari/Android browser chrome, real
+safe-area insets, hardware gestures, clipboard permission prompts and low-memory
+performance remain unverified on hardware. The existing emulated browser-back
+reader case passed; it does not establish real hardware-back behavior. The PDF's
+Type 3 text mapping prevents automatic readable Arabic outline extraction; the
+visually verified provisional titles and pages still need committee review in
+`2026-10-06-book-outline-candidates.md`. No other owner decision is needed for
+Phase 4.
+
+No production, migrations, Supabase, repository `.data/`, `tmp/` or `.env*`
+values were touched. Unrelated tracked changes remain uncommitted: README.md,
+`2026-10-04-admin-access-fix.md`, COMPETITION_OPERATIONS.md and
+skill-observations/log.md, plus the existing untracked admin/Supabase/backend
+notes and unrelated prize/deployment captures. The two local isolation scripts
+remain as described above for the owner's keep/remove decision. Phase 5 has not
+started.

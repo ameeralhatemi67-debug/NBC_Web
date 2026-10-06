@@ -3,20 +3,13 @@ import Link from 'next/link';
 import { useEffect, useId, useRef, useState } from 'react';
 import { api, ApiError, ErrorMessage, Icon, Loading } from './ui';
 import { BookReader } from './book-reader';
-import { Leaderboard } from './leaderboard';
-import { CompetitionClosingTime } from './competition-closing-time';
+import { CompetitionIntro } from './competition-intro';
+import { CompetitionResult } from './competition-result';
 import { ExamDialog, ExamReview, QuestionStrip } from './exam-controls';
-import {
-  arPlural,
-  competitionStateLabels,
-  NumPair,
-  resultSentence,
-  riyadhDateTime,
-} from '@/lib/format';
+import { arPlural, riyadhDateTime } from '@/lib/format';
 import {
   hintEligible,
   hintTarget,
-  registeredStage,
   stageNames,
   type CompetitionState,
   type WriteEvent,
@@ -444,78 +437,17 @@ export function Participation({
   const a = data.attempt;
   if (!a)
     return (
-      <section className="participation-intro">
-        {banner}
-        <span className="eyebrow">{data.competition.title}</span>
-        <h1>أهلًا {data.participant.name.split(' ')[0]}</h1>
-        <p>
-          {stageNames[registeredStage(data.participant.stage)]} · 20 سؤالًا من الكتاب، دون مؤقت لكل
-          سؤال
-        </p>
-        <p>بعد تثبيت الإجابة لا يمكنك تغييرها. يمكنك مراجعة الكتاب والتنقل بين الأسئلة.</p>
-        <p>تظهر الإجابة الصحيحة والتوضيح بعد تثبيت إجابتك، ولا يمكن تغييرها بعد ذلك.</p>
-        <p>
-          {competitionStateLabels[data.competition.state]}{' '}
-          {data.competition.opensAt &&
-            `· تفتح ${riyadhDateTime(data.competition.opensAt)}، بتوقيت الرياض`}
-        </p>
-        <ErrorMessage message={error} />
-        <div className="participation-start-actions">
-          <button
-            className="button primary"
-            disabled={busy || data.competition.state !== 'OPEN'}
-            onClick={start}
-          >
-            ابدأ المشاركة <Icon />
-          </button>
-          {data.competition.closesAt && (
-            <CompetitionClosingTime closesAt={data.competition.closesAt} />
-          )}
-        </div>
-      </section>
+      <CompetitionIntro
+        data={data}
+        banner={banner}
+        error={error}
+        busy={busy}
+        onStart={() => void start()}
+      />
     );
   if (a.submittedAt)
     return (
-      <section className={`receipt-card ${examView ? 'exam-receipt' : ''}`}>
-        {banner}
-        <div className="receipt-icon">
-          <Icon name="check" size={38} />
-        </div>
-        <h1>تم استلام مشاركتك</h1>
-        <p>يمكنك الاحتفاظ برقم المشارك. لا يمكن بدء محاولة ثانية لهذه المسابقة.</p>
-        <div className="receipt-number">
-          <span>رقم المشارك</span>
-          <bdi>{a.participantNumber}</bdi>
-          <button
-            className="text-link"
-            onClick={() =>
-              navigator.clipboard
-                .writeText(a.participantNumber)
-                .catch(() => setError('انسخ الرقم يدويًا.'))
-            }
-          >
-            نسخ الرقم
-          </button>
-        </div>
-        {a.score !== null ? (
-          <div className="result-box">
-            <strong>{a.percentage}%</strong>
-            <p className="result-sentence">{resultSentence(a.score, a.maxScore)}</p>
-          </div>
-        ) : (
-          <p>النتيجة محجوبة وفق سياسة المسابقة.</p>
-        )}
-        <ErrorMessage message={error} />
-        <p>الترتيب والجوائز يخضعان لاعتماد اللجنة، والتعادل لا يُحسم بسرعة المشاركة.</p>
-        <Leaderboard
-          competitionId={data.competition.id}
-          stage={registeredStage(data.participant.stage)}
-          testRunId={testRunId}
-        />
-        <Link className="button outline" href="/book">
-          واصل القراءة
-        </Link>
-      </section>
+      <CompetitionResult data={data} banner={banner} testRunId={testRunId} examView={examView} />
     );
   const q = a.questions[index];
   const answer = a.answers[q.id];

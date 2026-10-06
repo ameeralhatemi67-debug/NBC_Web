@@ -47,6 +47,12 @@ export function Icon({ name = 'arrow', size = 22 }: { name?: string; size?: numb
         <path d="m3 3 18 18M2 8a17 17 0 0 1 3-2m4-1a17 17 0 0 1 13 3M5 12a11 11 0 0 1 4-2m5 0a11 11 0 0 1 5 2M8 16a6 6 0 0 1 8 0M12 20h.01" />
       </>
     ),
+    copy: (
+      <>
+        <rect x="9" y="9" width="11" height="11" rx="2" />
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+      </>
+    ),
     close: <path d="m6 6 12 12M6 18 18 6" />,
     menu: <path d="M4 6h16M4 12h16M4 18h16" />,
     user: (

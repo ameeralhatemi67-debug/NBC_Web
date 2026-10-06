@@ -180,8 +180,13 @@ const policies = {
               .map((q) => q.pdfPage),
           ),
         ].sort((a, b) => a - b);
+        const toggle = page.locator('.result-page-toggle');
+        if (pages.length > 6) {
+          assert.equal(await page.locator('.result-page-chips .source-page-chip').count(), 6);
+          await toggle.click();
+        } else assert.equal(await toggle.count(), 0);
         assert.deepEqual(
-          await page.locator('.result-page-chips bdi').allTextContents(),
+          await page.locator('.result-page-chips .source-page-chip bdi').allTextContents(),
           pages.map(String),
         );
         assert.ok(

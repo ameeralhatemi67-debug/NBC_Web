@@ -460,3 +460,8 @@
     animation: none;
   }
 }
+
+.result-page-toggle {
+  min-height: 40px;
+  padding-inline: 8px;
+}

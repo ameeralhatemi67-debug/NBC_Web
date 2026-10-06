@@ -309,3 +309,13 @@ skill-observations/log.md, plus the existing untracked admin/Supabase/backend
 notes and unrelated prize/deployment captures. The two local isolation scripts
 remain as described above for the owner's keep/remove decision. Phase 5 has not
 started.
+
+## Post-Phase 4 review fixes
+
+- The reader now opens on the cover for first-time exam reading. Opening on PDF 63 (the contents page) made the first scroll count as having read pages 63 and beyond, which unlocked almost every hint. `tests/exam-hint-gate.cjs` asserts a fresh exam opens on page 1 with the hint locked. The contents menu still reaches PDF 63.
+- The result screen shows the first six "read again" page chips with a "عرض كل الصفحات (N)" toggle, so a long list of missed questions does not fill a phone screen. `tests/result-intro-ui.cjs` asserts six chips collapsed and all chips expanded.
+- A leftover `next start` server on port 3101 from earlier testing served stale code. Stop servers after verification.
+
+Open product decision: the hint rule counts the furthest page reached, and jumps (page box, contents menu) count as reading. Reading the source page and the next page, as the owner described, would need a visited-pages record. Not changed here.
+
+All real-repository gates passed after these fixes: typecheck, 71 unit tests, 38 integration checks, format check and build, plus `reader-ui`, `result-intro-ui` and `exam-hint-gate`.

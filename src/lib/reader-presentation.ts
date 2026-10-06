@@ -6,7 +6,9 @@ export type ReaderBookConfig = { openingPage: number; contents?: BookContentsEnt
 // pending committee review of titles and pages
 export const readerBookVersions: Record<string, ReaderBookConfig> = {
   'national-belonging-ec07ef57': {
-    openingPage: 63,
+    // Open on the cover. The hint gate counts the furthest page reached, so opening deep in the
+    // book (the contents are on PDF 63) would unlock every hint on the first scroll.
+    openingPage: 1,
     contents: [
       { title: 'الغلاف', page: 1 },
       { title: 'صفحة العنوان', page: 3 },

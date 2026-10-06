@@ -67,7 +67,7 @@ test('participant import graph cannot reach admin components or index student bo
   visit(path.resolve('src/components/participation.tsx'));
   assert.ok([...seen].some((file) => file.endsWith('pdf-book-reader.tsx')));
 });
-test('known PDF opens at its real contents; saved page wins and untitled pages remain available', () => {
+test('known PDF opens on the cover so hints are not pre-unlocked; saved page wins and untitled pages remain available', () => {
   const book = {
     id: 'national-belonging-ec07ef57',
     title: 'test',
@@ -76,10 +76,10 @@ test('known PDF opens at its real contents; saved page wins and untitled pages r
     pageCount: 66,
     approved: true,
   };
-  assert.equal(readerBookConfig(book).openingPage, 63);
-  assert.equal(openingReaderPage(book), 63);
+  assert.equal(readerBookConfig(book).openingPage, 1);
+  assert.equal(openingReaderPage(book), 1);
   assert.equal(openingReaderPage(book, 10), 10);
-  assert.equal(openingReaderPage(book, 67), 63);
+  assert.equal(openingReaderPage(book, 67), 1);
   assert.equal(openingReaderPage({ ...book, id: 'unknown' }), 1);
   const entries = fallbackContents(book);
   assert.equal(entries.length, 66);

@@ -94,7 +94,7 @@ fs.mkdirSync(output, { recursive: true });
           'Escape from More must keep the reader open',
         );
         assert.equal(await reader.locator('input[type=search],[role=searchbox]').count(), 0);
-        assert.equal(await reader.getByLabel('رقم صفحة PDF', { exact: true }).inputValue(), '63');
+        assert.equal(await reader.getByLabel('رقم صفحة PDF', { exact: true }).inputValue(), '1');
         assert.ok(
           await reader
             .locator('.pdf-page')

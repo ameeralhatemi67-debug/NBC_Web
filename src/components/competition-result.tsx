@@ -33,6 +33,7 @@ export function CompetitionResult({
   const opener = useRef<HTMLElement | null>(null);
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [allPages, setAllPages] = useState(false);
   const missed = missedQuestions(attempt),
     pages = revisitPages(attempt);
   const mode = data.competition.leaderboardMode;
@@ -168,7 +169,7 @@ export function CompetitionResult({
             <div className="result-revisit">
               <h2>اقرأ مرة أخرى:</h2>
               <div className="result-page-chips">
-                {pages.map((n) => (
+                {(allPages ? pages : pages.slice(0, 6)).map((n) => (
                   <button
                     key={n}
                     className="source-page-chip"
@@ -178,6 +179,21 @@ export function CompetitionResult({
                     صفحة <bdi dir="ltr">{n}</bdi>
                   </button>
                 ))}
+                {pages.length > 6 && (
+                  <button
+                    className="text-link result-page-toggle"
+                    aria-expanded={allPages}
+                    onClick={() => setAllPages((value) => !value)}
+                  >
+                    {allPages ? (
+                      'عرض أقل'
+                    ) : (
+                      <>
+                        عرض كل الصفحات (<bdi dir="ltr">{pages.length}</bdi>)
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
             <h2>الأسئلة التي تحتاج مراجعة</h2>

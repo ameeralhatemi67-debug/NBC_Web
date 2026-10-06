@@ -93,13 +93,13 @@ try {
   const rulesBytes = new Uint8Array(await rulesFile.arrayBuffer());
   const termsPage = await fetch(base + '/terms');
   const termsText = await termsPage.text();
-  check('registration terms and original committee rules are available without login', () => {
+  check('registration terms and current answer policy are available without login', () => {
     assert.equal(termsPage.status, 200);
     assert.equal(termsPage.headers.get('x-frame-options'), 'DENY');
     assert.equal(rulesFile.status, 200);
     assert.equal(new TextDecoder().decode(rulesBytes.slice(0, 5)), '%PDF-');
     assert.ok(termsText.includes('لا يعتمد الوقت معيارًا للمفاضلة'));
-    assert.ok(termsText.includes('لا يتم إظهار الإجابات الصحيحة'));
+    assert.ok(termsText.includes('تظهر الإجابة الصحيحة والتوضيح بعد تثبيت'));
   });
   const anon = client(),
     student = client(),
@@ -239,7 +239,7 @@ try {
     assert.ok(attempts[0].data.attempt.questions.every((q) => q.stage === 'middle'));
   });
   const form = attempts[0].data.attempt;
-  check('formal payload excludes keys and explanations', () => {
+  check('unchecked payload excludes keys and explanations', () => {
     assert.equal(JSON.stringify(form).includes('"correct"'), false);
     assert.equal(JSON.stringify(form).includes('correctAnswers'), false);
     assert.deepEqual(form.feedback, {});

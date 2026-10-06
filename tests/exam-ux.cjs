@@ -212,7 +212,7 @@ const labels = {
     await exam.getByRole('button', { name: 'دخول الاختبار', exact: true }).click();
     await exam.locator('.answer-option').first().click();
     await exam.getByText('إجابة واحدة بانتظار الإرسال', { exact: true }).waitFor();
-    await exam.getByRole('button', { name: 'تثبيت الإجابة وإظهار التصحيح' }).click();
+    await exam.getByRole('button', { name: 'ثبّت إجابتي' }).click();
     await exam.getByText('تم تثبيت إجابتك', { exact: true }).waitFor();
     assert.equal(await exam.locator('.answer-feedback p').count(), 1);
     assert.equal(
@@ -220,8 +220,7 @@ const labels = {
       'ستظهر النتيجة عند عودة الاتصال.',
     );
     assert.equal(await exam.locator('.save-status').textContent(), 'إجابة واحدة بانتظار الإرسال');
-    assert.equal(await exam.locator('.competition-heading bdi').getAttribute('dir'), 'ltr');
-    assert.equal(await exam.locator('.competition-heading bdi').textContent(), '1 / 20');
+    assert.equal(await exam.locator('.competition-heading .question-segment.pending').count(), 1);
     const motion = await exam.locator('.answer-feedback').evaluate((element) => ({
       feedback: getComputedStyle(element).transitionDuration,
       press: getComputedStyle(element.closest('.exam-shell').querySelector('button'))
@@ -232,7 +231,7 @@ const labels = {
     await exam.getByRole('button', { name: 'السؤال التالي', exact: false }).click();
     await exam.locator('.answer-option').first().click();
     await exam.getByText('إجابتان بانتظار الإرسال', { exact: true }).waitFor();
-    await exam.getByRole('button', { name: 'تثبيت الإجابة وإظهار التصحيح' }).click();
+    await exam.getByRole('button', { name: 'ثبّت إجابتي' }).click();
     await exam.getByText('تم تثبيت إجابتك', { exact: true }).waitFor();
     assert.equal(await exam.locator('.save-status').textContent(), 'إجابتان بانتظار الإرسال');
     await exam.getByRole('button', { name: 'خروج من الاختبار', exact: true }).click();
@@ -244,7 +243,7 @@ const labels = {
     assert.ok(await exam.locator('.answer-option input').first().isDisabled());
     await exam.screenshot({ path: path.join(output, 'pending-reconnected-original-1366.png') });
     console.log(
-      'PASS distinct pending answers, singular/dual copy, one pending line, LTR count, normal motion, reconnect feedback and immutable locks',
+      'PASS distinct pending answers, singular/dual copy, one pending line, pending strip, normal motion, reconnect feedback and immutable locks',
     );
     await motionContext.close();
     await context.close();

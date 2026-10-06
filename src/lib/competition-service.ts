@@ -41,7 +41,7 @@ export function newCompetition(id: string, bookVersionId = officialBook.id): Com
     opensAt: null,
     closesAt: null,
     closedAt: null,
-    feedbackMode: 'formal',
+    feedbackMode: 'educational',
     leaderboardMode: 'publish_after_close',
     closingPolicy: 'grace',
     graceMinutes: 60,
@@ -162,7 +162,7 @@ export class CompetitionService {
     const visible = c.leaderboardMode !== 'hidden';
     return {
       participant: { name, stage },
-      competition: { ...c, state: effectiveState(c, this.now()) },
+      competition: { ...c, feedbackMode: 'educational', state: effectiveState(c, this.now()) },
       book,
       published: effectiveState(c, this.now()) === 'RESULTS_PUBLISHED',
       testRun,
@@ -478,7 +478,7 @@ export class CompetitionService {
       closesAt: null,
       closedAt: body.closed === true ? new Date(this.now()).toISOString() : null,
       closingPolicy: 'immediate' as const,
-      feedbackMode: body.reveal === true ? ('educational' as const) : ('formal' as const),
+      feedbackMode: 'educational' as const,
       leaderboardMode: 'public_live' as const,
     };
     const id = randomUUID();
@@ -682,7 +682,7 @@ export class CompetitionService {
         c = {
           ...c,
           title: String(body.title || c.title).slice(0, 160),
-          feedbackMode: body.feedbackMode as Competition['feedbackMode'],
+          feedbackMode: 'educational',
           leaderboardMode: body.leaderboardMode as Competition['leaderboardMode'],
           closingPolicy: body.closingPolicy as Competition['closingPolicy'],
           graceMinutes: Number(body.graceMinutes),

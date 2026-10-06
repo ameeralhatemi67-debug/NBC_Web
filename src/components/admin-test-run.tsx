@@ -5,12 +5,12 @@ import { Participation } from './participation';
 import { stageKeys, stageNames, type CompetitionState, type Stage } from '@/lib/competition-domain';
 export function AdminTestRun() {
   const [stage, setStage] = useState<Stage>('middle');
-  const [reveal, setReveal] = useState(false);
   const [closed, setClosed] = useState(false);
   const [offline, setOffline] = useState(false);
   const [run, setRun] = useState<CompetitionState | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [entered, setEntered] = useState(false);
   useEffect(() => {
     const id = sessionStorage.getItem('nbc-admin-test-run');
     if (id)
@@ -24,16 +24,29 @@ export function AdminTestRun() {
     try {
       const state = await api<CompetitionState>(
         reset ? 'admin/test-run/reset' : 'admin/test-run/start',
-        reset ? { id: run?.attempt?.id } : { stage, reveal, closed, synthetic: true },
+        reset ? { id: run?.attempt?.id } : { stage, reveal: true, closed, synthetic: true },
       );
       setRun(state);
       sessionStorage.setItem('nbc-admin-test-run', state.attempt!.id);
+      setEntered(true);
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setBusy(false);
     }
   }
+  if (entered && run?.attempt)
+    return (
+      <Participation
+        key={run.attempt.id}
+        testRunId={run.attempt.id}
+        initialState={run}
+        simulateOffline={offline}
+        onExit={() => setEntered(false)}
+        examView
+        onStateChange={setRun}
+      />
+    );
   return (
     <section className="admin-test-area">
       <h2>تجربة المسابقة الكاملة</h2>
@@ -58,10 +71,6 @@ export function AdminTestRun() {
           </select>
         </label>
         <label>
-          <input type="checkbox" checked={reveal} onChange={(e) => setReveal(e.target.checked)} />{' '}
-          تصحيح تعليمي في التجربة الجديدة
-        </label>
-        <label>
           <input type="checkbox" checked={closed} onChange={(e) => setClosed(e.target.checked)} />{' '}
           محاكاة مسابقة مغلقة
         </label>
@@ -70,8 +79,13 @@ export function AdminTestRun() {
           محاكاة انقطاع المزامنة
         </label>
         <button className="button primary" disabled={busy} onClick={() => start()}>
-          بدء تجربة جديدة
+          دخول الاختبار
         </button>
+        {run && (
+          <button className="button outline" disabled={busy} onClick={() => setEntered(true)}>
+            متابعة التجربة الحالية
+          </button>
+        )}
         {run && (
           <button className="button outline" disabled={busy} onClick={() => start(true)}>
             إعادة تجربة المرحلة الحالية
@@ -92,12 +106,6 @@ export function AdminTestRun() {
               خريطة الأسئلة، أو تجاوز صفحة المصدر من قارئ PDF لإظهار التلميح.
             </p>
           </details>
-          <Participation
-            key={run.attempt.id}
-            testRunId={run.attempt.id}
-            initialState={run}
-            simulateOffline={offline}
-          />
         </>
       )}
     </section>

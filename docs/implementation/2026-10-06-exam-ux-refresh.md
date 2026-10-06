@@ -60,3 +60,48 @@ The 21-case Chrome script passed against the real-repository demo on port 3101, 
 The existing safe-question payload includes source-page metadata before locking. The hint gate remains a UI rule. Changing this exposure needs an owner decision and is outside this refresh.
 
 The rehearsal prerequisite needs its own reviewed backend decision in Phase 6. It remains informational until that work is approved.
+
+## Phase 2 validation checkpoint
+
+Implemented the core exam loop from W3, W4, W7 and W6. A visual identity decision is pending before the phase commit.
+
+- The question body scrolls inside its panel while the footer stays visible. The primary action is "ثبّت إجابتي", then "السؤال التالي", and finally "راجع وأرسل" once all answers are locked. A last question reached early links back to the first unlocked question. Enter hints appear only on a wide screen with a fine pointer.
+- Option rows are at least 52px high. Their real radio/checkbox inputs are visually hidden. Server-confirmed answers have icons and text, unchosen rows dim to 62%, and a post-lock source-page chip scrolls the reader and flashes a copper outline for 1.4 seconds. The outline starts after the page canvas is ready, including when opening the reader on a phone. Repeated source requests also scroll to the beginning of the same page.
+- The top bar contains one segmented question strip, with current, unanswered, correct, incorrect and pending states. Where cells would be narrower than 18px, an accessible 44px strip button opens a separate navigation grid. This grid is available before all answers are locked; the submission review remains gated on all locks.
+- Keyboard selection, Enter locking/advancing, RTL arrows and Escape work without animation. Inputs used for typing retain their keys. Navigation focuses the question heading.
+- Locked hints explain eligibility without exposing a page number. Eligible and active hints use the approved copy, show only the source and preceding page, and return to the whole book. Changing question or locking leaves the hint. Admin validation rejects a last-page source with an Arabic correction; a legacy last-page source unlocks on arrival at that page. Normal eligibility remains strictly after the source page.
+- The top-bar status includes an icon and a polite live label. The offline banner supplies the retry action. Distinct pending answers and queued submission keep their approved Arabic copy. A pending lock stays neutral until the server returns correctness.
+- The final review opens automatically after the last lock, starts focus on the submit action, traps forward/backward Tab, and restores focus after Escape or cancellation. Its cells close the dialog and navigate. Its two approved actions preserve the existing durable SUBMIT queue.
+
+Verification in the real repository, with environment-file loading blocked and fresh disposable data:
+
+- Direct `npx tsc --noEmit` and `npm run typecheck` passed.
+- `npm test`: 62 passed. Three new tests cover normal/legacy last-page hint eligibility, last-page admin validation, and strip correctness requiring a locked answer plus server feedback.
+- `npm run test:integration`: all 38 checks passed, including test-run isolation, offline events, immutability, server scoring and disposable restore.
+- `npm run format:check` passed; `.cjs` files also passed a separate Prettier check.
+- `npm run build` passed.
+- Updated `tests/exam-ui.cjs`: all five existing scenarios passed, with the new button names, hidden input semantics, visible sticky action, source-page jump/flash, internal body scrolling, continuous reader with fewer than ten canvases, two-page hints, exit/resume and reload.
+- New `tests/exam-loop.cjs`: all seven specified viewports in all three identities passed. It checks option semantics, source-chip gating, strip status, keyboard navigation, heading focus, compact navigation focus restoration, locked-answer immutability, no horizontal overflow and a visible primary action. Actual isolated admin runs passed both online and offline 20-lock review flows, including automatic opening, initial focus, Tab trap, Escape, cancellation, question jump, focus restoration, submit, queued submit and reconnect. A presentation-only fixture also passed long multi-select text, selection toggling, the typing guard and the legacy last-page two-page hint. That fixture returns only SELECT choices and never computes correctness.
+- The focused Phase 1 browser regression passed Arabic labels/Start gating for every state, touch time disclosure, singular/dual pending copy, normal motion, reconnect and immutable locks. Its old numeric-counter selector now checks the pending strip cell.
+
+The browser checks caught and fixed an inherited `align-self: start` reader height that initially retained too many canvases, a top bar that did not fill the available width, and review focus escaping/restoring to the wrong control. Test selectors were scoped where duplicate accessible text was expected, and checks wait for durable local writes, focus animation frames and server confirmation before asserting their respective states.
+
+Screenshots are in `test-results/exam-ux/phase-2/`. Logs are `phase2-unit.log`, `phase2-integration.log`, `phase2-build.log`, `phase2-browser.log`, `phase2-existing-browser.log` and `phase2-phase1-regression.log` under `test-results/`.
+
+Pending owner choice: W3 and DESIGN.md require green correctness states, but the existing `--olive`/`--olive-deep` variables map to blue in the official identity. The tested implementation currently follows those existing identity variables. Approval was requested for exam-scoped semantic correct-green/mint variables using DESIGN.md's approved colours, with action buttons retaining their identity colours. No colour exception is assumed, and Phase 2 is not yet committed.
+
+Phone zoom, dock, gestures and the new reader toolbar remain Phase 3. The result/intro layouts and closable result reader remain Phase 4. The real-cover 3D book remains Phase 5; admin-only search and launch/workshop work remain Phase 6. No later phase has started. The prototype's local-file inspection limitation remains as recorded in Phase 0.
+
+### Phase 2 owner review and completion
+
+Applied the owner's follow-up decisions before committing. Semantic status variables are scoped to exam, intro and result containers and identical across all identities. Correct text/background/border use #256044 / #e8f4ec / #5a9f78; incorrect use #9a3328 / #fcebe7 / #cf7b6f. This includes rows, strip cells, feedback and icon-labelled review counts. Actions, pre-lock selection and focus retain the identity variables. Text contrast is 6.55:1 correct and 6.32:1 incorrect, exceeding 4.5:1. Correct green remains distinct from official blue selection.
+
+Question-navigation arrows now leave the option group to its native behaviour. Number shortcuts cover every available option up to six and ignore larger keys. Browser checks exercise native radio arrows without question navigation, checkbox arrow guards, keys 5 and 6, and ignored key 7. Below 430px of strip width the compact control shows coloured ticks without digits and a visible NumPair position; its navigation grid retains labelled status icons.
+
+The full real-repository rerun passed typecheck, 63 unit tests, 38 integration checks, formatting and build, the five existing exam UI scenarios, all 21 exam-loop viewport/identity cases plus online/offline review and long six-option/legacy hint cases, and the complete Phase 1 regression. Approved screenshots include `official-correct-incorrect-1024.png`, `official-correct-incorrect-320.png`, and the 320px/390px `loop-*` captures under `test-results/exam-ux/phase-2/`. Approved logs use the `phase2-approved-*` prefix.
+
+Per the owner, the Phase 2 commit includes the 2026-10-05 exam-UI baseline and its related code: continuous verified/virtualized reader, post-lock server feedback, terms/content/admin settings copy, service/domain updates and their regression tests. Unrelated earlier changes remain uncommitted: README.md, docs/implementation/2026-10-04-admin-access-fix.md, docs/implementation/COMPETITION_OPERATIONS.md and skill-observations/log.md. Existing untracked design/handoff/prototype reference files, admin-access/resume and Supabase/backend notes, and unrelated prize/deployment captures also remain uncommitted.
+
+The repository now contains `scripts/local-ux-check.cjs` and `scripts/local-ux-no-env.cjs`, committed in Phase 1. The former runs npm or Node commands in the real checkout with an allowlisted demo environment and a fresh OS-temporary NBC_DATA_DIR; the latter blocks Next and inherited child processes from reading operator .env* files. They allow testing this checkout without its production configuration. They may be retained or removed at the owner's discretion; ordinary npm gates still work with appropriately isolated runtime configuration.
+
+The previously recorded colour decision is resolved. No Phase 4 work is included.

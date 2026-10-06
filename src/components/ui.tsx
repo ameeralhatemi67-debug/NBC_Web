@@ -17,6 +17,29 @@ export function Icon({ name = 'arrow', size = 22 }: { name?: string; size?: numb
       </>
     ),
     check: <path d="m5 12 4 4L19 6" />,
+    lock: (
+      <>
+        <rect x="5" y="10" width="14" height="11" rx="2" />
+        <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+      </>
+    ),
+    'cloud-check': (
+      <>
+        <path d="M6 17a5 5 0 1 1 1-10 6 6 0 0 1 11 2 4 4 0 0 1 0 8" />
+        <path d="m9 16 3 3 5-5" />
+      </>
+    ),
+    refresh: (
+      <>
+        <path d="M20 7v5h-5M4 17v-5h5" />
+        <path d="M6 7a7 7 0 0 1 12-1l2 3M4 15l2 3a7 7 0 0 0 12-1" />
+      </>
+    ),
+    'wifi-off': (
+      <>
+        <path d="m3 3 18 18M2 8a17 17 0 0 1 3-2m4-1a17 17 0 0 1 13 3M5 12a11 11 0 0 1 4-2m5 0a11 11 0 0 1 5 2M8 16a6 6 0 0 1 8 0M12 20h.01" />
+      </>
+    ),
     close: <path d="m6 6 12 12M6 18 18 6" />,
     menu: <path d="M4 6h16M4 12h16M4 18h16" />,
     user: (

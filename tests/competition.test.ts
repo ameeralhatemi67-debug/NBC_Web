@@ -116,7 +116,8 @@ test('freeze validates all stages, book identity, page mapping, answer keys, dup
   assert.throws(() => validateBank(duplicate, book, true), /متطابقة/);
   assert.equal(hintEligible(29, { pdfPage: 29 }), false);
   assert.equal(hintEligible(30, { pdfPage: 29 }), true);
-  assert.deepEqual(hintTarget({ hintPdfPageStart: 28, hintPdfPageEnd: 29 }), [28, 29]);
+  assert.deepEqual(hintTarget({ pdfPage: 29 }), [28, 29]);
+  assert.deepEqual(hintTarget({ pdfPage: 1 }), [1, 1]);
 });
 test('selection may change, first check locks, multi-select scores exact sets, and feedback appears only after lock', () => {
   const q = competitionFixtures[0];
@@ -183,7 +184,10 @@ test('selection may change, first check locks, multi-select scores exact sets, a
     /الأولى/,
   );
   assert.equal(feedbackFor(c, [q], answers)[q.id].isCorrect, true);
-  assert.deepEqual(feedbackFor({ feedbackMode: 'formal' } as Competition, [q], answers), {});
+  assert.equal(
+    feedbackFor({ feedbackMode: 'formal' } as Competition, [q], answers)[q.id].isCorrect,
+    true,
+  );
   assert.equal(JSON.stringify(safeQuestions([q])).includes('correct'), false);
   const multi = { ...q, type: 'multi_select' as const, correctAnswers: [0, 2] };
   const locked = { [q.id]: { selected: [2, 0], locked: true, checkedAt: 'now' } };
@@ -233,7 +237,7 @@ test('lifecycle, stage snapshots, concurrent starts, locking, idempotency, scori
     assert.equal((await service.write(student(), check)).attempt!.revision, revision);
     await assert.rejects(service.write(student(), { ...check, selected: [1] }), /مستخدم/);
     await assert.rejects(service.write(student(), event(state, 'CHECK', first.id, [1])), /الأولى/);
-    assert.deepEqual(state.attempt!.feedback, {});
+    assert.ok(state.attempt!.feedback[first.id]);
     await assert.rejects(service.write(student(), event(state, 'SUBMIT')), /كل الإجابات/);
     // Select keys from the private immutable snapshots, accounting for option shuffling.
     const privateQuestions = (

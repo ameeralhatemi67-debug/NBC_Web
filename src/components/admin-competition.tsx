@@ -42,7 +42,13 @@ export function AdminCompetition({
           e.preventDefault();
           void mutate(
             'admin/competition',
-            { ...form, action: 'settings', version: c.version, scheduled: schedule },
+            {
+              ...form,
+              feedbackMode: 'educational',
+              action: 'settings',
+              version: c.version,
+              scheduled: schedule,
+            },
             'تم حفظ سياسة المسابقة.',
           );
         }}
@@ -86,18 +92,7 @@ export function AdminCompetition({
             }
           />
         </label>
-        <label>
-          التصحيح
-          <select
-            value={form.feedbackMode}
-            onChange={(e) =>
-              setForm({ ...form, feedbackMode: e.target.value as Competition['feedbackMode'] })
-            }
-          >
-            <option value="formal">رسمي: لا تعرض التصحيح</option>
-            <option value="educational">تعليمي: اعرض التصحيح بعد التثبيت</option>
-          </select>
-        </label>
+        <p>تظهر الإجابة الصحيحة والتوضيح بعد تثبيت الإجابة. لا يمكن تغيير الإجابة المثبتة.</p>
         <label>
           النتائج والترتيب
           <select

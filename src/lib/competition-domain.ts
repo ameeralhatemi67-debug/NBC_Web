@@ -156,11 +156,18 @@ export function assertWindow(
     'COMPETITION_CLOSED',
   );
 }
-export function hintEligible(maxPageRead: number, question: Pick<SafeQuestion, 'pdfPage'>) {
-  return maxPageRead > question.pdfPage;
+export function hintEligible(
+  maxPageRead: number,
+  question: Pick<SafeQuestion, 'pdfPage'>,
+  pageCount?: number,
+) {
+  return (
+    maxPageRead > question.pdfPage ||
+    (question.pdfPage === pageCount && maxPageRead >= question.pdfPage)
+  );
 }
-export function hintTarget(question: Pick<SafeQuestion, 'hintPdfPageStart' | 'hintPdfPageEnd'>) {
-  return [question.hintPdfPageStart, question.hintPdfPageEnd];
+export function hintTarget(question: Pick<SafeQuestion, 'pdfPage'>) {
+  return [Math.max(1, question.pdfPage - 1), question.pdfPage];
 }
 export function validateQuestion(q: CompetitionQuestion, book: BookVersion) {
   const fail = (message: string): never => {
@@ -193,6 +200,8 @@ export function validateQuestion(q: CompetitionQuestion, book: BookVersion) {
     )
   )
     fail('صفحة خارج نطاق الكتاب.');
+  if (q.pdfPage === book.pageCount)
+    fail('اختر صفحة مصدر قبل الصفحة الأخيرة من الكتاب حتى يمكن فتح التلميح بعد تصفّحها.');
   if (!Number.isInteger(q.printedPage) || q.printedPage < 1 || q.printedPage > book.pageCount)
     fail('الصفحة المطبوعة مفقودة.');
   if (q.hintPdfPageEnd < q.hintPdfPageStart || q.hintPdfPageEnd - q.hintPdfPageStart > 1)
@@ -286,11 +295,11 @@ export function applyEvent(
   };
 }
 export function feedbackFor(
-  c: Competition,
+  _c: Competition,
   questions: CompetitionQuestion[],
   answers: AnswerMap,
 ): Record<string, Feedback> {
-  if (c.feedbackMode !== 'educational') return {};
+  // Legacy formal campaigns follow the same post-lock feedback policy.
   return Object.fromEntries(
     questions
       .filter((q) => answers[q.id]?.locked)

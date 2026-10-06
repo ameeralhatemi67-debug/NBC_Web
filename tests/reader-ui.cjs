@@ -59,7 +59,7 @@ fs.mkdirSync(output, { recursive: true });
         const reader = page.locator('.book-panel .reader');
         const view = reader.locator('.pdf-canvas-container');
         assert.equal(await reader.locator('input[type=search],[role=searchbox]').count(), 0);
-        assert.equal(await reader.getByLabel('رقم صفحة PDF', { exact: true }).inputValue(), '1');
+        assert.equal(await reader.getByLabel('رقم صفحة PDF', { exact: true }).inputValue(), '63');
         assert.ok(
           await reader
             .locator('.pdf-page')
@@ -67,6 +67,10 @@ fs.mkdirSync(output, { recursive: true });
             .evaluate((e) => e.getBoundingClientRect().width <= innerWidth),
         );
         await reader.getByRole('button', { name: 'المحتويات', exact: true }).tap();
+        await reader.getByRole('menuitem', { name: /المطلب الأول/ }).tap();
+        assert.equal(await reader.getByLabel('رقم صفحة PDF', { exact: true }).inputValue(), '13');
+        await reader.getByRole('button', { name: 'المحتويات', exact: true }).tap();
+        await reader.locator('summary').getByText('صفحات أخرى').tap();
         await reader.getByRole('menuitem', { name: 'صفحة PDF 10', exact: true }).tap();
         await page.waitForFunction(
           () => document.querySelector('.reader-page-controls input').value === '10',
@@ -201,6 +205,7 @@ fs.mkdirSync(output, { recursive: true });
             .evaluate((e) => getComputedStyle(e).filter),
           'invert(0.9) hue-rotate(180deg)',
         );
+        await reader.getByLabel('رقم صفحة PDF', { exact: true }).fill('10');
         await reader.getByRole('button', { name: 'صفحة بصفحة', exact: true }).tap();
         await page.waitForFunction(() => document.querySelectorAll('.pdf-page').length === 1);
         const initial = Number(

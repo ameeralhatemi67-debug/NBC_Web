@@ -1,4 +1,5 @@
 import type { CompetitionState, WriteEvent } from './competition-domain';
+import { openingReaderPage } from './reader-presentation';
 export type LocalCompetition = {
   state: CompetitionState;
   events: WriteEvent[];
@@ -89,7 +90,14 @@ export class DurableCompetitionSession {
       this.record =
         old && old.state.attempt?.id === state.attempt?.id
           ? { ...old, state }
-          : { state, events: [], conflicts: [], index: 0, page: 1, maxPage: 1 };
+          : {
+              state,
+              events: [],
+              conflicts: [],
+              index: 0,
+              page: openingReaderPage(state.book),
+              maxPage: 1,
+            };
       await this.persist();
       this.changed(this.record, this.record.events.length ? 'local' : 'saved');
     });

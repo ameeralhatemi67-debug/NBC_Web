@@ -134,3 +134,36 @@ Browser checks and screenshot review caught and fixed page-size/filter transitio
 Logs use the `test-results/phase3-*` prefix. Phase 3 screenshots are in `test-results/exam-ux/phase-3/`: `reader-*`, `zoom-*`, `dock-*` and `question-*` for all four phone widths in all three identities, plus the three `reader-*-1024.png` desktop captures. Examples: `reader-original-320.png`, `zoom-official-390.png`, `dock-official-390.png`, `question-hybrid-430.png`. Approved Phase 2 captures remain under `test-results/exam-ux/phase-2/`, including `official-correct-incorrect-1024.png`, `official-correct-incorrect-320.png` and the 320/390px `loop-*` tick strips. Screenshots/logs are local ignored artifacts, not committed source.
 
 Physical phones were unavailable. Chrome touch emulation and browser history were verified; iOS Safari/Android hardware back gestures, browser chrome/safe-area behavior and low-memory device performance still need physical-device checks. The real PDF's empty-outline fallback was exercised in the browser; non-empty outline resolution was verified with the unit fixture. No owner decision is needed for this phase. The unrelated tracked documentation and existing untracked references listed above remain uncommitted. Phase 4 has not started.
+
+## Phase 3 review follow-up A: real contents data
+
+`scripts/extract-book-outline.mjs` is a development-only PDF.js tool. It checks the
+immutable SHA, reads all 66 pages, detects heading prefixes and large text when
+Unicode is available, and writes candidate titles/PDF pages/printed pages plus
+the first 80 extracted characters for every page to
+`docs/implementation/2026-10-06-book-outline-candidates.md`.
+
+The real PDF uses Type 3 glyphs without usable Unicode text mapping. Automatic
+Arabic titles and printed-page numerals are therefore unavailable. The report
+escapes the raw extracted characters and clearly identifies this limitation.
+For this SHA, provisional headings and printed page numbers were transcribed
+from the rendered contents page and checked against all nine chapter/index
+opening pages. No readable text was invented and no student indexing code was
+added. Committee review of the proposed titles and pages remains pending.
+
+PDF 63, printed page 61, is the real contents page. New exam sessions open there;
+existing durable session pages and standalone per-SHA saved pages still win.
+Named cover/title/chapter/index entries appear first under "فصول الكتاب", with
+LTR page numbers. Only untitled pages appear in the expandable "صفحات أخرى"
+group. The participant import-boundary test still excludes development tools,
+admin components and `getTextContent` indexing.
+
+Typecheck and all 67 unit tests passed. The reader browser regression was updated
+deliberately for the real first page and grouped contents, and checks chapter
+jumps before numbered-page jumps. Rendered reference artifacts are local only
+under `test-results/book-outline/`.
+
+All 12 touch viewport/identity cases and three desktop reader cases passed. The
+swipe fixture now explicitly navigates to PDF 10 before testing a next-page
+gesture, so it cannot inadvertently begin at the last page. Format check passed.
+The run log is `test-results/phase3-contents-reader.log`.

@@ -6,6 +6,7 @@ import {
   fallbackContents,
   outlineContents,
   readerBookConfig,
+  contentsGroups,
   type BookContentsEntry,
 } from '@/lib/reader-presentation';
 import type { PDFDocumentProxy, RenderTask } from 'pdfjs-dist';
@@ -189,6 +190,7 @@ export function BookReader({
   const live = useRef({ zoom, current, paged, phone });
   live.current = { zoom, current, paged, phone };
   const rangeKey = hintPages?.join(',') ?? 'all';
+  const groupedContents = contentsGroups(contents);
   const pages = hintPages
     ? [...new Set(hintPages)].filter((n) => n >= 1 && n <= book.pageCount).sort((a, b) => a - b)
     : Array.from({ length: book.pageCount }, (_, i) => i + 1);
@@ -621,20 +623,42 @@ export function BookReader({
             }
           }}
         >
-          {contents.map((item, i) => (
-            <button
-              key={`${item.page}-${i}`}
-              role="menuitem"
-              onClick={() => {
-                go(item.page);
-                setContentsOpen(false);
-                container.current?.focus();
-              }}
-            >
-              {item.title}
-              <bdi dir="ltr">{item.page}</bdi>
-            </button>
-          ))}
+          <div className="reader-contents-group" role="group" aria-label="فصول الكتاب">
+            <strong>فصول الكتاب</strong>
+            {groupedContents.chapters.map((item, i) => (
+              <button
+                key={`${item.page}-${i}`}
+                role="menuitem"
+                onClick={() => {
+                  go(item.page);
+                  setContentsOpen(false);
+                  container.current?.focus();
+                }}
+              >
+                {item.title}
+                <bdi dir="ltr">{item.page}</bdi>
+              </button>
+            ))}
+          </div>
+          {groupedContents.otherPages.length > 0 && (
+            <details className="reader-contents-group">
+              <summary>صفحات أخرى</summary>
+              {groupedContents.otherPages.map((item) => (
+                <button
+                  key={item.page}
+                  role="menuitem"
+                  onClick={() => {
+                    go(item.page);
+                    setContentsOpen(false);
+                    container.current?.focus();
+                  }}
+                >
+                  {item.title}
+                  <bdi dir="ltr">{item.page}</bdi>
+                </button>
+              ))}
+            </details>
+          )}
         </div>
       )}
       {hintPages && (

@@ -1,14 +1,24 @@
 import type { BookVersion } from './competition-domain';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-export type BookContentsEntry = { title: string; page: number };
+export type BookContentsEntry = { title: string; page: number; untitled?: boolean };
 export type ReaderBookConfig = { openingPage: number; contents?: BookContentsEntry[] };
 // Client presentation metadata keyed by immutable book version. No API/schema change.
+// pending committee review of titles and pages
 export const readerBookVersions: Record<string, ReaderBookConfig> = {
   'national-belonging-ec07ef57': {
-    openingPage: 1,
+    openingPage: 63,
     contents: [
       { title: 'الغلاف', page: 1 },
       { title: 'صفحة العنوان', page: 3 },
+      { title: 'مقدمة', page: 9 },
+      { title: 'المطلب الأول: تعريف الوطن، والمواطنة، والانتماء واللحمة الوطنية', page: 13 },
+      { title: 'المطلب الثاني: تأصيل الانتماء للوطن ومحبته في نصوص الوحيين', page: 17 },
+      { title: 'المطلب الثالث: الانتماء والمواطنة في حياة السلف الصالح', page: 27 },
+      { title: 'المطلب الرابع: الانتماء واللحمة الوطنية في الشريعة', page: 35 },
+      { title: 'المطلب الخامس: حقوق الانتماء إلى الوطن', page: 41 },
+      { title: 'المطلب السادس: محاذير لا بد من التنبه لها', page: 55 },
+      { title: 'فهرس المصادر والمراجع', page: 59 },
+      { title: 'فهرس الموضوعات', page: 63 },
     ],
   },
 };
@@ -24,8 +34,21 @@ export function fallbackContents(book: BookVersion) {
       configured.find((entry) => entry.page === index + 1) ?? {
         title: 'صفحة PDF',
         page: index + 1,
+        untitled: true,
       },
   );
+}
+export function contentsGroups(entries: BookContentsEntry[]) {
+  return {
+    chapters: entries.filter((entry) => !entry.untitled),
+    otherPages: entries.filter((entry) => entry.untitled),
+  };
+}
+export function openingReaderPage(book: BookVersion, restored?: number) {
+  if (restored && Number.isInteger(restored) && restored >= 1 && restored <= book.pageCount)
+    return restored;
+  const page = readerBookConfig(book).openingPage;
+  return page >= 1 && page <= book.pageCount ? page : 1;
 }
 export async function outlineContents(
   pdf: Pick<PDFDocumentProxy, 'getOutline' | 'getDestination' | 'getPageIndex'>,

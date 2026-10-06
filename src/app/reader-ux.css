@@ -107,6 +107,17 @@
   outline: 2px solid var(--copper);
   outline-offset: -2px;
 }
+.reader .reader-contents-group > strong,
+.reader .reader-contents-group > summary {
+  display: block;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.reader .reader-contents-group > summary {
+  cursor: pointer;
+  min-height: 44px;
+}
 .reader.night-reader .pdf-canvas-container,
 .reader.night-reader .pdf-page {
   background: color-mix(in srgb, var(--ink) 15%, black);

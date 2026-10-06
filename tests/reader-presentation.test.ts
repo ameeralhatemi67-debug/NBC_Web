@@ -9,6 +9,8 @@ import {
   fallbackContents,
   readerBookConfig,
   outlineContents,
+  openingReaderPage,
+  contentsGroups,
 } from '../src/lib/reader-presentation';
 test('reader raster stays within DPR 2 and 16M pixels at extreme zoom', () => {
   assert.deepEqual(canvasSize(200, 300, 3), { width: 400, height: 600, density: 2 });
@@ -65,7 +67,7 @@ test('participant import graph cannot reach admin components or index student bo
   visit(path.resolve('src/components/participation.tsx'));
   assert.ok([...seen].some((file) => file.endsWith('pdf-book-reader.tsx')));
 });
-test('known PDF has a blank page 2, starts at cover, and offers a version-configurable fallback', () => {
+test('known PDF opens at its real contents; saved page wins and untitled pages remain available', () => {
   const book = {
     id: 'national-belonging-ec07ef57',
     title: 'test',
@@ -74,10 +76,22 @@ test('known PDF has a blank page 2, starts at cover, and offers a version-config
     pageCount: 66,
     approved: true,
   };
-  assert.equal(readerBookConfig(book).openingPage, 1);
+  assert.equal(readerBookConfig(book).openingPage, 63);
+  assert.equal(openingReaderPage(book), 63);
+  assert.equal(openingReaderPage(book, 10), 10);
+  assert.equal(openingReaderPage(book, 67), 63);
+  assert.equal(openingReaderPage({ ...book, id: 'unknown' }), 1);
   const entries = fallbackContents(book);
   assert.equal(entries.length, 66);
   assert.equal(entries[0].title, 'الغلاف');
   assert.equal(entries[2].title, 'صفحة العنوان');
   assert.equal(entries[9].page, 10);
+  const groups = contentsGroups(entries);
+  assert.equal(groups.chapters.find((entry) => entry.page === 63)?.title, 'فهرس الموضوعات');
+  assert.equal(
+    groups.chapters.find((entry) => entry.page === 13)?.title.includes('المطلب الأول'),
+    true,
+  );
+  assert.ok(groups.otherPages.every((entry) => entry.untitled));
+  assert.ok(!groups.otherPages.some((entry) => entry.page === 13));
 });

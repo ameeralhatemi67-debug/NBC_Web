@@ -134,7 +134,7 @@ const policies = {
         );
         assert.ok((await page.locator('.intro-stage').innerText()).includes('المرحلة المتوسطة'));
         const cover = await page
-          .locator('.book-cover-slot canvas')
+          .locator('.book-cover-slot > canvas:not(.book-3d-canvas)')
           .evaluate((canvas) => ({ width: canvas.width, height: canvas.height }));
         assert.equal(cover.width, 1400);
         assert.ok(cover.height > cover.width);

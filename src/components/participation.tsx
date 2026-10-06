@@ -299,11 +299,13 @@ export function Participation({
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
   }, [busy]);
-  async function start() {
+  async function start(opened?: Promise<void>) {
     setBusy(true);
     setError('');
     try {
-      await attach(await api<CompetitionState>('attempt/start', {}));
+      const started = await api<CompetitionState>('attempt/start', {});
+      await opened;
+      await attach(started);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -442,7 +444,7 @@ export function Participation({
         banner={banner}
         error={error}
         busy={busy}
-        onStart={() => void start()}
+        onStart={(opened) => void start(opened)}
       />
     );
   if (a.submittedAt)

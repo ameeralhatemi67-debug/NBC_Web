@@ -1,9 +1,10 @@
 'use client';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { CompetitionState } from '@/lib/competition-domain';
 import { registeredStage, stageNames } from '@/lib/competition-domain';
 import { competitionStateLabels, riyadhDateTime } from '@/lib/format';
-import { BookCover, type BookReadiness } from './book-cover';
+import type { BookReadiness } from './book-cover';
+import { BookStage, type BookStageHandle } from './book-stage';
 import { CompetitionClosingTime } from './competition-closing-time';
 import { ErrorMessage, Icon } from './ui';
 export function CompetitionIntro({
@@ -17,13 +18,23 @@ export function CompetitionIntro({
   banner: ReactNode;
   error: string;
   busy: boolean;
-  onStart: () => void;
+  // The promise settles when the book has opened; the exam appears after it.
+  onStart: (opened?: Promise<void>) => void;
 }) {
   const [readiness, setReadiness] = useState<BookReadiness>({
     sha: '',
     verified: false,
     cached: false,
   });
+  const stage = useRef<BookStageHandle>(null);
+  const opened = useRef(false);
+  useEffect(() => {
+    // A failed start leaves the intro on screen: close the book again.
+    if (!busy && opened.current) {
+      opened.current = false;
+      void stage.current?.close();
+    }
+  }, [busy]);
   const verified = readiness.sha === data.book.sha256 && readiness.verified;
   const cached = verified && readiness.cached;
   return (
@@ -63,7 +74,10 @@ export function CompetitionIntro({
             <button
               className="button primary"
               disabled={busy || data.competition.state !== 'OPEN' || !verified}
-              onClick={onStart}
+              onClick={() => {
+                opened.current = true;
+                onStart(stage.current?.open());
+              }}
             >
               ابدأ المشاركة <Icon />
             </button>
@@ -72,7 +86,7 @@ export function CompetitionIntro({
             )}
           </div>
         </div>
-        <BookCover book={data.book} onReadiness={setReadiness} />
+        <BookStage ref={stage} book={data.book} onReadiness={setReadiness} />
       </div>
     </section>
   );

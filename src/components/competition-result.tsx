@@ -14,6 +14,7 @@ import {
 } from '@/lib/result-presentation';
 import { Icon } from './ui';
 import { Leaderboard } from './leaderboard';
+import { BookStage } from './book-stage';
 import { ResultBookDialog } from './result-book-dialog';
 export function CompetitionResult({
   data,
@@ -80,45 +81,52 @@ export function CompetitionResult({
       {banner}
       <div className="result-layout">
         <div className="result-main">
-          <h1>
-            <Icon name="check" size={22} /> تم استلام مشاركتك
-          </h1>
-          {!hidden ? (
-            <>
-              <div className="result-sentence-line">
-                <p className="result-sentence">
-                  {resultSentence(attempt.score!, attempt.maxScore)}
-                </p>
-                {attempt.percentage !== null && (
-                  <small>
-                    <bdi dir="ltr">{attempt.percentage}%</bdi>
-                  </small>
-                )}
-              </div>
-              <div className="result-strip" role="list" aria-label="نتيجة الأسئلة">
-                {attempt.questions.map((question, index) => {
-                  const status = questionStatus(attempt, question.id);
-                  return (
-                    <span
-                      key={question.id}
-                      className={`result-segment ${status}`}
-                      role="listitem"
-                      aria-label={`السؤال ${index + 1}، ${questionStatusLabels[status]}`}
-                      style={{ '--segment-delay': `${index * 40}ms` } as React.CSSProperties}
-                    >
-                      <Icon
-                        name={
-                          status === 'correct' ? 'check' : status === 'incorrect' ? 'close' : 'lock'
-                        }
-                        size={10}
-                      />
-                    </span>
-                  );
-                })}
-              </div>
-            </>
-          ) : (
-            <p className="result-hidden">النتيجة محجوبة وفق سياسة المسابقة.</p>
+          <div className="result-top">
+            <div className="result-headline">
+              <h1>
+                <Icon name="check" size={22} /> تم استلام مشاركتك
+              </h1>
+              {!hidden ? (
+                <div className="result-sentence-line">
+                  <p className="result-sentence">
+                    {resultSentence(attempt.score!, attempt.maxScore)}
+                  </p>
+                  {attempt.percentage !== null && (
+                    <small>
+                      <bdi dir="ltr">{attempt.percentage}%</bdi>
+                    </small>
+                  )}
+                </div>
+              ) : (
+                <p className="result-hidden">النتيجة محجوبة وفق سياسة المسابقة.</p>
+              )}
+            </div>
+            <div className="result-book">
+              <BookStage book={data.book} initial="open" closeWhenReady />
+            </div>
+          </div>
+          {!hidden && (
+            <div className="result-strip" role="list" aria-label="نتيجة الأسئلة">
+              {attempt.questions.map((question, index) => {
+                const status = questionStatus(attempt, question.id);
+                return (
+                  <span
+                    key={question.id}
+                    className={`result-segment ${status}`}
+                    role="listitem"
+                    aria-label={`السؤال ${index + 1}، ${questionStatusLabels[status]}`}
+                    style={{ '--segment-delay': `${index * 40}ms` } as React.CSSProperties}
+                  >
+                    <Icon
+                      name={
+                        status === 'correct' ? 'check' : status === 'incorrect' ? 'close' : 'lock'
+                      }
+                      size={10}
+                    />
+                  </span>
+                );
+              })}
+            </div>
           )}
           <div className="receipt-number result-ticket">
             <div>

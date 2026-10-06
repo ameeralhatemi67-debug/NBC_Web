@@ -66,19 +66,51 @@
   gap: 12px;
 }
 .book-cover-slot {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   min-width: 0;
   height: 400px;
 }
-.book-cover-slot canvas {
+.book-cover-slot > canvas:not(.book-3d-canvas) {
   max-width: 100%;
   max-height: 100%;
   width: auto;
   height: auto;
   box-shadow: 0 14px 24px color-mix(in srgb, var(--ink) 15%, transparent);
   transform: perspective(900px) rotateY(-9deg) rotateZ(2deg);
+}
+.book-3d-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+}
+.book-3d-active .book-3d-canvas {
+  opacity: 1;
+}
+.book-3d-active > canvas:not(.book-3d-canvas) {
+  opacity: 0;
+}
+.result-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+}
+.result-book {
+  width: 150px;
+}
+.result-book .book-cover-slot {
+  height: 200px;
+}
+.result-book .book-cover-placeholder {
+  width: 120px;
+  height: 170px;
 }
 .book-cover-placeholder {
   display: flex;
@@ -360,6 +392,23 @@
   }
 }
 @container (max-width: 760px) {
+  .result-top {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .result-book {
+    order: -1;
+    width: 100%;
+  }
+  .result-book .book-cover-slot {
+    height: 120px;
+  }
+  .result-book .book-cover-placeholder {
+    width: 72px;
+    height: 100px;
+    padding: 4px;
+    font-size: 10px;
+  }
   .intro-layout {
     grid-template-columns: minmax(0, 1fr);
     gap: 12px;

@@ -1,18 +1,26 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { RenderTask } from 'pdfjs-dist';
 import type { BookVersion } from '@/lib/competition-domain';
 import { useVerifiedBook } from './use-verified-book';
 import { Icon } from './ui';
 export type BookReadiness = { sha: string; verified: boolean; cached: boolean };
 
-// This verified page-1 canvas is also the fallback slot for the future 3D book.
+// This verified page-1 canvas is the flat fallback and the texture source for the 3D book.
 export function BookCover({
   book,
   onReadiness,
+  onPainted,
+  decorative = false,
+  className = '',
+  children,
 }: {
   book: BookVersion;
   onReadiness?: (status: BookReadiness) => void;
+  onPainted?: (canvas: HTMLCanvasElement | null) => void;
+  decorative?: boolean;
+  className?: string;
+  children?: ReactNode;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [retry, setRetry] = useState(0);
@@ -22,6 +30,9 @@ export function BookCover({
   useEffect(() => {
     onReadiness?.({ sha: book.sha256, verified: Boolean(pdf), cached });
   }, [pdf, cached, book.sha256, onReadiness]);
+  useEffect(() => {
+    onPainted?.(painted ? canvas.current : null);
+  }, [painted, onPainted]);
   useEffect(() => {
     setPainted(false);
     setRenderError('');
@@ -49,10 +60,17 @@ export function BookCover({
   }, [pdf]);
   return (
     <div
-      className={`book-cover-slot ${painted ? 'cover-ready' : ''}`}
+      className={`book-cover-slot ${painted ? 'cover-ready' : ''} ${className}`}
       aria-busy={!painted && !error && !renderError}
     >
-      <canvas ref={canvas} role="img" aria-label={`غلاف كتاب ${book.title}`} hidden={!painted} />
+      <canvas
+        ref={canvas}
+        role={decorative ? undefined : 'img'}
+        aria-label={decorative ? undefined : `غلاف كتاب ${book.title}`}
+        aria-hidden={decorative || undefined}
+        hidden={!painted}
+      />
+      {children}
       {!painted && (
         <div className="book-cover-placeholder">
           <Icon name="book" size={32} />

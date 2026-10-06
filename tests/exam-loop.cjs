@@ -323,14 +323,15 @@ const sizes = [
         .evaluateAll((pages) => pages.map((p) => Number(p.dataset.page))),
       [65, 66],
     );
-    await long.keyboard.press('Escape');
+    await long.getByRole('button', { name: 'العودة إلى الكتاب كاملًا', exact: true }).click();
     await long.waitForFunction(() => document.querySelectorAll('.pdf-page').length === 66);
+    await long.waitForFunction(() => document.activeElement?.matches('.pdf-canvas-container'));
     await long.keyboard.press('Escape');
-    await long.locator('.book-panel').waitFor({ state: 'detached' });
+    await long.locator('.book-panel').waitFor({ state: 'hidden' });
     assert.equal(await long.locator('.source-page-chip').count(), 0);
     assert.ok(await long.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     console.log(
-      'PASS long multi-select: sticky action, keyboard toggles, typing guard, legacy last-page hint, Escape/full book, no early source chip',
+      'PASS long multi-select: sticky action, keyboard toggles, typing guard, legacy last-page hint, full-book action, Escape closes phone reader, no early source chip',
     );
     await long.close();
     assert.deepEqual(errors, []);

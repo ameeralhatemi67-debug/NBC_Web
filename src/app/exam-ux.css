@@ -217,13 +217,13 @@
 .exam-shell .answer-option.dimmed {
   opacity: 0.62;
 }
-.exam-shell .question-panel .question-card .answer-option.correct,
+.exam-shell :is(.question-panel, .question-dock-sheet) .question-card .answer-option.correct,
 .exam-shell .answer-feedback.correct {
   border-color: var(--olive);
   color: var(--olive-deep);
   background: color-mix(in srgb, var(--olive) 8%, var(--paper));
 }
-.exam-shell .question-panel .question-card .answer-option.incorrect,
+.exam-shell :is(.question-panel, .question-dock-sheet) .question-card .answer-option.incorrect,
 .exam-shell .answer-feedback.incorrect {
   border-color: var(--danger);
   color: var(--danger);
@@ -508,7 +508,7 @@
   --status-incorrect-bg: #fcebe7;
   --status-incorrect-border: #cf7b6f;
 }
-.exam-shell .question-panel .question-card .answer-option.correct,
+.exam-shell :is(.question-panel, .question-dock-sheet) .question-card .answer-option.correct,
 .exam-shell .answer-feedback.correct,
 .exam-shell .question-segment.correct,
 .exam-shell .review-counts .correct {
@@ -516,7 +516,7 @@
   background: var(--status-correct-bg);
   border-color: var(--status-correct-border);
 }
-.exam-shell .question-panel .question-card .answer-option.incorrect,
+.exam-shell :is(.question-panel, .question-dock-sheet) .question-card .answer-option.incorrect,
 .exam-shell .answer-feedback.incorrect,
 .exam-shell .question-segment.incorrect,
 .exam-shell .review-counts .incorrect {

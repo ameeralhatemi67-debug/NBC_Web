@@ -17,6 +17,13 @@ export function Icon({ name = 'arrow', size = 22 }: { name?: string; size?: numb
       </>
     ),
     check: <path d="m5 12 4 4L19 6" />,
+    moon: <path d="M20 15a8 8 0 0 1-11-11 9 9 0 1 0 11 11Z" />,
+    pages: (
+      <>
+        <rect x="8" y="7" width="12" height="14" rx="2" />
+        <path d="M15 3H6a2 2 0 0 0-2 2v12" />
+      </>
+    ),
     lock: (
       <>
         <rect x="5" y="10" width="14" height="11" rx="2" />

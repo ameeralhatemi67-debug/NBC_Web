@@ -4860,7 +4860,7 @@ fieldset:disabled .answer-option {
 .exam-shell .question-body {
   padding: 16px;
 }
-.exam-shell .question-panel .question-card .question-body h2 {
+.exam-shell :is(.question-panel, .question-dock-sheet) .question-card .question-body h2 {
   font-size: 24px;
   line-height: 1.5;
   margin: 0 0 8px;
@@ -4897,12 +4897,12 @@ fieldset:disabled .answer-option {
   min-width: 0;
   overflow-wrap: anywhere;
 }
-.exam-shell .question-panel .question-card .answer-option.correct {
+.exam-shell :is(.question-panel, .question-dock-sheet) .question-card .answer-option.correct {
   border-color: #39745a;
   background: #edf6ef;
   color: #164c36;
 }
-.exam-shell .question-panel .question-card .answer-option.incorrect {
+.exam-shell :is(.question-panel, .question-dock-sheet) .question-card .answer-option.incorrect {
   border-color: #b45b4f;
   background: #fff0ed;
   color: #833529;
@@ -5130,7 +5130,7 @@ fieldset:disabled .answer-option {
   .exam-shell .question-body {
     padding: 12px;
   }
-  .exam-shell .question-panel .question-card .question-body h2 {
+  .exam-shell :is(.question-panel, .question-dock-sheet) .question-card .question-body h2 {
     font-size: 21px;
   }
   .exam-shell .answer-option {
@@ -5181,7 +5181,7 @@ fieldset:disabled .answer-option {
   .exam-shell .reader-toolbar strong {
     flex-basis: 100%;
   }
-  .exam-shell .question-panel .question-card .question-body h2 {
+  .exam-shell :is(.question-panel, .question-dock-sheet) .question-card .question-body h2 {
     font-size: 22px;
   }
   .exam-shell .answer-result {
@@ -5250,7 +5250,7 @@ fieldset:disabled .answer-option {
     margin-top: 8px;
     padding-top: 8px;
   }
-  .exam-shell .question-panel .question-card .question-body h2 {
+  .exam-shell :is(.question-panel, .question-dock-sheet) .question-card .question-body h2 {
     font-size: 20px;
   }
   .exam-shell .answer-result {

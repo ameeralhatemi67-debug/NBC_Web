@@ -54,7 +54,16 @@ export function Participation({
   const [saveState, setSaveState] = useState<'saved' | 'local' | 'syncing' | 'error'>('saved');
   const [pendingAnswers, setPendingAnswers] = useState(0);
   const [pendingSubmit, setPendingSubmit] = useState(false);
-  const [bookOpen, setBookOpen] = useState(true);
+  const [bookOpen, setBookOpen] = useState(false);
+  const [readerMounted, setReaderMounted] = useState(false);
+  const [dockExpanded, setDockExpanded] = useState(false);
+  const dockButton = useRef<HTMLButtonElement>(null);
+  const readerOpener = useRef<HTMLElement | null>(null);
+  const readerOpenerId = useRef('');
+  const openerId = useId();
+  const readerHistory = useRef(false);
+  const readerHistoryId = useId();
+  const dockId = useId();
   const [narrow, setNarrow] = useState(false);
   const [hintPages, setHintPages] = useState<number[] | null>(null);
   const [connected, setConnected] = useState(true);
@@ -74,6 +83,7 @@ export function Participation({
   offline.current = simulateOffline;
   const heading = useRef<HTMLHeadingElement>(null);
   const bookPanel = useRef<HTMLDivElement>(null);
+  const examShell = useRef<HTMLDivElement>(null);
   const questionArea = useRef<HTMLDivElement>(null);
   const bookButton = useRef<HTMLButtonElement>(null);
   const readPath = testRunId ? `admin/test-run?id=${encodeURIComponent(testRunId)}` : 'participant';
@@ -144,11 +154,9 @@ export function Participation({
         if (alive) setLoading(false);
       }
     })();
-    const mq = matchMedia('(max-width: 900px)');
+    const mq = matchMedia('(max-width: 819px)');
     setNarrow(mq.matches);
     setBookOpen(!mq.matches);
-    const resize = () => setNarrow(mq.matches);
-    mq.addEventListener('change', resize);
     setConnected(navigator.onLine);
     const sync = () => {
       setConnected(navigator.onLine);
@@ -164,11 +172,22 @@ export function Participation({
     return () => {
       alive = false;
       clearInterval(interval);
-      mq.removeEventListener('change', resize);
       window.removeEventListener('online', sync);
       window.removeEventListener('offline', lost);
     };
   }, [testRunId]);
+  useEffect(() => {
+    if (!examShell.current) return;
+    let first = true;
+    const observer = new ResizeObserver(([entry]) => {
+      const phone = entry.contentRect.width < 820;
+      setNarrow(phone);
+      if (first) setBookOpen(!phone);
+      first = false;
+    });
+    observer.observe(examShell.current);
+    return () => observer.disconnect();
+  }, [data?.attempt?.id, data?.attempt?.submittedAt, loading, examView]);
   useEffect(() => {
     if (!simulateOffline) void controller.current?.sync();
     else setSaveState('local');
@@ -189,6 +208,7 @@ export function Participation({
   }, [data?.attempt?.id, data?.attempt?.submittedAt, lockedCount]);
   useEffect(() => {
     function keyboard(event: KeyboardEvent) {
+      if (event.defaultPrevented) return;
       const attempt = data?.attempt;
       const target = event.target as HTMLElement | null;
       if (
@@ -208,7 +228,13 @@ export function Participation({
         target?.closest('textarea,select,input:not([type="radio"]):not([type="checkbox"])')
       )
         return;
-      if (bookOpen && narrow) return;
+      if (event.key === 'Escape' && bookOpen && narrow) {
+        event.preventDefault();
+        closeBook();
+        return;
+      }
+      if (bookOpen && narrow && !dockExpanded) return;
+      if (target?.closest('.reader')) return;
       const question = attempt.questions[index];
       const answer = attempt.answers[question.id];
       if (/^[1-6]$/.test(event.key) && Number(event.key) <= question.options.length) {
@@ -246,6 +272,33 @@ export function Participation({
       if (questionArea.current) questionArea.current.inert = false;
     };
   }, [bookOpen, narrow, examView, data?.attempt?.id, data?.attempt?.submittedAt]);
+  useEffect(() => {
+    if (bookOpen) setReaderMounted(true);
+    if (!narrow) setDockExpanded(false);
+    if (bookOpen && narrow && !readerHistory.current) {
+      history.pushState({ ...history.state, nbcReaderId: readerHistoryId }, '', location.href);
+      readerHistory.current = true;
+    }
+  }, [bookOpen, narrow]);
+  useEffect(() => {
+    const back = () => {
+      if (readerHistory.current && history.state?.nbcReaderId !== readerHistoryId) {
+        readerHistory.current = false;
+        setBookOpen(false);
+        setDockExpanded(false);
+        setSourceFlash(null);
+        requestAnimationFrame(restoreReaderFocus);
+      }
+    };
+    window.addEventListener('popstate', back);
+    return () => {
+      window.removeEventListener('popstate', back);
+      if (readerHistory.current && history.state?.nbcReaderId === readerHistoryId) history.back();
+    };
+  }, []);
+  useEffect(() => {
+    if (dockExpanded) requestAnimationFrame(() => heading.current?.focus());
+  }, [dockExpanded]);
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
       if (busy) e.preventDefault();
@@ -325,8 +378,8 @@ export function Participation({
         keyboard,
       );
   }
-  function openSource(n: number) {
-    openBook(n);
+  function openSource(n: number, opener: HTMLElement) {
+    openBook(n, opener);
     setSourceFlash({ page: n, request: ++flashRequest.current });
   }
   function readPage(n: number) {
@@ -335,16 +388,35 @@ export function Participation({
     setMaxPage(max);
     void controller.current?.remember(index, n, max).catch((e) => setError(e.message));
   }
-  function openBook(n?: number) {
+  function showBook(opener?: HTMLElement) {
+    if (!bookOpen) {
+      readerOpener.current = opener ?? (document.activeElement as HTMLElement | null);
+      readerOpenerId.current = readerOpener.current?.id ?? '';
+    }
+    setReaderMounted(true);
+    setBookOpen(true);
+  }
+  function openBook(n?: number, opener?: HTMLElement) {
     setSourceFlash(null);
     setHintPages(null);
     if (n) readPage(n);
-    setBookOpen(true);
+    showBook(opener);
   }
   function closeBook() {
+    if (readerHistory.current && history.state?.nbcReaderId === readerHistoryId) {
+      history.back();
+      return;
+    }
+    setDockExpanded(false);
     setSourceFlash(null);
     setBookOpen(false);
-    requestAnimationFrame(() => bookButton.current?.focus());
+    requestAnimationFrame(restoreReaderFocus);
+  }
+  function restoreReaderFocus() {
+    const opener = readerOpenerId.current ? document.getElementById(readerOpenerId.current) : null;
+    if (opener) opener.focus();
+    else if (readerOpener.current?.isConnected) readerOpener.current.focus();
+    else bookButton.current?.focus();
   }
   const banner = testRunId ? (
     <div className="test-run-banner">
@@ -459,9 +531,165 @@ export function Participation({
           'إجابة بانتظار الإرسال',
         ])
       : 'دون اتصال';
+  const questionCard = (
+    <section className="question-card">
+      <header className="question-toolbar">
+        <span>
+          السؤال {index + 1} من {a.questions.length}
+        </span>
+      </header>
+      <div className="question-body" key={q.id}>
+        <ErrorMessage message={!isOffline && saveState !== 'error' ? error : ''} />
+        <h2 ref={heading} tabIndex={-1}>
+          {q.title}
+        </h2>
+        <p className="answer-instruction">
+          {q.type === 'multi_select' ? 'حدد كل الإجابات الصحيحة' : 'اختر إجابة واحدة'}
+        </p>
+        <fieldset className="answer-options" disabled={busy || answer?.locked}>
+          <legend className="sr-only">
+            {q.type === 'multi_select' ? 'حدد كل الإجابات الصحيحة' : 'اختر إجابة واحدة'}
+          </legend>
+          {q.options.map((option, i) => (
+            <label
+              key={`${q.id}-${i}`}
+              className={`answer-option ${answer?.selected.includes(i) ? 'selected' : ''} ${feedback?.correctAnswers.includes(i) ? 'correct' : feedback && answer?.selected.includes(i) ? 'incorrect' : feedback ? 'dimmed' : ''}`}
+            >
+              <input
+                type={q.type === 'multi_select' ? 'checkbox' : 'radio'}
+                name={q.id}
+                checked={answer?.selected.includes(i) ?? false}
+                onChange={() => selectOption(i)}
+              />
+              <span className="answer-letter">{['أ', 'ب', 'ج', 'د', 'هـ', 'و'][i]}</span>
+              <span className="answer-text">{option}</span>
+              {feedback?.correctAnswers.includes(i) ? (
+                <span className="answer-result">
+                  <Icon name="check" size={16} />
+                  <span className="answer-result-label">
+                    {answer?.selected.includes(i) ? 'إجابتك صحيحة' : 'الصحيحة'}
+                  </span>
+                </span>
+              ) : feedback && answer?.selected.includes(i) ? (
+                <span className="answer-result">
+                  <Icon name="close" size={16} />
+                  <span className="answer-result-label">غير صحيحة</span>
+                </span>
+              ) : null}
+            </label>
+          ))}
+        </fieldset>
+        {answer?.locked && (
+          <div
+            className={`answer-feedback ${feedback ? (feedback.isCorrect ? 'correct' : 'incorrect') : ''}`}
+            role="status"
+          >
+            <strong>
+              <Icon name={feedback ? (feedback.isCorrect ? 'check' : 'close') : 'lock'} size={18} />
+              {feedback
+                ? feedback.isCorrect
+                  ? 'إجابتك صحيحة'
+                  : 'إجابتك غير صحيحة'
+                : 'تم تثبيت إجابتك'}
+            </strong>
+            <p>{feedback ? feedback.explanation : 'ستظهر النتيجة عند عودة الاتصال.'}</p>
+            {feedback && (
+              <button
+                id={`${openerId}-source`}
+                className="source-page-chip"
+                onClick={(event) => openSource(q.pdfPage, event.currentTarget)}
+              >
+                <Icon name="book" size={16} />
+                افتح الصفحة {q.pdfPage}
+              </button>
+            )}
+          </div>
+        )}
+        <div className="question-tip">
+          <button
+            ref={bookButton}
+            id={`${openerId}-book`}
+            className="text-link"
+            aria-expanded={bookOpen}
+            onClick={(event) => (bookOpen ? closeBook() : openBook(undefined, event.currentTarget))}
+          >
+            <Icon name="book" />
+            {bookOpen ? 'إغلاق الكتاب' : 'افتح الكتاب'}
+          </button>
+          <div className="hint-control">
+            {hintPages ? (
+              <>
+                <span>التلميح مفتوح: صفحتان فقط</span>
+                <button className="text-link" onClick={() => setHintPages(null)}>
+                  الكتاب كاملًا
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  className="text-link"
+                  disabled={!eligible}
+                  id={`${openerId}-hint`}
+                  aria-describedby={hintDescription}
+                  onClick={(event) => {
+                    setHintPages(hintTarget(q));
+                    readPage(q.pdfPage);
+                    showBook(event.currentTarget);
+                  }}
+                >
+                  <Icon name={eligible ? 'book' : 'lock'} size={16} />
+                  {eligible ? 'اعرض التلميح' : 'التلميح'}
+                </button>
+                <span id={hintDescription}>
+                  {eligible
+                    ? 'يعرض صفحتين فقط من الكتاب'
+                    : 'يُفتح بعد أن تتصفّح الكتاب إلى ما بعد موضع الإجابة.'}
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+        {a.recoveryUntil && <p>المهلة التقنية حتى {riyadhDateTime(a.recoveryUntil)}</p>}
+      </div>
+      <footer className="question-footer">
+        <button
+          className="button outline"
+          disabled={index === 0 || busy}
+          onClick={() => go(index - 1)}
+        >
+          السابق
+        </button>
+        {!answer?.locked ? (
+          <button
+            ref={mainAction}
+            className="button primary"
+            disabled={busy || !answer?.selected.length}
+            onClick={() => void write('CHECK', answer?.selected)}
+          >
+            ثبّت إجابتي<kbd>Enter</kbd>
+          </button>
+        ) : (
+          <button
+            ref={mainAction}
+            className="button primary"
+            disabled={busy}
+            onClick={(event) => advance(event.detail === 0)}
+          >
+            {index < a.questions.length - 1
+              ? 'السؤال التالي'
+              : lockedCount === a.questions.length
+                ? 'راجع وأرسل'
+                : 'إلى أول سؤال لم يُثبَّت'}
+            <Icon />
+          </button>
+        )}
+      </footer>
+    </section>
+  );
   return (
     <div
-      className={`exam-shell ${examView ? 'exam-preview' : ''}`}
+      ref={examShell}
+      className={`exam-shell ${examView ? 'exam-preview' : ''} ${narrow ? 'phone-exam' : ''}`}
       data-input={inputOrigin}
       onPointerDownCapture={() => setInputOrigin('pointer')}
       onKeyDownCapture={() => setInputOrigin('keyboard')}
@@ -518,160 +746,23 @@ export function Participation({
       )}
       <div className={`competition-grid ${bookOpen ? 'with-book' : ''}`}>
         <div ref={questionArea} className="question-panel">
-          <section className="question-card">
-            <header className="question-toolbar">
-              <span>
-                السؤال {index + 1} من {a.questions.length}
-              </span>
-            </header>
-            <div className="question-body" key={q.id}>
-              <ErrorMessage message={!isOffline && saveState !== 'error' ? error : ''} />
-              <h2 ref={heading} tabIndex={-1}>
-                {q.title}
-              </h2>
-              <p className="answer-instruction">
-                {q.type === 'multi_select' ? 'حدد كل الإجابات الصحيحة' : 'اختر إجابة واحدة'}
-              </p>
-              <fieldset className="answer-options" disabled={busy || answer?.locked}>
-                <legend className="sr-only">
-                  {q.type === 'multi_select' ? 'حدد كل الإجابات الصحيحة' : 'اختر إجابة واحدة'}
-                </legend>
-                {q.options.map((option, i) => (
-                  <label
-                    key={`${q.id}-${i}`}
-                    className={`answer-option ${answer?.selected.includes(i) ? 'selected' : ''} ${feedback?.correctAnswers.includes(i) ? 'correct' : feedback && answer?.selected.includes(i) ? 'incorrect' : feedback ? 'dimmed' : ''}`}
-                  >
-                    <input
-                      type={q.type === 'multi_select' ? 'checkbox' : 'radio'}
-                      name={q.id}
-                      checked={answer?.selected.includes(i) ?? false}
-                      onChange={() => selectOption(i)}
-                    />
-                    <span className="answer-letter">{['أ', 'ب', 'ج', 'د', 'هـ', 'و'][i]}</span>
-                    <span className="answer-text">{option}</span>
-                    {feedback?.correctAnswers.includes(i) ? (
-                      <span className="answer-result">
-                        <Icon name="check" size={16} />
-                        <span className="answer-result-label">
-                          {answer?.selected.includes(i) ? 'إجابتك صحيحة' : 'الصحيحة'}
-                        </span>
-                      </span>
-                    ) : feedback && answer?.selected.includes(i) ? (
-                      <span className="answer-result">
-                        <Icon name="close" size={16} />
-                        <span className="answer-result-label">غير صحيحة</span>
-                      </span>
-                    ) : null}
-                  </label>
-                ))}
-              </fieldset>
-              {answer?.locked && (
-                <div
-                  className={`answer-feedback ${feedback ? (feedback.isCorrect ? 'correct' : 'incorrect') : ''}`}
-                  role="status"
-                >
-                  <strong>
-                    <Icon
-                      name={feedback ? (feedback.isCorrect ? 'check' : 'close') : 'lock'}
-                      size={18}
-                    />
-                    {feedback
-                      ? feedback.isCorrect
-                        ? 'إجابتك صحيحة'
-                        : 'إجابتك غير صحيحة'
-                      : 'تم تثبيت إجابتك'}
-                  </strong>
-                  <p>{feedback ? feedback.explanation : 'ستظهر النتيجة عند عودة الاتصال.'}</p>
-                  {feedback && (
-                    <button className="source-page-chip" onClick={() => openSource(q.pdfPage)}>
-                      <Icon name="book" size={16} />
-                      افتح الصفحة {q.pdfPage}
-                    </button>
-                  )}
-                </div>
-              )}
-              <div className="question-tip">
-                <button
-                  ref={bookButton}
-                  className="text-link"
-                  aria-expanded={bookOpen}
-                  onClick={() => (bookOpen ? closeBook() : openBook())}
-                >
-                  <Icon name="book" />
-                  {bookOpen ? 'إغلاق الكتاب' : 'افتح الكتاب'}
-                </button>
-                <div className="hint-control">
-                  {hintPages ? (
-                    <>
-                      <span>التلميح مفتوح: صفحتان فقط</span>
-                      <button className="text-link" onClick={() => setHintPages(null)}>
-                        الكتاب كاملًا
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        className="text-link"
-                        disabled={!eligible}
-                        aria-describedby={hintDescription}
-                        onClick={() => {
-                          setHintPages(hintTarget(q));
-                          readPage(q.pdfPage);
-                          setBookOpen(true);
-                        }}
-                      >
-                        <Icon name={eligible ? 'book' : 'lock'} size={16} />
-                        {eligible ? 'اعرض التلميح' : 'التلميح'}
-                      </button>
-                      <span id={hintDescription}>
-                        {eligible
-                          ? 'يعرض صفحتين فقط من الكتاب'
-                          : 'يُفتح بعد أن تتصفّح الكتاب إلى ما بعد موضع الإجابة.'}
-                      </span>
-                    </>
-                  )}
-                </div>
-              </div>
-              {a.recoveryUntil && <p>المهلة التقنية حتى {riyadhDateTime(a.recoveryUntil)}</p>}
-            </div>
-            <footer className="question-footer">
-              <button
-                className="button outline"
-                disabled={index === 0 || busy}
-                onClick={() => go(index - 1)}
-              >
-                السابق
-              </button>
-              {!answer?.locked ? (
-                <button
-                  ref={mainAction}
-                  className="button primary"
-                  disabled={busy || !answer?.selected.length}
-                  onClick={() => void write('CHECK', answer?.selected)}
-                >
-                  ثبّت إجابتي<kbd>Enter</kbd>
-                </button>
-              ) : (
-                <button
-                  ref={mainAction}
-                  className="button primary"
-                  disabled={busy}
-                  onClick={(event) => advance(event.detail === 0)}
-                >
-                  {index < a.questions.length - 1
-                    ? 'السؤال التالي'
-                    : lockedCount === a.questions.length
-                      ? 'راجع وأرسل'
-                      : 'إلى أول سؤال لم يُثبَّت'}
-                  <Icon />
-                </button>
-              )}
-            </footer>
-          </section>
+          {(!narrow || !bookOpen || !dockExpanded) && questionCard}
+          {narrow && !bookOpen && (
+            <button
+              className="phone-book-bar"
+              id={`${openerId}-bar`}
+              onClick={(event) => openBook(undefined, event.currentTarget)}
+            >
+              <Icon name="book" size={18} />
+              الكتاب · صفحة {page}
+              <Icon name="arrow" size={18} />
+            </button>
+          )}
         </div>
-        {bookOpen && (
+        {(bookOpen || readerMounted) && (
           <div
             ref={bookPanel}
+            hidden={!bookOpen}
             tabIndex={-1}
             className="book-panel"
             role={narrow ? 'dialog' : 'region'}
@@ -680,14 +771,15 @@ export function Participation({
             onKeyDown={(event) => {
               if (event.key === 'Escape') {
                 event.preventDefault();
-                if (hintPages) setHintPages(null);
-                else closeBook();
+                closeBook();
               }
               if (event.key === 'Tab' && narrow) {
                 const items = Array.from(
                   bookPanel.current?.querySelectorAll<HTMLElement>(
-                    'button:not(:disabled),a,input',
+                    'button:not(:disabled),a,input,[tabindex="0"]',
                   ) ?? [],
+                ).filter(
+                  (item) => !item.closest('[inert],[hidden]') && item.getClientRects().length > 0,
                 );
                 const first = items[0],
                   last = items.at(-1);
@@ -713,7 +805,33 @@ export function Participation({
               hintPages={hintPages ?? undefined}
               onClearHint={() => setHintPages(null)}
               sourceFlash={sourceFlash}
+              phone={narrow}
             />
+            {narrow && bookOpen && (
+              <>
+                {dockExpanded && (
+                  <div id={dockId} className="question-dock-sheet">
+                    {questionCard}
+                  </div>
+                )}
+                <button
+                  ref={dockButton}
+                  className="question-dock"
+                  aria-expanded={dockExpanded}
+                  aria-controls={dockId}
+                  onClick={() => {
+                    setDockExpanded(!dockExpanded);
+                    if (dockExpanded) requestAnimationFrame(() => dockButton.current?.focus());
+                  }}
+                >
+                  <span>
+                    سؤال {index + 1} من {a.questions.length}: {q.title.slice(0, 60)}
+                    {q.title.length > 60 ? '…' : ''}
+                  </span>
+                  <Icon name="arrow" size={18} />
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>

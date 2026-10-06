@@ -1,0 +1,266 @@
+/* Reading controls are local to the reader and student exam. */
+.reader {
+  position: relative;
+}
+.reader .reader-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 4px;
+  padding: 6px;
+  align-items: center;
+  background: var(--paper);
+  flex-shrink: 0;
+}
+.reader .reader-toolbar > div {
+  display: flex;
+  gap: 0;
+  align-items: center;
+}
+.reader .reader-toolbar .icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  height: 36px;
+  padding: 4px;
+  font-size: 22px;
+}
+.reader .reader-toolbar .reader-close {
+  margin-inline-end: auto;
+}
+.reader .reader-toolbar .phone-reader-close {
+  width: auto;
+  min-height: 44px;
+  font-size: 12px;
+  gap: 4px;
+}
+.reader .reader-page-controls,
+.reader .reader-zoom-controls {
+  direction: ltr;
+}
+.reader .reader-page-controls input {
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 2px;
+  font-size: 12px;
+}
+.reader .reader-page-controls button {
+  font-size: 25px;
+}
+.reader .reader-page-total {
+  padding-inline: 2px;
+  font-size: 11px;
+}
+.reader .reader-zoom-controls bdi {
+  font-size: 11px;
+  min-width: 30px;
+  text-align: center;
+}
+.reader .pdf-canvas-container {
+  touch-action: none;
+  overflow: auto;
+  display: block;
+  direction: ltr;
+  scroll-behavior: auto;
+}
+.reader .pdf-page {
+  transition-property: none;
+  margin: 0 auto 12px;
+  position: relative;
+}
+.reader .pdf-page canvas {
+  transition-property: none;
+}
+.reader .reader-contents {
+  position: absolute;
+  top: var(--reader-toolbar-height, 48px);
+  inset-inline-start: 6px;
+  z-index: 5;
+  width: min(320px, calc(100% - 12px));
+  max-height: min(360px, 60dvh);
+  overflow: auto;
+  padding: 8px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 24px color-mix(in srgb, var(--ink) 15%, transparent);
+  animation: reader-contents-in var(--motion-popover, 160ms) var(--ease);
+  transform-origin: top right;
+}
+.reader .reader-contents button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  padding: 6px 10px;
+  text-align: start;
+  color: var(--ink);
+}
+.reader .reader-contents button:focus-visible {
+  outline: 2px solid var(--copper);
+  outline-offset: -2px;
+}
+.reader.night-reader .pdf-canvas-container,
+.reader.night-reader .pdf-page {
+  background: color-mix(in srgb, var(--ink) 15%, black);
+}
+.reader.night-reader .pdf-page canvas {
+  filter: invert(0.9) hue-rotate(180deg);
+}
+.reader.night-reader .pdf-page[data-page='1'] canvas {
+  filter: brightness(0.65);
+}
+.reader.phone-reader {
+  padding-top: var(--reader-toolbar-height, 88px);
+}
+.reader.phone-reader.toolbar-hidden {
+  padding-top: 0;
+}
+.reader.phone-reader .reader-toolbar {
+  position: absolute;
+  top: 0;
+  inset-inline: 0;
+  z-index: 3;
+  transition: transform var(--motion-popover, 160ms) var(--ease);
+  border-bottom: 1px solid var(--line);
+}
+.reader.phone-reader.toolbar-hidden .reader-toolbar {
+  transform: translateY(-100%);
+}
+.exam-shell .book-panel {
+  display: flex;
+  flex-direction: column;
+}
+.exam-shell .book-panel[hidden] {
+  display: none !important;
+}
+.exam-shell .book-panel .embedded-reader {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+.exam-shell .question-panel {
+  display: flex;
+  flex-direction: column;
+}
+.exam-shell.phone-exam .question-panel .question-card {
+  height: auto;
+  flex: 1;
+  min-height: 0;
+}
+.exam-shell .phone-book-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 12px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  flex-shrink: 0;
+}
+.exam-shell .phone-book-bar svg:last-child {
+  margin-inline-start: auto;
+  transform: rotate(-90deg);
+}
+.exam-shell .question-dock {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  max-height: calc(56px + env(safe-area-inset-bottom));
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+  font-size: 12px;
+  text-align: start;
+  color: var(--ink);
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 4;
+}
+.exam-shell .question-dock span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.exam-shell .question-dock svg {
+  flex-shrink: 0;
+  transform: rotate(-90deg);
+}
+.exam-shell .question-dock[aria-expanded='true'] svg {
+  transform: rotate(90deg);
+}
+.exam-shell .question-dock-sheet {
+  position: absolute;
+  bottom: calc(44px + env(safe-area-inset-bottom));
+  inset-inline: 0;
+  height: 60dvh;
+  max-height: calc(100dvh - 100px);
+  z-index: 4;
+  padding: 8px;
+  background: var(--paper);
+  border-top: 2px solid var(--copper);
+  box-shadow: 0 -8px 24px color-mix(in srgb, var(--ink) 15%, transparent);
+  animation: exam-sheet-in var(--motion-sheet) var(--ease-out);
+}
+.exam-shell .question-dock-sheet .question-card {
+  height: 100%;
+}
+.exam-shell:not(.phone-exam) .book-panel {
+  position: relative;
+  inset: auto;
+}
+.exam-shell:not(.phone-exam) .competition-grid.with-book {
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+}
+.exam-shell:not(.phone-exam) .competition-heading {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+.exam-shell:not(.phone-exam) .competition-heading .question-strip-container {
+  grid-column: auto;
+  grid-row: auto;
+}
+.exam-shell.phone-exam .book-panel {
+  position: fixed;
+  inset: 0;
+  padding: 0;
+  background: var(--paper);
+}
+.exam-shell.phone-exam .competition-grid.with-book {
+  grid-template-columns: minmax(0, 1fr);
+}
+@keyframes reader-contents-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .reader .reader-contents button:hover {
+    background: var(--cream);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reader .reader-contents,
+  .exam-shell .question-dock-sheet {
+    animation: none;
+  }
+  .reader .reader-toolbar {
+    transition: none;
+  }
+}

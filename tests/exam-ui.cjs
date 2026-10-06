@@ -126,7 +126,7 @@ fs.mkdirSync(output, { recursive: true });
       await page.waitForFunction(() => document.querySelectorAll('.pdf-page').length === 66);
       if (width <= 900) {
         await page.keyboard.press('Escape');
-        await page.locator('.book-panel').waitFor({ state: 'detached' });
+        await page.locator('.book-panel').waitFor({ state: 'hidden' });
         await page.waitForFunction(() => !document.querySelector('.question-panel').inert);
         assert.equal(await page.locator('.question-panel').evaluate((e) => e.inert), false);
       }

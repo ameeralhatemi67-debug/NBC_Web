@@ -6,6 +6,7 @@ import '@fontsource/noto-naskh-arabic/400.css';
 import '@fontsource/noto-naskh-arabic/600.css';
 import './globals.css';
 import './designs.css';
+import './exam-ux.css';
 import { Providers } from '@/components/ui';
 export const metadata: Metadata = {
   title: {

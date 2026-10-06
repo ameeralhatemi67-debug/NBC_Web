@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from './ui';
+import { NumPair } from '@/lib/format';
 import { stageNames, type Stage, type LeaderboardEntry } from '@/lib/competition-domain';
 export function Leaderboard({
   competitionId,
@@ -51,7 +52,7 @@ export function Leaderboard({
                   </td>
                   <td>{row.percentage}%</td>
                   <td>
-                    {row.score} / {row.maxScore}
+                    <NumPair a={row.score} b={row.maxScore} />
                   </td>
                 </tr>
               ))}

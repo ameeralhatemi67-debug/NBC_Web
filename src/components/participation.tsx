@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import { api, ApiError, ErrorMessage, Icon, Loading } from './ui';
 import { BookReader } from './book-reader';
 import { Leaderboard } from './leaderboard';
+import { CompetitionClosingTime } from './competition-closing-time';
+import { arPlural, competitionStateLabels, NumPair, resultSentence, riyadhDateTime } from '@/lib/format';
 import {
   hintEligible,
   hintTarget,
@@ -38,6 +40,8 @@ export function Participation({
   const [maxPage, setMaxPage] = useState(1);
   const [saveState, setSaveState] = useState<'saved' | 'local' | 'syncing' | 'error'>('saved');
   const [pending, setPending] = useState(0);
+  const [pendingAnswers, setPendingAnswers] = useState(0);
+  const [pendingSubmit, setPendingSubmit] = useState(false);
   const [bookOpen, setBookOpen] = useState(true);
   const [narrow, setNarrow] = useState(false);
   const controller = useRef<DurableCompetitionSession | null>(null);
@@ -72,6 +76,10 @@ export function Participation({
       (record, status, message) => {
         setData(overlayPending(record.state, record.events));
         setPending(record.events.length);
+        setPendingAnswers(
+          new Set(record.events.flatMap((e) => (e.questionId ? [e.questionId] : []))).size,
+        );
+        setPendingSubmit(record.events.some((e) => e.kind === 'SUBMIT'));
         setSaveState(status);
         if (message) setError(message);
         else if (status === 'saved') setError('');
@@ -224,7 +232,10 @@ export function Participation({
         {banner}
         <span className="eyebrow">{data.competition.title}</span>
         <h1>أهلًا {data.participant.name.split(' ')[0]}</h1>
-        <p>{data.participant.stage} · 20 سؤالًا من الكتاب، دون مؤقت لكل سؤال</p>
+        <p>
+          {stageNames[registeredStage(data.participant.stage)]} · 20 سؤالًا من الكتاب، دون مؤقت لكل
+          سؤال
+        </p>
         <p>بعد «تحقق من الإجابة» تُثبت إجابتك نهائيًا. يمكنك مراجعة الكتاب والتنقل بين الأسئلة.</p>
         <p>
           {data.competition.feedbackMode === 'educational'
@@ -232,18 +243,23 @@ export function Participation({
             : 'الوضع الرسمي: لا تُعرض الإجابات الصحيحة.'}
         </p>
         <p>
-          حالة المسابقة: {data.competition.state}{' '}
+          {competitionStateLabels[data.competition.state]}{' '}
           {data.competition.opensAt &&
-            `· تفتح ${new Date(data.competition.opensAt).toLocaleString('ar-SA', { timeZone: 'Asia/Riyadh' })}`}
+            `· تفتح ${riyadhDateTime(data.competition.opensAt)}، بتوقيت الرياض`}
         </p>
         <ErrorMessage message={error} />
-        <button
-          className="button primary"
-          disabled={busy || data.competition.state !== 'OPEN'}
-          onClick={start}
-        >
-          ابدأ المشاركة <Icon />
-        </button>
+        <div className="participation-start-actions">
+          <button
+            className="button primary"
+            disabled={busy || data.competition.state !== 'OPEN'}
+            onClick={start}
+          >
+            ابدأ المشاركة <Icon />
+          </button>
+          {data.competition.closesAt && (
+            <CompetitionClosingTime closesAt={data.competition.closesAt} />
+          )}
+        </div>
       </section>
     );
   if (a.submittedAt)
@@ -272,9 +288,7 @@ export function Participation({
         {a.score !== null ? (
           <div className="result-box">
             <strong>{a.percentage}%</strong>
-            <p>
-              {a.score} / {a.maxScore}
-            </p>
+            <p className="result-sentence">{resultSentence(a.score, a.maxScore)}</p>
           </div>
         ) : (
           <p>النتيجة محجوبة وفق سياسة المسابقة.</p>
@@ -304,7 +318,7 @@ export function Participation({
           <h1>{stageNames[q.stage]}</h1>
         </div>
         <span>
-          {count} / {a.questions.length} إجابات مثبتة
+          <NumPair a={count} b={a.questions.length} /> إجابات مثبتة
         </span>
       </div>
       <div className={`competition-grid ${bookOpen ? 'with-book' : ''}`}>
@@ -315,13 +329,26 @@ export function Participation({
                 السؤال {index + 1} من {a.questions.length}
               </span>
               <span className={`save-status ${saveState}`} role="status" aria-live="polite">
+                <Icon
+                  name={saveState === 'saved' ? 'check' : saveState === 'error' ? 'close' : 'clock'}
+                  size={16}
+                />
                 {saveState === 'saved'
-                  ? 'محفوظ على الخادم'
+                  ? 'محفوظ'
                   : saveState === 'syncing'
-                    ? `جارٍ مزامنة ${pending} أحداث…`
-                    : saveState === 'local'
-                      ? 'محفوظ محليًا، ينتظر الاتصال'
-                      : 'تعذرت المزامنة، أعد المحاولة'}
+                    ? 'جارٍ الحفظ'
+                    : saveState === 'error'
+                      ? 'تعذرت المزامنة، أعد المحاولة'
+                      : pendingSubmit
+                        ? 'المشاركة بانتظار الإرسال'
+                        : pendingAnswers
+                          ? arPlural(pendingAnswers, [
+                              'إجابة واحدة بانتظار الإرسال',
+                              'إجابتان بانتظار الإرسال',
+                              'إجابات بانتظار الإرسال',
+                              'إجابة بانتظار الإرسال',
+                            ])
+                          : 'دون اتصال'}
               </span>
             </header>
             <div
@@ -340,7 +367,7 @@ export function Participation({
                 className="text-link"
                 onClick={() => void controller.current?.sync(offline.current)}
               >
-                إعادة المزامنة ({pending})
+                أعد المحاولة
               </button>
             )}
             <div className="question-body">
@@ -379,9 +406,6 @@ export function Participation({
               {answer?.locked ? (
                 <div className="notice" role="status">
                   <strong>تم تثبيت الإجابة ولا يمكن تغييرها.</strong>
-                  {answer.checkedAt === 'local-pending' && (
-                    <p>تنتظر تأكيد الخادم. أي إجابة مثبتة سابقًا على الخادم لها الأولوية.</p>
-                  )}
                   {feedback && (
                     <>
                       <p>
@@ -391,7 +415,7 @@ export function Participation({
                       <p>{feedback.explanation}</p>
                     </>
                   )}
-                  {!feedback && <p>سياسة المسابقة لا تعرض التصحيح هنا.</p>}
+                  {!feedback && <p>ستظهر النتيجة عند عودة الاتصال.</p>}
                 </div>
               ) : (
                 <button

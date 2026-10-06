@@ -1,0 +1,140 @@
+/* Shared timings for the competition journey. */
+:is(.exam-shell, .participation-intro, .receipt-card) {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-io: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease: var(--ease-out);
+  --motion-press: 130ms;
+  --motion-color: 160ms;
+  --motion-feedback: 220ms;
+  --motion-question: 160ms;
+  --motion-sheet: 240ms;
+  --motion-popover: 160ms;
+  --motion-banner: 220ms;
+  --motion-phone-snap: 260ms;
+  --motion-source-flash: 1400ms;
+  --motion-book-open: 650ms;
+  --motion-book-close: 800ms;
+}
+
+:is(.exam-shell, .participation-intro, .receipt-card) :focus-visible {
+  outline-color: var(--copper);
+}
+
+:is(.exam-shell, .participation-intro, .receipt-card) :is(button, .button, .answer-option) {
+  transition:
+    transform var(--motion-press) var(--ease-out),
+    background-color var(--motion-color) var(--ease-out),
+    color var(--motion-color) var(--ease-out),
+    border-color var(--motion-color) var(--ease-out),
+    opacity var(--motion-color) var(--ease-out);
+}
+
+:is(.exam-shell, .participation-intro, .receipt-card) button:not(:disabled):active,
+:is(.exam-shell, .participation-intro, .receipt-card) .button:not(:disabled):active,
+.exam-shell .answer-option:not(:has(input:disabled)):active {
+  transform: scale(0.985);
+}
+
+.exam-shell .answer-feedback {
+  animation: exam-feedback-in var(--motion-feedback) var(--ease-out);
+}
+
+@keyframes exam-feedback-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@supports (transition-behavior: allow-discrete) {
+  .exam-shell .answer-feedback {
+    animation: none;
+    transition:
+      opacity var(--motion-feedback) var(--ease-out),
+      transform var(--motion-feedback) var(--ease-out);
+  }
+  @starting-style {
+    .exam-shell .answer-feedback {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+}
+
+.participation-start-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+}
+
+.competition-closing-time {
+  color: var(--muted);
+  font-size: 13px;
+  max-width: 100%;
+}
+
+.competition-closing-time button {
+  min-height: 36px;
+}
+
+.competition-closing-time time:not([hidden]) {
+  display: block;
+}
+
+.save-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Cancel legacy hover fills on touch; selected and server feedback states stay intact. */
+@media (hover: none), (pointer: coarse) {
+  :root .exam-shell .answer-option:not(.selected):not(.correct):not(.incorrect):hover {
+    background: var(--paper);
+    border-color: var(--line);
+  }
+  .exam-shell .button.primary:hover,
+  .participation-intro .button.primary:hover,
+  .exam-receipt .button.primary:hover {
+    background: var(--olive);
+    box-shadow: none;
+  }
+  :root :is(.exam-shell, .participation-intro, .receipt-card) .button.outline:hover {
+    background: transparent;
+    border-color: var(--line);
+  }
+  :root :is(.exam-shell, .participation-intro, .receipt-card) .icon-button:hover {
+    background: transparent;
+  }
+  :is(.exam-shell, .participation-intro, .receipt-card) .text-link:hover {
+    text-decoration: none;
+  }
+  :is(.exam-shell, .participation-intro, .receipt-card) .text-link:hover svg {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.exam-shell, .participation-intro, .receipt-card) {
+    --motion-press: 0.01ms;
+    --motion-color: 0.01ms;
+    --motion-feedback: 0.01ms;
+    --motion-question: 0.01ms;
+    --motion-sheet: 0.01ms;
+    --motion-popover: 0.01ms;
+    --motion-banner: 0.01ms;
+    --motion-phone-snap: 0.01ms;
+    --motion-source-flash: 0.01ms;
+    --motion-book-open: 0.01ms;
+    --motion-book-close: 0.01ms;
+  }
+  .exam-shell .answer-feedback {
+    animation: none;
+    transition: none;
+  }
+}

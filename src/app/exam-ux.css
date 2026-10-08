@@ -562,3 +562,255 @@
   color: var(--ink);
   white-space: nowrap;
 }
+
+/* Comfort pass: sizes, spacing and the action row follow the Journey Lab "Answering" step.
+   Markup and copy are unchanged; this block only raises legibility and tap comfort. */
+.exam-shell .competition-heading h1 {
+  font-size: 22px;
+}
+.exam-shell .save-status {
+  font-size: 13px;
+  max-width: none;
+  white-space: nowrap;
+}
+.exam-preview .test-run-banner {
+  padding: 4px 12px;
+  margin-bottom: 8px;
+  font-size: 12.5px;
+}
+.exam-preview .test-run-banner .button {
+  min-height: 30px;
+  padding: 2px 12px;
+}
+.exam-shell .exam-connection-banner {
+  font-size: 13px;
+  padding: 8px 12px;
+}
+
+.exam-shell .question-segment {
+  min-height: 28px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+.exam-shell .compact-question-strip.ticks .question-segment {
+  height: 12px;
+  min-height: 12px;
+}
+.exam-shell .strip-position {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.exam-shell .question-toolbar {
+  padding: 14px 22px 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.exam-shell .question-body {
+  padding: 8px 22px 18px;
+}
+.exam-shell :is(.question-panel, .question-dock-sheet) .question-card .question-body h2 {
+  font-size: 26px;
+  line-height: 1.6;
+  margin: 4px 0 10px;
+}
+.exam-shell .answer-instruction {
+  font-size: 13.5px;
+  margin-bottom: 14px;
+}
+.exam-shell fieldset.answer-options {
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.exam-shell .answer-option {
+  min-height: 58px;
+  padding: 10px 14px;
+  gap: 14px;
+  font-size: 16px;
+  line-height: 1.7;
+  border-width: 1.5px;
+  border-radius: 10px;
+  background: var(--paper);
+}
+.exam-shell .answer-letter {
+  width: 32px;
+  height: 32px;
+  font-size: 17px;
+  font-weight: 600;
+  border-radius: 8px;
+  color: var(--muted);
+}
+.exam-shell .answer-option.selected:not(.correct):not(.incorrect) {
+  border-color: var(--olive);
+  background: color-mix(in srgb, var(--olive) 9%, var(--paper));
+  box-shadow: inset 0 0 0 1px var(--olive);
+}
+.exam-shell .answer-option.selected:not(.correct):not(.incorrect) .answer-letter {
+  color: #fff;
+}
+.exam-shell .answer-result {
+  max-width: 112px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Feedback is the learning moment, so it reads at body size. */
+.exam-shell .answer-feedback {
+  padding: 14px 16px;
+  border-radius: 10px;
+  font-size: 15px;
+  line-height: 1.85;
+}
+.exam-shell .answer-feedback strong {
+  font-size: 16px;
+}
+.exam-shell .source-page-chip {
+  min-height: 40px;
+  padding: 4px 14px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Book and hint: two clear buttons, the hint rule on its own line beneath. */
+.exam-shell .question-tip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+  font-size: 13px;
+}
+.exam-shell .hint-control {
+  display: contents;
+}
+.exam-shell .question-tip .text-link {
+  min-height: 40px;
+  padding: 4px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.exam-shell .hint-control .text-link:not(:disabled) {
+  color: var(--olive);
+}
+.exam-shell .hint-control .text-link:disabled {
+  border-style: dashed;
+  color: var(--muted);
+  opacity: 0.85;
+}
+.exam-shell .hint-control > span {
+  order: 3;
+  flex: 1 0 100%;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+@media (hover: hover) and (pointer: fine) {
+  .exam-shell .question-tip .text-link:not(:disabled):hover {
+    border-color: var(--olive);
+  }
+}
+
+/* The action row: one wide primary action, always in reach. */
+.exam-shell .question-footer {
+  gap: 10px;
+  padding: 12px 16px;
+}
+.exam-shell .question-footer .button {
+  min-height: 50px;
+  padding: 8px 16px;
+  font-size: 15px;
+}
+.exam-shell .question-footer .button.primary {
+  flex: 1;
+  justify-content: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.exam-shell .question-footer .button.outline {
+  min-width: 96px;
+}
+.exam-shell .question-footer kbd {
+  padding: 0 6px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  font: 500 11px/1.6 var(--body);
+}
+
+@media (max-width: 900px) {
+  .exam-shell .question-toolbar {
+    padding: 10px 14px 0;
+  }
+  .exam-shell .question-body {
+    padding: 6px 14px 12px;
+  }
+  .exam-shell :is(.question-panel, .question-dock-sheet) .question-card .question-body h2 {
+    font-size: 22px;
+  }
+  .exam-shell .answer-option {
+    min-height: 54px;
+    padding: 8px 12px;
+    gap: 12px;
+    font-size: 15.5px;
+  }
+  .exam-shell .answer-feedback {
+    font-size: 14.5px;
+  }
+  .exam-shell .question-footer {
+    padding: 10px 12px;
+  }
+  .exam-shell .question-footer .button {
+    min-height: 48px;
+  }
+}
+@media (max-width: 380px) {
+  .exam-shell :is(.question-panel, .question-dock-sheet) .question-card .question-body h2 {
+    font-size: 20px;
+  }
+  .exam-shell .answer-option {
+    min-height: 50px;
+    font-size: 15px;
+  }
+  .exam-shell .answer-instruction {
+    font-size: 12.5px;
+  }
+}
+
+.exam-shell .question-body {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--ink) 25%, transparent) transparent;
+}
+@media (max-width: 900px) {
+  .exam-shell .answer-option {
+    min-height: 52px;
+  }
+  .exam-shell fieldset.answer-options {
+    margin-bottom: 10px;
+  }
+  .exam-shell .question-tip {
+    padding-top: 10px;
+  }
+}
+@media (max-width: 900px) and (max-height: 700px) {
+  .exam-shell .answer-instruction {
+    margin-bottom: 8px;
+  }
+  .exam-shell fieldset.answer-options {
+    gap: 8px;
+  }
+  .exam-shell .answer-option {
+    min-height: 48px;
+  }
+  .exam-shell .hint-control > span {
+    font-size: 12.5px;
+    line-height: 1.6;
+  }
+}

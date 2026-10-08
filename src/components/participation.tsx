@@ -71,6 +71,9 @@ export function Participation({
   const hintDescription = useId();
   const lockedCount =
     data?.attempt?.questions.filter((q) => data.attempt?.answers[q.id]?.locked).length ?? 0;
+  const currentQuestionId = data?.attempt?.questions[index]?.id;
+  const currentLocked = !!(currentQuestionId && data?.attempt?.answers[currentQuestionId]?.locked);
+  const currentFeedback = !!(currentQuestionId && data?.attempt?.feedback[currentQuestionId]);
   const isOffline = simulateOffline || !connected;
   const controller = useRef<DurableCompetitionSession | null>(null);
   const offline = useRef(simulateOffline);
@@ -200,6 +203,17 @@ export function Participation({
     }
     priorLocks.current = { attemptId: attempt.id, count: lockedCount };
   }, [data?.attempt?.id, data?.attempt?.submittedAt, lockedCount]);
+  useEffect(() => {
+    // After locking, the explanation can land below the fold on a phone. Bring it into view.
+    if (!currentLocked) return;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const frame = requestAnimationFrame(() =>
+      examShell.current
+        ?.querySelector('.question-panel .answer-feedback, .question-dock-sheet .answer-feedback')
+        ?.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' }),
+    );
+    return () => cancelAnimationFrame(frame);
+  }, [currentQuestionId, currentLocked, currentFeedback]);
   useEffect(() => {
     function keyboard(event: KeyboardEvent) {
       if (event.defaultPrevented) return;

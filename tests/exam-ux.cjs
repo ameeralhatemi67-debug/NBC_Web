@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const { lockByEnter, lockByClick, lockByTap } = require('./exam-lock.cjs');
 const fs = require('node:fs');
 const path = require('node:path');
 const { randomUUID } = require('node:crypto');
@@ -221,7 +222,7 @@ const labels = {
     await exam.getByRole('button', { name: 'دخول الاختبار', exact: true }).click();
     await exam.locator('.answer-option').first().click();
     await exam.getByText('إجابة واحدة بانتظار الإرسال', { exact: true }).waitFor();
-    await exam.getByRole('button', { name: 'ثبّت إجابتي' }).click();
+    await lockByClick(exam.getByRole('button', { name: /^ثبّت/ }), exam);
     await exam.getByText('تم تثبيت إجابتك', { exact: true }).waitFor();
     assert.equal(await exam.locator('.answer-feedback p').count(), 1);
     assert.equal(
@@ -240,7 +241,7 @@ const labels = {
     await exam.getByRole('button', { name: 'السؤال التالي', exact: false }).click();
     await exam.locator('.answer-option').first().click();
     await exam.getByText('إجابتان بانتظار الإرسال', { exact: true }).waitFor();
-    await exam.getByRole('button', { name: 'ثبّت إجابتي' }).click();
+    await lockByClick(exam.getByRole('button', { name: /^ثبّت/ }), exam);
     await exam.getByText('تم تثبيت إجابتك', { exact: true }).waitFor();
     assert.equal(await exam.locator('.save-status').textContent(), 'إجابتان بانتظار الإرسال');
     await exam.getByRole('button', { name: 'خروج من الاختبار', exact: true }).click();

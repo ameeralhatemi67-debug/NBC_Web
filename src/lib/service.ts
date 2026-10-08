@@ -1,5 +1,5 @@
 import { CompetitionService } from './competition-service';
-import type { WriteEvent } from './competition-domain';
+import { READING_MIN_SOURCE_SECONDS, type WriteEvent } from './competition-domain';
 import { randomBytes, createHash } from 'node:crypto';
 import { getDb } from './db';
 import { isProduction, requireLocalMode } from './runtime';
@@ -26,6 +26,8 @@ export type ParticipantReport = {
   submitted_at: string | null;
   attempt_id: string | null;
   receipt: string | null;
+  // Locks made without time on the question's source pages. Evidence for review, not a verdict.
+  unsupported_locks: number;
 };
 const hash = (s: string) => createHash('sha256').update(s).digest('hex');
 export async function sessionFor(token?: string): Promise<Session | null> {
@@ -67,7 +69,8 @@ export async function adminState() {
   return db.transaction(async (tx) => ({
     participants: (
       await tx.query<ParticipantReport>(
-        "SELECT p.id,p.name,p.stage,p.institution,p.gender,p.region,p.locality,p.village,p.created_at,a.score,jsonb_array_length(a.questions) AS max_score,a.submitted_at,a.receipt,a.id AS attempt_id FROM participants p LEFT JOIN attempts a ON a.participant_id=p.id AND a.competition_id=(SELECT value #>> '{}' FROM settings WHERE id='current_competition') ORDER BY p.created_at",
+        "SELECT p.id,p.name,p.stage,p.institution,p.gender,p.region,p.locality,p.village,p.created_at,a.score,jsonb_array_length(a.questions) AS max_score,a.submitted_at,a.receipt,a.id AS attempt_id,COALESCE((SELECT count(*) FROM attempt_events ev WHERE ev.attempt_id=a.id AND ev.payload->>'kind'='CHECK' AND ev.payload ? 'reading' AND (ev.payload->'reading'->>'sourceSeconds')::numeric < $1),0)::int AS unsupported_locks FROM participants p LEFT JOIN attempts a ON a.participant_id=p.id AND a.competition_id=(SELECT value #>> '{}' FROM settings WHERE id='current_competition') ORDER BY p.created_at",
+        [READING_MIN_SOURCE_SECONDS],
       )
     ).rows,
     questions: (

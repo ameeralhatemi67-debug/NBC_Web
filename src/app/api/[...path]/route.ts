@@ -23,6 +23,7 @@ import { readiness, healthCheck, updateSecurity } from '@/lib/otp-readiness';
 import { cleanupSecurity } from '@/lib/security-store';
 import { isProduction, isLocalMode } from '@/lib/runtime';
 import { staffSession } from '@/lib/staff-auth';
+import { adminOpen, openAdminSession } from '@/lib/admin-open';
 import { staffCookie, vercelStaffSession } from '@/lib/vercel-staff';
 import { assertRequest, jsonBody, requestIp } from '@/lib/request-security';
 export const runtime = 'nodejs';
@@ -46,6 +47,7 @@ async function respond(req: NextRequest) {
           ? await vercelStaffSession(jar.get(staffCookie)?.value)
           : await staffSession(req.headers.get('cf-access-jwt-assertion'));
       if (staff) session = staff;
+      else if (adminOpen()) session = openAdminSession;
     }
     if (!session) session = await sessionFor(token);
     let result: unknown;
@@ -208,6 +210,7 @@ async function respond(req: NextRequest) {
           'questionId',
           'selected',
           'revision',
+          'reading',
         ]);
         result = await changeAttempt(role(session, ['participant']), body);
       } else if (route === 'attempt/event' || route === 'attempt/submit') {
@@ -218,6 +221,7 @@ async function respond(req: NextRequest) {
           'questionId',
           'selected',
           'revision',
+          'reading',
         ]);
         result = await changeAttempt(role(session, ['participant']), body);
       } else if (route === 'admin/competition')

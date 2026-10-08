@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const { lockByEnter, lockByClick, lockByTap } = require('./exam-lock.cjs');
 const fs = require('node:fs');
 const path = require('node:path');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
@@ -128,7 +129,7 @@ fs.mkdirSync(output, { recursive: true });
         await page.waitForFunction(
           () => !document.querySelector('.question-dock-sheet .question-footer .primary').disabled,
         );
-        await sheet.getByRole('button', { name: 'ثبّت إجابتي', exact: false }).tap();
+        await lockByTap(sheet.getByRole('button', { name: /^ثبّت/ }), page);
         await sheet.locator('.answer-feedback.correct,.answer-feedback.incorrect').waitFor();
         for (const [status, text, background] of [
           ['correct', 'rgb(37, 96, 68)', 'rgb(232, 244, 236)'],

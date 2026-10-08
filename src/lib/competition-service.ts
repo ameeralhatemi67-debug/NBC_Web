@@ -13,6 +13,7 @@ import {
   rankResults,
   registeredStage,
   safeQuestions,
+  sanitizeReading,
   stageKeys,
   validateBank,
   validateQuestion,
@@ -184,9 +185,9 @@ export class CompetitionService {
         : null,
     };
   }
-  async state(s: Session, id?: string) {
+  async state(s: Session, id?: string, within?: Queryable) {
     requireRole(s, ['participant']);
-    return this.db.transaction(async (tx) => {
+    const read = async (tx: Queryable) => {
       const c = await this.current(tx, id);
       const p = (
         await tx.query<{ name: string; stage: string }>(
@@ -205,7 +206,9 @@ export class CompetitionService {
         ),
         participant: p,
       };
-    });
+    };
+    // A caller that already holds a transaction reads inside it, so one request needs one commit.
+    return within ? read(within) : this.db.transaction(read);
   }
   async start(s: Session) {
     requireRole(s, ['participant']);
@@ -271,12 +274,15 @@ export class CompetitionService {
       !Number.isInteger(e.revision)
     )
       throw new AppError('حدث المزامنة غير صالح.');
+    const reading = e.kind === 'CHECK' ? sanitizeReading(e.reading) : undefined;
     const payload = JSON.stringify({
       kind: e.kind,
       questionId: e.questionId,
       selected: e.selected,
+      ...(reading ? { reading } : {}),
     });
     let competitionId = '';
+    let fresh: CompetitionState | undefined;
     await this.db.transaction(async (tx) => {
       let a: AttemptRow;
       let c: Competition;
@@ -386,8 +392,9 @@ export class CompetitionService {
         `INSERT INTO ${eventTable}(${ownerColumn},client_event_id,payload) VALUES($1,$2,$3)`,
         [a.id, e.clientEventId, payload],
       );
+      fresh = test ? await this.testState(s, e.attemptId, tx) : await this.state(s, c.id, tx);
     });
-    return test ? this.testState(s, e.attemptId) : this.state(s, competitionId);
+    return fresh ?? (test ? this.testState(s, e.attemptId) : this.state(s, competitionId));
   }
   async leaderboard(id: string | undefined, stage: Stage) {
     if (!stageKeys.includes(stage)) throw new AppError('مرحلة غير صالحة.');

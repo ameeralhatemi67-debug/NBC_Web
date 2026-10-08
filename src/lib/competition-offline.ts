@@ -7,6 +7,8 @@ export type LocalCompetition = {
   index: number;
   page: number;
   maxPage: number;
+  // Seconds spent on each book page, so reading evidence survives a reload.
+  reading?: Record<number, number>;
 };
 function openStore(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -119,6 +121,13 @@ export class DurableCompetitionSession {
       await this.persist();
     });
   }
+  async rememberReading(reading: Record<number, number>) {
+    return this.exclusive(async () => {
+      this.record = (await localRead<LocalCompetition>(this.key)) ?? this.record;
+      this.record.reading = reading;
+      await this.persist();
+    });
+  }
   async enqueue(event: WriteEvent) {
     return this.exclusive(async () => {
       this.record = (await localRead<LocalCompetition>(this.key)) ?? this.record;
@@ -135,16 +144,30 @@ export class DurableCompetitionSession {
         return;
       }
       if (!this.record.events.length) return;
+      // A lock carries its own selection, so earlier queued selections for that question are redundant.
+      this.record.events = this.record.events.filter(
+        (ev, i, all) =>
+          !(
+            ev.kind === 'SELECT' &&
+            all.some((o, j) => j > i && o.kind === 'CHECK' && o.questionId === ev.questionId)
+          ),
+      );
       this.changed(this.record, 'syncing');
       try {
-        this.record.state = await this.transport.state();
         while (this.record.events.length) {
           const e = this.record.events[0];
           try {
-            this.record.state = await this.transport.write({
-              ...e,
-              revision: this.record.state.attempt!.revision,
-            });
+            // The last response already carries the revision, so no state fetch precedes a write.
+            // A stale revision is refreshed and retried once.
+            const send = () =>
+              this.transport.write({ ...e, revision: this.record.state.attempt!.revision });
+            try {
+              this.record.state = await send();
+            } catch (first) {
+              if ((first as SyncError).code !== 'REVISION_CONFLICT') throw first;
+              this.record.state = await this.transport.state();
+              this.record.state = await send();
+            }
             this.record.events.shift();
             await this.persist();
           } catch (err) {

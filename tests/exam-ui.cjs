@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const { lockByEnter, lockByClick, lockByTap } = require('./exam-lock.cjs');
 const fs = require('node:fs');
 const path = require('node:path');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
@@ -37,7 +38,7 @@ fs.mkdirSync(output, { recursive: true });
       const correct = q.options.indexOf(original.options[original.correctAnswers[0]]);
       const wrong = (correct + 1) % q.options.length;
       await page.locator('.answer-option').nth(wrong).click();
-      await page.getByRole('button', { name: 'ثبّت إجابتي' }).click();
+      await lockByClick(page.getByRole('button', { name: /^ثبّت/ }), page);
       await page.locator('.answer-feedback.incorrect').waitFor();
       assert.equal(await page.locator('.answer-option.incorrect').count(), 1);
       assert.equal(await page.locator('.answer-option.correct').count(), 1);
@@ -135,7 +136,7 @@ fs.mkdirSync(output, { recursive: true });
       const original2 = bank.questions.find((item) => item.id === q2.id);
       const correct2 = q2.options.indexOf(original2.options[original2.correctAnswers[0]]);
       await page.locator('.answer-option').nth(correct2).click();
-      await page.getByRole('button', { name: 'ثبّت إجابتي' }).click();
+      await lockByClick(page.getByRole('button', { name: /^ثبّت/ }), page);
       await page.locator('.answer-feedback.correct').waitFor();
       if (width > 900) {
         await page.getByLabel('رقم صفحة PDF', { exact: true }).fill(String(q2.pdfPage));

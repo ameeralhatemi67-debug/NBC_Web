@@ -17,6 +17,9 @@ import {
   hintEligible,
   hintTarget,
   rankResults,
+  readingSupported,
+  sanitizeReading,
+  sourceReadSeconds,
   safeQuestions,
   stageKeys,
   stageNames,
@@ -579,6 +582,87 @@ test('database rejects snapshot tampering, changing the first check, and reopeni
       /reopened/,
     );
     assert.ok((await service.state(student())).attempt!.submittedAt);
+  } finally {
+    await db.close();
+  }
+});
+
+test('reading evidence ties a lock to the source page and its neighbours without forcing an order', () => {
+  const q = { pdfPage: 10 };
+  assert.equal(sourceReadSeconds({ 9: 2, 10: 1, 11: 3, 40: 99 }, q, 66), 6);
+  assert.equal(sourceReadSeconds({ 6: 50 }, q, 66), 0);
+  assert.equal(sourceReadSeconds({ 66: 4, 67: 100 }, { pdfPage: 66 }, 66), 4);
+  assert.equal(readingSupported(4), false);
+  assert.equal(readingSupported(5), true);
+  assert.equal(sanitizeReading(null), undefined);
+  assert.deepEqual(
+    sanitizeReading({ sourceSeconds: -5, totalSeconds: 'x', maxPage: 7.6, questionSeconds: 1e9 }),
+    {
+      sourceSeconds: 0,
+      totalSeconds: 0,
+      maxPage: 8,
+      questionSeconds: 36000,
+    },
+  );
+});
+
+test('a lock stores its reading evidence and the same response already carries the revealed answer', async () => {
+  const { db, service } = await fixture();
+  try {
+    await open(service);
+    let state = await service.start(student());
+    const q = state.attempt!.questions[0];
+    const reading = { sourceSeconds: 2, totalSeconds: 30, maxPage: 6, questionSeconds: 9 };
+    state = await service.write(student(), { ...event(state, 'CHECK', q.id, [0]), reading });
+    assert.ok(state.attempt!.feedback[q.id], 'feedback is returned by the write itself');
+    const rows = (
+      await db.query<{ payload: { reading?: unknown } }>(
+        "SELECT payload FROM attempt_events WHERE attempt_id=$1 AND payload->>'kind'='CHECK'",
+        [state.attempt!.id],
+      )
+    ).rows;
+    assert.deepEqual(rows[0].payload.reading, reading);
+  } finally {
+    await db.close();
+  }
+});
+
+test('sync writes without a state fetch, drops superseded selections and retries a stale revision once', async () => {
+  const { db, service } = await fixture();
+  Object.defineProperty(globalThis, 'indexedDB', { value: new IDBFactory(), configurable: true });
+  Object.defineProperty(globalThis, 'navigator', { value: { onLine: true }, configurable: true });
+  try {
+    await open(service);
+    const state = await service.start(student());
+    const [a, b, c] = state.attempt!.questions;
+    const calls: string[] = [];
+    let stale = true;
+    const transport = {
+      state: async () => {
+        calls.push('state');
+        return service.state(student());
+      },
+      write: async (e: WriteEvent) => {
+        calls.push(`${e.kind}:${e.questionId === a.id ? 'a' : 'b'}`);
+        if (stale && e.kind === 'SELECT') {
+          stale = false;
+          const bump = await service.state(student());
+          await service.write(student(), event(bump, 'SELECT', c.id, [1]));
+        }
+        return service.write(student(), e);
+      },
+    };
+    const local = new DurableCompetitionSession('participant:fast', transport, () => {});
+    await local.init(state);
+    await local.enqueue(event(state, 'SELECT', a.id, [0]));
+    await local.enqueue(event(state, 'CHECK', a.id, [0]));
+    await local.sync();
+    assert.deepEqual(calls, ['CHECK:a'], 'no state fetch and the superseded select is not sent');
+    calls.length = 0;
+    await local.enqueue(event(local.record.state, 'SELECT', b.id, [0]));
+    await local.sync();
+    assert.deepEqual(calls, ['SELECT:b', 'state', 'SELECT:b'], 'a stale revision refreshes once');
+    assert.equal(local.record.events.length, 0);
   } finally {
     await db.close();
   }

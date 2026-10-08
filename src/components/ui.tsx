@@ -4,7 +4,15 @@ import { usePathname } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
 import Image from 'next/image';
 import { motion, MotionConfig } from 'motion/react';
-export function Icon({ name = 'arrow', size = 22 }: { name?: string; size?: number }) {
+export function Icon({
+  name = 'arrow',
+  size = 22,
+  className,
+}: {
+  name?: string;
+  size?: number;
+  className?: string;
+}) {
   const paths: Record<string, ReactNode> = {
     arrow: (
       <>
@@ -137,6 +145,7 @@ export function Icon({ name = 'arrow', size = 22 }: { name?: string; size?: numb
   };
   return (
     <svg
+      className={className}
       width={size}
       height={size}
       viewBox="0 0 24 24"

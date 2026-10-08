@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const { lockByEnter, lockByClick, lockByTap } = require('./exam-lock.cjs');
 const fs = require('node:fs');
 const path = require('node:path');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
@@ -82,7 +83,7 @@ const sizes = [
           () => !document.querySelector('.question-footer .primary').disabled,
         );
         await page.locator('.question-body h2').focus();
-        await page.keyboard.press('Enter');
+        await lockByEnter(page);
         await page.locator('.answer-feedback.correct,.answer-feedback.incorrect').waitFor();
         assert.equal(
           await page
@@ -169,7 +170,7 @@ const sizes = [
         await page.waitForFunction(
           () => !document.querySelector('.question-footer .primary').disabled,
         );
-        await page.keyboard.press('Enter');
+        await lockByEnter(page);
         await page.locator('.answer-feedback strong').waitFor();
         if (i < 19) {
           await page.locator('.question-footer .primary').click();
@@ -181,6 +182,8 @@ const sizes = [
         }
       }
       const review = page.getByRole('dialog', { name: 'راجع إجاباتك قبل الإرسال', exact: true });
+      // The last result stays on screen; the student opens the review from the primary action.
+      await page.getByRole('button', { name: 'راجع وأرسل', exact: true }).click();
       await review.waitFor();
       const primary = review.getByRole('button', { name: 'أرسل مشاركتي', exact: true });
       await primary.waitFor();
@@ -240,7 +243,7 @@ const sizes = [
       }
       await page.getByRole('heading', { name: 'تم استلام مشاركتك', exact: true }).waitFor();
       console.log(
-        `PASS ${offline ? 'offline queued' : 'online'} 20-lock review: auto-open, trap, Escape, cancel, jump, restore, submit${offline ? ', reconnect' : ''}`,
+        `PASS ${offline ? 'offline queued' : 'online'} 20-lock review: open from the primary action, trap, Escape, cancel, jump, restore, submit${offline ? ', reconnect' : ''}`,
       );
       await page.close();
     }

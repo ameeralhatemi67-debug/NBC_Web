@@ -814,3 +814,47 @@
     line-height: 1.6;
   }
 }
+
+/* Reading check: a calm, one-time pause, and a visible wait while the result is checked. */
+.exam-shell .reading-nudge {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--copper);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--copper) 9%, var(--paper));
+  font-size: 14.5px;
+  line-height: 1.8;
+  animation: exam-feedback-in var(--motion-feedback) var(--ease-out);
+}
+.exam-shell .reading-nudge strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15.5px;
+}
+.exam-shell .reading-nudge p {
+  margin: 0;
+}
+.exam-shell .reading-nudge .button {
+  justify-self: start;
+  min-height: 44px;
+}
+.exam-shell .spin {
+  animation: exam-spin 900ms linear infinite;
+}
+@keyframes exam-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.exam-shell .question-footer .button.primary[aria-busy='true'] {
+  opacity: 1;
+  gap: 8px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .exam-shell .spin {
+    animation: none;
+  }
+}

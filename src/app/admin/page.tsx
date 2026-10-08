@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { Admin } from '@/components/admin';
 import { cookies } from 'next/headers';
 import { staffCookie, vercelStaffReady } from '@/lib/vercel-staff';
+import { adminOpen } from '@/lib/admin-open';
 export const metadata = { title: 'مساحة اللجنة' };
 export default async function AdminPage({
   searchParams,
@@ -14,6 +15,7 @@ export default async function AdminPage({
   return (
     <Admin
       demo={isLocalMode()}
+      open={adminOpen()}
       staffAuth={process.env.NBC_STAFF_AUTH === 'vercel' ? 'vercel' : 'cloudflare'}
       signInReady={vercelStaffReady()}
       loginFailed={params.login === 'failed'}

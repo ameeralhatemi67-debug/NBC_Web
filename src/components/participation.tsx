@@ -11,8 +11,11 @@ import { arPlural, riyadhDateTime } from '@/lib/format';
 import {
   hintEligible,
   hintTarget,
+  readingSupported,
+  sourceReadSeconds,
   stageNames,
   type CompetitionState,
+  type ReadingEvidence,
   type WriteEvent,
 } from '@/lib/competition-domain';
 import {
@@ -66,8 +69,11 @@ export function Participation({
   const [inputOrigin, setInputOrigin] = useState<'pointer' | 'keyboard'>('pointer');
   const [sourceFlash, setSourceFlash] = useState<{ page: number; request: number } | null>(null);
   const flashRequest = useRef(0);
+  const [nudgedFor, setNudgedFor] = useState('');
+  const readingSeconds = useRef<Record<number, number>>({});
+  const lastActive = useRef(Date.now());
+  const shownAt = useRef(Date.now());
   const mainAction = useRef<HTMLButtonElement>(null);
-  const priorLocks = useRef({ attemptId: '', count: 0 });
   const hintDescription = useId();
   const lockedCount =
     data?.attempt?.questions.filter((q) => data.attempt?.answers[q.id]?.locked).length ?? 0;
@@ -124,6 +130,7 @@ export function Participation({
     setIndex(Math.min(service.record.index, state.attempt.questions.length - 1));
     setPage(service.record.page);
     setMaxPage(service.record.maxPage);
+    readingSeconds.current = { ...(service.record.reading ?? {}) };
     if (!testRunId) await localWrite('participant-active', key);
     void service.sync(offline.current);
   }
@@ -189,20 +196,36 @@ export function Participation({
     if (!simulateOffline) void controller.current?.sync();
     else setSaveState('local');
   }, [simulateOffline]);
+  const pageNow = useRef(1);
+  pageNow.current = page;
+  const counting = useRef(false);
+  counting.current =
+    !!data?.attempt && !data.attempt.submittedAt && bookOpen && !(narrow && dockExpanded);
   useEffect(() => {
-    const attempt = data?.attempt;
-    if (!attempt) return;
-    const previous = priorLocks.current.attemptId === attempt.id ? priorLocks.current.count : 0;
-    if (
-      !attempt.submittedAt &&
-      lockedCount === attempt.questions.length &&
-      previous < lockedCount
-    ) {
-      mainAction.current?.focus();
-      setReviewOpen(true);
-    }
-    priorLocks.current = { attemptId: attempt.id, count: lockedCount };
-  }, [data?.attempt?.id, data?.attempt?.submittedAt, lockedCount]);
+    shownAt.current = Date.now();
+  }, [index]);
+  useEffect(() => {
+    // Reading evidence: seconds on each page while the book is on screen and the student is active.
+    const touch = () => {
+      lastActive.current = Date.now();
+    };
+    const events = ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchmove', 'scroll'];
+    for (const name of events)
+      window.addEventListener(name, touch, { capture: true, passive: true });
+    let ticks = 0;
+    const timer = setInterval(() => {
+      if (!counting.current || document.visibilityState !== 'visible') return;
+      if (Date.now() - lastActive.current > 45000) return;
+      const seen = readingSeconds.current;
+      seen[pageNow.current] = (seen[pageNow.current] ?? 0) + 1;
+      if (++ticks % 10 === 0) void controller.current?.rememberReading({ ...seen });
+    }, 1000);
+    return () => {
+      clearInterval(timer);
+      for (const name of events) window.removeEventListener(name, touch, { capture: true });
+      void controller.current?.rememberReading({ ...readingSeconds.current });
+    };
+  }, []);
   useEffect(() => {
     // After locking, the explanation can land below the fold on a phone. Bring it into view.
     if (!currentLocked) return;
@@ -252,9 +275,8 @@ export function Participation({
       } else if (event.key === 'Enter' && !target?.closest('button,a')) {
         event.preventDefault();
         setInputOrigin('keyboard');
-        if (!busy && !answer?.locked && answer?.selected.length)
-          void write('CHECK', answer.selected);
-        else if (answer?.locked && !busy) advance(true);
+        if (!busy && !answer?.locked && answer?.selected.length) lockAnswer();
+        else if (answer?.locked && !busy && !isRevealing(question.id)) advance(true);
       } else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
         if (target?.closest('.answer-options')) return;
         event.preventDefault();
@@ -327,7 +349,7 @@ export function Participation({
       setBusy(false);
     }
   }
-  async function write(kind: WriteEvent['kind'], selected?: number[]) {
+  async function write(kind: WriteEvent['kind'], selected?: number[], reading?: ReadingEvidence) {
     if (!data?.attempt || !controller.current) return;
     setBusy(true);
     setError('');
@@ -338,6 +360,7 @@ export function Participation({
         attemptId: data.attempt.id,
         kind,
         ...(kind === 'SUBMIT' ? {} : { questionId: data.attempt.questions[index].id, selected }),
+        ...(reading ? { reading } : {}),
         revision: data.attempt.revision,
       });
       void controller.current.sync(offline.current);
@@ -377,9 +400,39 @@ export function Participation({
           : [...chosen, option];
     void write('SELECT', selected);
   }
+  function isRevealing(questionId: string) {
+    const attempt = data?.attempt;
+    return (
+      !!attempt?.answers[questionId]?.locked &&
+      !attempt.feedback[questionId] &&
+      !isOffline &&
+      saveState !== 'error'
+    );
+  }
+  function lockAnswer() {
+    const attempt = data?.attempt;
+    const question = attempt?.questions[index];
+    const answer = question && attempt?.answers[question.id];
+    if (!data || !attempt || !question || !answer?.selected.length || busy) return;
+    const seen = readingSeconds.current;
+    const reading: ReadingEvidence = {
+      sourceSeconds: sourceReadSeconds(seen, question, data.book.pageCount),
+      totalSeconds: Object.values(seen).reduce((n, v) => n + v, 0),
+      maxPage,
+      questionSeconds: (Date.now() - shownAt.current) / 1000,
+    };
+    // One gentle pause when the source page was not read. Locking anyway is always possible,
+    // and the committee sees the evidence either way.
+    if (!readingSupported(reading.sourceSeconds) && nudgedFor !== question.id) {
+      setNudgedFor(question.id);
+      return;
+    }
+    void write('CHECK', answer.selected, reading);
+  }
   function advance(keyboard = false) {
     const attempt = data?.attempt;
     if (!attempt) return;
+    if (isRevealing(attempt.questions[index].id)) return;
     if (index < attempt.questions.length - 1) go(index + 1, keyboard);
     else if (lockedCount === attempt.questions.length) setReviewOpen(true);
     else
@@ -469,6 +522,8 @@ export function Participation({
   const q = a.questions[index];
   const answer = a.answers[q.id];
   const feedback = answer?.locked ? a.feedback[q.id] : undefined;
+  const revealing = isRevealing(q.id);
+  const nudged = nudgedFor === q.id && !answer?.locked;
   const eligible = hintEligible(maxPage, q, data.book.pageCount);
   const pendingText = pendingSubmit
     ? 'المشاركة بانتظار الإرسال'
@@ -527,7 +582,15 @@ export function Participation({
         </fieldset>
         {answer?.locked && (
           <AnswerFeedback
-            status={feedback ? (feedback.isCorrect ? 'correct' : 'incorrect') : 'pending'}
+            status={
+              feedback
+                ? feedback.isCorrect
+                  ? 'correct'
+                  : 'incorrect'
+                : revealing
+                  ? 'checking'
+                  : 'pending'
+            }
             explanation={feedback?.explanation ?? ''}
           >
             {feedback && (
@@ -541,6 +604,30 @@ export function Participation({
               </button>
             )}
           </AnswerFeedback>
+        )}
+        {nudged && (
+          <div className="reading-nudge" role="status">
+            <strong>
+              <Icon name="book" size={18} />
+              لم نلحظ قراءتك لصفحة هذا السؤال
+            </strong>
+            <p>
+              إجابات المسابقة مصدرها الكتاب. افتح الكتاب وابحث عن الإجابة ثم ثبّت اختيارك. وإن كنت
+              واثقًا فيمكنك التثبيت الآن، وسيُسجَّل ذلك للّجنة.
+            </p>
+            {(!bookOpen || narrow) && (
+              <button
+                type="button"
+                className="button outline"
+                onClick={(event) =>
+                  bookOpen ? setDockExpanded(false) : openBook(undefined, event.currentTarget)
+                }
+              >
+                <Icon name="book" size={16} />
+                {bookOpen ? 'العودة إلى الكتاب' : 'افتح الكتاب'}
+              </button>
+            )}
+          </div>
         )}
         <div className="question-tip">
           <button
@@ -601,23 +688,32 @@ export function Participation({
             ref={mainAction}
             className="button primary"
             disabled={busy || !answer?.selected.length}
-            onClick={() => void write('CHECK', answer?.selected)}
+            onClick={lockAnswer}
           >
-            ثبّت إجابتي<kbd>Enter</kbd>
+            {nudged ? 'ثبّت على أي حال' : 'ثبّت إجابتي'}
+            <kbd>Enter</kbd>
           </button>
         ) : (
           <button
             ref={mainAction}
             className="button primary"
-            disabled={busy}
+            disabled={busy || revealing}
+            aria-busy={revealing || undefined}
             onClick={(event) => advance(event.detail === 0)}
           >
-            {index < a.questions.length - 1
-              ? 'السؤال التالي'
-              : lockedCount === a.questions.length
-                ? 'راجع وأرسل'
-                : 'إلى أول سؤال لم يُثبَّت'}
-            <Icon />
+            {revealing ? (
+              <>
+                <Icon name="refresh" size={18} className="spin" />
+                جارٍ كشف النتيجة…
+              </>
+            ) : index < a.questions.length - 1 ? (
+              'السؤال التالي'
+            ) : lockedCount === a.questions.length ? (
+              'راجع وأرسل'
+            ) : (
+              'إلى أول سؤال لم يُثبَّت'
+            )}
+            {!revealing && <Icon />}
           </button>
         )}
       </footer>

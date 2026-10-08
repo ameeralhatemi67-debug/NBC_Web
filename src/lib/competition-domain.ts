@@ -67,6 +67,13 @@ export type SafeQuestion = Pick<
 >;
 export type AnswerRecord = { selected: number[]; locked: boolean; checkedAt: string | null };
 export type AnswerMap = Record<string, AnswerRecord>;
+// What the reader observed before a lock. It is evidence for the committee, never a gate on the server.
+export type ReadingEvidence = {
+  sourceSeconds: number;
+  totalSeconds: number;
+  maxPage: number;
+  questionSeconds: number;
+};
 export type WriteEvent = {
   clientEventId: string;
   attemptId: string;
@@ -74,6 +81,7 @@ export type WriteEvent = {
   questionId?: string;
   selected?: number[];
   revision: number;
+  reading?: ReadingEvidence;
 };
 export type Feedback = { isCorrect: boolean; correctAnswers: number[]; explanation: string };
 export type CompetitionState = {
@@ -165,6 +173,34 @@ export function hintEligible(
     maxPageRead > question.pdfPage ||
     (question.pdfPage === pageCount && maxPageRead >= question.pdfPage)
   );
+}
+// A lock is "supported" when the student spent real time on the question's source page or its
+// neighbours. Question order is shuffled per student, so this ties each answer to the book without
+// forcing a reading order.
+export const READING_MIN_SOURCE_SECONDS = 5;
+export function sourceReadSeconds(
+  pageSeconds: Record<number, number>,
+  question: Pick<SafeQuestion, 'pdfPage'>,
+  pageCount?: number,
+) {
+  let total = 0;
+  for (const page of [question.pdfPage - 1, question.pdfPage, question.pdfPage + 1])
+    if (page >= 1 && (!pageCount || page <= pageCount)) total += pageSeconds[page] ?? 0;
+  return total;
+}
+export const readingSupported = (sourceSeconds: number) =>
+  sourceSeconds >= READING_MIN_SOURCE_SECONDS;
+export function sanitizeReading(input: unknown): ReadingEvidence | undefined {
+  if (!input || typeof input !== 'object') return undefined;
+  const value = input as Record<string, unknown>;
+  const clean = (n: unknown, max: number) =>
+    typeof n === 'number' && Number.isFinite(n) ? Math.max(0, Math.min(max, Math.round(n))) : 0;
+  return {
+    sourceSeconds: clean(value.sourceSeconds, 36000),
+    totalSeconds: clean(value.totalSeconds, 36000),
+    maxPage: clean(value.maxPage, 5000),
+    questionSeconds: clean(value.questionSeconds, 36000),
+  };
 }
 export function hintTarget(question: Pick<SafeQuestion, 'pdfPage'>) {
   return [Math.max(1, question.pdfPage - 1), question.pdfPage];

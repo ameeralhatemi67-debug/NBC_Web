@@ -62,24 +62,44 @@ export function AnswerFeedback({
   explanation,
   children,
 }: {
-  status: 'correct' | 'incorrect' | 'pending';
+  status: 'correct' | 'incorrect' | 'pending' | 'checking';
   explanation: string;
   children?: ReactNode;
 }) {
   return (
-    <div className={`answer-feedback ${status === 'pending' ? '' : status}`} role="status">
+    <div
+      className={`answer-feedback ${status === 'pending' || status === 'checking' ? '' : status}`}
+      role="status"
+    >
       <strong>
         <Icon
-          name={status === 'pending' ? 'lock' : status === 'correct' ? 'check' : 'close'}
+          name={
+            status === 'checking'
+              ? 'refresh'
+              : status === 'pending'
+                ? 'lock'
+                : status === 'correct'
+                  ? 'check'
+                  : 'close'
+          }
           size={18}
+          className={status === 'checking' ? 'spin' : undefined}
         />
-        {status === 'pending'
-          ? 'تم تثبيت إجابتك'
-          : status === 'correct'
-            ? 'إجابتك صحيحة'
-            : 'إجابتك غير صحيحة'}
+        {status === 'checking'
+          ? 'جارٍ التحقق من إجابتك…'
+          : status === 'pending'
+            ? 'تم تثبيت إجابتك'
+            : status === 'correct'
+              ? 'إجابتك صحيحة'
+              : 'إجابتك غير صحيحة'}
       </strong>
-      <p>{status === 'pending' ? 'ستظهر النتيجة عند عودة الاتصال.' : explanation}</p>
+      <p>
+        {status === 'checking'
+          ? 'ثوانٍ قليلة ونعرض لك النتيجة.'
+          : status === 'pending'
+            ? 'ستظهر النتيجة عند عودة الاتصال.'
+            : explanation}
+      </p>
       {children}
     </div>
   );

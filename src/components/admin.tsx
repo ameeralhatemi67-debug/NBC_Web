@@ -44,6 +44,7 @@ type Participant = {
   created_at: string;
   submitted_at: string | null;
   attempt_id: string | null;
+  unsupported_locks?: number;
 };
 type AdminData = {
   participants: Participant[];
@@ -75,7 +76,9 @@ export function Admin({
   signInReady = false,
   loginFailed = false,
   hasStaffCookie = false,
+  open = false,
 }: {
+  open?: boolean;
   demo: boolean;
   staffAuth?: 'cloudflare' | 'vercel';
   signInReady?: boolean;
@@ -332,6 +335,11 @@ export function Admin({
                   >
                     {p.submitted_at ? 'مكتملة' : p.attempt_id ? 'قيد المشاركة' : 'لم تبدأ'}
                   </span>
+                  {(p.unsupported_locks ?? 0) > 0 && (
+                    <small title="إجابات ثُبّتت دون قراءة صفحة السؤال في الكتاب. تُراجع يدويًا.">
+                      ⚠ {p.unsupported_locks} إجابة دون قراءة المصدر
+                    </small>
+                  )}
                 </td>
                 <td>
                   <bdi>{p.score !== null ? `${p.score} / ${p.max_score}` : '—'}</bdi>
@@ -375,33 +383,36 @@ export function Admin({
           <Link href="/">
             معاينة الموقع <Icon size={17} />
           </Link>
-          <button
-            onClick={async () => {
-              if (!demo) {
-                if (staffAuth === 'vercel') {
-                  try {
-                    await api('staff/logout', {});
-                    window.location.assign('/admin');
-                  } catch (e) {
-                    setError((e as Error).message);
-                  }
-                } else window.location.assign('/cdn-cgi/access/logout');
-                return;
-              }
-              await api('auth/logout', {});
-              setRole('');
-              setData(null);
-            }}
-          >
-            تسجيل الخروج
-          </button>
+          {!open && (
+            <button
+              onClick={async () => {
+                if (!demo) {
+                  if (staffAuth === 'vercel') {
+                    try {
+                      await api('staff/logout', {});
+                      window.location.assign('/admin');
+                    } catch (e) {
+                      setError((e as Error).message);
+                    }
+                  } else window.location.assign('/cdn-cgi/access/logout');
+                  return;
+                }
+                await api('auth/logout', {});
+                setRole('');
+                setData(null);
+              }}
+            >
+              تسجيل الخروج
+            </button>
+          )}
         </div>
       </aside>
       <div className="admin-workspace">
         <header className="admin-topbar">
           <span>مسابقة الانتماء واللحمة الوطنية</span>
           <div>
-            <span className="status-dot" /> {demo ? 'بيانات تجريبية' : 'جلسة موظف موثقة'}{' '}
+            <span className="status-dot" />{' '}
+            {demo ? 'بيانات تجريبية' : open ? 'دخول مفتوح لفريق الاختبار' : 'جلسة موظف موثقة'}{' '}
             <span className="avatar">{role === 'admin' ? 'ل' : 'م'}</span>
             <DesignToggle />
           </div>

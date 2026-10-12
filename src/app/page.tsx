@@ -6,11 +6,15 @@ import { connection } from 'next/server';
 import { readPrizes, readSiteContent, readWinners, readPublicStatus } from '@/lib/service';
 import { CompetitionStatus, statusSentence } from '@/components/competition-status';
 import { isLocalMode } from '@/lib/runtime';
+import { defaultPrizes } from '@/lib/prizes';
 import { stageKeys, questionCount, meetingQuestionCounts } from '@/lib/competition-domain';
 export default async function Home() {
   await connection();
   // Public information must remain readable while the production database is being configured.
-  const prizes = await readPrizes().catch(() => null);
+  // Without saved committee settings, show the approved default allocation (52,000 SAR).
+  const prizes = await readPrizes()
+    .then((saved) => saved ?? defaultPrizes)
+    .catch(() => defaultPrizes);
   const winners = await readWinners().catch(() => null);
   const [content, status] = await Promise.all([readSiteContent(), readPublicStatus()]);
   const registrationOpen = status?.registration.open ?? true;
@@ -33,14 +37,7 @@ export default async function Home() {
           </section>
         )}
         <OrganizationsBar prominent />
-        {prizes ? (
-          <CompetitionPrizes settings={prizes} />
-        ) : (
-          <section id="prizes" className="section container">
-            <h2>جوائز المسابقة</h2>
-            <p role="status">تفاصيل الجوائز غير متاحة مؤقتًا. يرجى العودة لاحقًا.</p>
-          </section>
-        )}
+        <CompetitionPrizes settings={prizes} />
         <section className="principle-strip">
           <div className="container principles">
             <span>

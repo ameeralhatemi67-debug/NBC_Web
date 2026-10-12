@@ -25,6 +25,8 @@ function RegistrationForm({ mode, demo }: { mode: 'login' | 'register'; demo: bo
     gender: '',
     region: '',
     locality: '',
+    village: '',
+    backup: '',
     terms: false,
   });
   // Regions and cities come from the current competition's settings.
@@ -235,6 +237,21 @@ function RegistrationForm({ mode, demo }: { mode: 'login' | 'register'; demo: bo
                   />
                 </label>
                 {mode === 'register' && (
+                  <label>
+                    رقم جوال احتياطي <span className="optional-label">(اختياري)</span>
+                    <input
+                      name="backup"
+                      dir="ltr"
+                      type="tel"
+                      autoComplete="off"
+                      maxLength={14}
+                      placeholder="05XXXXXXXX"
+                      value={values.backup}
+                      onChange={(e) => change('backup', e.target.value)}
+                    />
+                  </label>
+                )}
+                {mode === 'register' && (
                   <>
                     <h3 className="form-section-label full-width">
                       <Icon name="grad" size={19} /> الدراسة ومكان الإقامة
@@ -316,6 +333,16 @@ function RegistrationForm({ mode, demo }: { mode: 'login' | 'register'; demo: bo
                           <option key={city}>{city}</option>
                         ))}
                       </select>
+                    </label>
+                    <label className="full-width">
+                      المركز أو القرية <span className="optional-label">(عند الحاجة)</span>
+                      <input
+                        name="village"
+                        maxLength={80}
+                        placeholder="اسم المركز أو القرية"
+                        value={values.village}
+                        onChange={(e) => change('village', e.target.value)}
+                      />
                     </label>
                   </>
                 )}

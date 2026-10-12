@@ -48,3 +48,13 @@ Official content approval and production release are the next separate steps. Be
 ## Review adjustment, 12 October 2026
 
 Removed the visible organization-name captions beneath all nine logos in the shared organization component. Role headings and descriptive image alternative text remain. This applies to the home page, footer and compact administration display. The local production build and formatting checks passed after this adjustment. The browser URL policy blocked the local page action, so a new visual screenshot was not captured; the earlier screenshots retain the captions from the original review.
+
+## Review corrections, 12 October 2026
+
+- **No answer key for participants.** Participant state never includes correct answers or explanations, before or after submission. Only the committee's own test runs still show them. Result screens list only the participant's own choices. All public wording now follows the review note: "لا تُعرض الإجابات الصحيحة للمشاركين أثناء المسابقة أو بعد إتمام المشاركة".
+- **Terms.** `/terms` shows the 25 dark-text clauses from the terms document. Clause 8 uses the stronger wording from the review notes. Clause 5 keeps the document's wording (all questions from the book), which conflicts with the three Presidency questions at the end of each supplied bank. The committee must either drop those questions or amend clause 5.
+- **Registration.** Adds an optional backup mobile (must differ from the verification number) and an optional centre/village field.
+- **Logos.** The Hafr Al-Batin logo now comes from the university's official site logo and no longer carries the beta-site "تجريبي" label. The KFUPM wordmark is retained because it is the current logo on KFUPM's own Arabic site (October 2024). The Ministry of Education mark is retained for the Eastern education directorate. The organization section uses its own layout: the organizer is largest, each role label sits directly above its logo, and education logos sit in equal cells (6, then 3, then 2 columns).
+- **Prizes.** The home page shows the default 52,000 SAR allocation when the database is unavailable, instead of "تفاصيل الجوائز غير متاحة مؤقتًا".
+- **Wording.** The header and hero titles now contain a real space between "الانتماء" and "واللحمة" in their text. All 16 corrections were verified on rendered pages.
+- **Stale file.** `public/documents/participation-rules.pdf` is the old 14-rule version. Nothing links to it, but it remains publicly reachable.

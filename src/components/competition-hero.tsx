@@ -100,8 +100,7 @@ export function CompetitionHero({
             />
             <span className="identity-hero-title" aria-hidden="true">
               <small>مسابقة</small>
-              <span>الانتماء</span>
-              <span>واللحمة الوطنية</span>
+              <span>الانتماء</span> <span>واللحمة الوطنية</span>
             </span>
           </h1>
           <p className="competition-hero-intro">{intro}</p>
@@ -208,7 +207,7 @@ export function CompetitionHero({
       <div className="container competition-hero-bottom">
         <DemoNote compact />
         <a href="#organizations">
-          الجهات المشاركة <span aria-hidden="true">↓</span>
+          الجهة المنظمة والشركاء <span aria-hidden="true">↓</span>
         </a>
         <span>نقرأ لننتمي</span>
       </div>

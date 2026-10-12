@@ -57,6 +57,23 @@ export function textField(body: Record<string, unknown>, key: string, max = 120)
     throw new AppError('تحقق من الحقول المطلوبة.');
   return body[key].trim();
 }
+// Backup mobile and village/centre are optional registration fields.
+function optionalContact(body: Record<string, unknown>, phone: string) {
+  const optional = (key: string, max: number) => {
+    const value = body[key];
+    if (value === undefined || value === null || value === '') return '';
+    if (typeof value !== 'string' || value.length > max)
+      throw new AppError('تحقق من الحقول الاختيارية.');
+    return value.trim();
+  };
+  const backupText = optional('backup', 30);
+  const backup = backupText ? normalizePhone(backupText) : '';
+  if (backup && backup === phone)
+    throw new AppError('أدخل رقم جوال احتياطيًا مختلفًا عن رقم التحقق.');
+  const village = optional('village', 80);
+  if (/[\u0000-\u001f\u007f<>]/.test(village)) throw new AppError('اسم المركز أو القرية غير صالح.');
+  return { backup, village };
+}
 export function strictKeys(body: Record<string, unknown>, keys: string[]) {
   if (Object.keys(body).some((k) => !keys.includes(k))) throw new AppError('حقول غير مسموحة.');
 }
@@ -102,6 +119,8 @@ export class OtpService {
             'gender',
             'region',
             'locality',
+            'village',
+            'backup',
             'terms',
           ],
     );
@@ -166,6 +185,7 @@ export class OtpService {
           locality,
           institution: textField(body, 'institution', 160),
           region: place.region,
+          ...optionalContact(body, phone),
         };
       }
     }
@@ -382,8 +402,8 @@ export class OtpService {
           participant = randomUUID();
           const p = row.payload_json;
           const inserted = await tx.query(
-            `INSERT INTO participants(id,identity,name,phone,stage,region,locality,institution,gender)
-            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT(identity) DO NOTHING RETURNING id`,
+            `INSERT INTO participants(id,identity,name,phone,stage,region,locality,institution,gender,backup,village)
+            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) ON CONFLICT(identity) DO NOTHING RETURNING id`,
             [
               participant,
               p.identity,
@@ -394,6 +414,8 @@ export class OtpService {
               p.locality,
               p.institution,
               p.gender,
+              p.backup || null,
+              p.village || null,
             ],
           );
           if (!inserted.rows.length) {

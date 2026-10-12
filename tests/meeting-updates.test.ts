@@ -182,7 +182,8 @@ test('20/25/30 server journeys edit, reload, reject incomplete/stale/concurrent 
       assert.equal(submitted[1].attempt!.receipt, state.attempt!.receipt);
       assert.equal(state.attempt!.score, meetingQuestionCounts[stage]);
       assert.equal(state.attempt!.percentage, 100);
-      assert.equal(Object.keys(state.attempt!.feedback).length, meetingQuestionCounts[stage]);
+      // Submitted participants still never receive correct answers or explanations.
+      assert.deepEqual(state.attempt!.feedback, {});
       assert.ok(Object.values(state.attempt!.answers).every((a) => a.locked && a.checkedAt));
       assert.equal(
         (await service.write(student, event(state, 'SUBMIT'))).attempt!.revision,
@@ -308,7 +309,7 @@ test('final-mode durable offline queue replays saved choices before submission, 
     await restored.sync();
     assert.equal(restored.record.events.length, 0);
     assert.equal(restored.record.state.attempt!.score, 30);
-    assert.equal(Object.keys(restored.record.state.attempt!.feedback).length, 30);
+    assert.deepEqual(restored.record.state.attempt!.feedback, {});
     const otherStudent = { role: 'participant' as const, participant_id: 'middle' },
       other = await service.start(otherStudent),
       q = other.attempt!.questions[0];

@@ -221,7 +221,8 @@ export function Brand() {
     <Link href="/" className="brand" aria-label="مسابقة الانتماء واللحمة الوطنية، الرئيسية">
       <BrandMark />
       <span>
-        مسابقة الانتماء<span className="brand-small">واللحمة الوطنية</span>
+        {/* The space keeps the title readable when copied or read aloud; the line break is visual. */}
+        مسابقة الانتماء <span className="brand-small">واللحمة الوطنية</span>
       </span>
     </Link>
   );
@@ -249,7 +250,7 @@ export function Header() {
               كتاب المسابقة
             </Link>
             <a href="/#organizations" onClick={() => setOpen(false)}>
-              الجهات المشاركة
+              الجهة المنظمة والشركاء
             </a>
             <a href="/#prizes" onClick={() => setOpen(false)}>
               الجوائز
@@ -296,52 +297,52 @@ export function OrganizationsBar({
         <div className="organizations-heading">
           <h2 className="organizations-title">الجهة المنظمة وشركاء النجاح</h2>
         </div>
-        <div className="organizations-grid meeting-organizations">
-          <div className="org-logo-item org-authority">
-            <span className="org-role">{organizer.role}</span>
-            <div className="org-logo-frame">
-              <Image
-                src={organizer.src}
-                alt={`شعار ${organizer.name}`}
-                width={organizer.width}
-                height={organizer.height}
-                className="org-logo-img"
-              />
-            </div>
-          </div>
-          <div className="org-partners">
-            {successPartners.map((p) => (
-              <div className="org-logo-item" key={p.src}>
-                <span className="org-role">{p.role}</span>
-                <div className="org-logo-frame">
-                  <Image
-                    src={p.src}
-                    alt={`شعار ${p.name}`}
-                    width={p.width}
-                    height={p.height}
-                    unoptimized
-                    className="org-logo-img"
-                  />
-                </div>
+        <div className="partner-showcase">
+          <div className="partner-lead">
+            <figure className="partner-card partner-organizer">
+              <figcaption className="partner-role">{organizer.role}</figcaption>
+              <div className="partner-logo">
+                <Image
+                  src={organizer.src}
+                  alt={`شعار ${organizer.name}`}
+                  width={organizer.width}
+                  height={organizer.height}
+                  sizes="(max-width: 640px) 168px, 210px"
+                />
               </div>
-            ))}
-          </div>
-          <div className="org-education">
-            <h3 className="org-role">الشركاء التعليميون</h3>
-            <div className="org-education-grid">
-              {educationalPartners.map((p) => (
-                <div className="org-logo-item" key={p.src}>
-                  <Image
-                    src={p.src}
-                    alt={`شعار ${p.name}`}
-                    width={p.width}
-                    height={p.height}
-                    unoptimized
-                    className="org-logo-img"
-                  />
-                </div>
+            </figure>
+            <div className="partner-pair">
+              {successPartners.map((p) => (
+                <figure className="partner-card" key={p.src}>
+                  <figcaption className="partner-role">{p.role}</figcaption>
+                  <div className="partner-logo">
+                    <Image
+                      src={p.src}
+                      alt={`شعار ${p.name}`}
+                      width={p.width}
+                      height={p.height}
+                      unoptimized
+                    />
+                  </div>
+                </figure>
               ))}
             </div>
+          </div>
+          <div className="partner-education">
+            <h3 className="partner-role">الشركاء التعليميون</h3>
+            <ul className="partner-education-grid">
+              {educationalPartners.map((p) => (
+                <li key={p.src}>
+                  <Image
+                    src={p.src}
+                    alt={`شعار ${p.name}`}
+                    width={p.width}
+                    height={p.height}
+                    unoptimized
+                  />
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>

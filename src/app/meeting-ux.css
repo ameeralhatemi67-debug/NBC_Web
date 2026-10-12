@@ -1,4 +1,4 @@
-/* Shared identity hierarchy: organizer at the right, partners at the left. */
+/* Organizer and partners. Own class names so older logo rules cannot interfere. */
 .organizations-bar .organizations-container,
 .organizations-bar.prominent .organizations-container,
 .organizations-bar.compact .organizations-container {
@@ -6,108 +6,189 @@
 }
 .organizations-bar .organizations-heading,
 .organizations-bar.prominent .organizations-heading {
-  margin-bottom: 40px;
-}
-.organizations-bar .organizations-grid.meeting-organizations {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 40px 48px;
-  align-items: start;
-  justify-items: stretch;
-  padding-block: 12px;
-}
-.organizations-bar .meeting-organizations .org-logo-item {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 20px;
-  padding: 0;
+  margin-bottom: 36px;
   text-align: center;
-  min-width: 0;
 }
-.meeting-organizations .org-partners {
-  grid-column: span 2;
+.partner-showcase {
+  --organizer-logo: 210px;
+  --partner-logo: 140px;
+  --education-cell: 96px;
+  display: grid;
+  gap: 40px;
+}
+.partner-lead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  align-items: center;
+  gap: 48px;
+}
+.partner-pair {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: 48px;
-  align-items: start;
+  gap: 32px;
+  padding-inline-start: 48px;
+  border-inline-start: 1px solid var(--line);
 }
-.meeting-organizations .org-logo-frame {
+.partner-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin: 0;
+  min-width: 0;
+}
+.partner-role {
+  display: inline-block;
+  margin: 0;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: var(--cream);
+  color: var(--olive);
+  font: 600 14px/1.7 var(--body);
+  text-align: center;
+}
+.partner-organizer .partner-role {
+  padding: 6px 18px;
+  background: var(--olive);
+  color: var(--white);
+  font-size: 16px;
+}
+.partner-logo {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 240px;
-  min-width: 0;
+  height: var(--partner-logo);
 }
-.organizations-bar .meeting-organizations .org-authority .org-logo-img {
-  width: 240px;
-  height: 240px;
+.partner-organizer .partner-logo {
+  height: var(--organizer-logo);
+}
+.partner-logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 230px;
+  object-fit: contain;
+}
+.partner-organizer .partner-logo img {
+  width: var(--organizer-logo);
+  height: var(--organizer-logo);
   max-width: 100%;
-  object-fit: contain;
 }
-.organizations-bar .meeting-organizations .org-partners .org-logo-img {
-  width: auto;
-  height: auto;
-  max-width: min(200px, 100%);
-  max-height: 160px;
-  object-fit: contain;
-}
-.meeting-organizations .org-education {
-  grid-column: 1 / -1;
-  border-top: 1px solid var(--line);
+.partner-education {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
   padding-top: 32px;
-  text-align: center;
+  border-top: 1px solid var(--line);
 }
-.meeting-organizations .org-education-grid {
+.partner-education-grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 32px;
-  margin-top: 24px;
-}
-.organizations-bar .meeting-organizations .org-education-grid .org-logo-item {
+  gap: 16px;
+  width: 100%;
+  margin: 0;
   padding: 0;
+  list-style: none;
 }
-.organizations-bar .meeting-organizations .org-education-grid .org-logo-img {
-  width: 160px;
-  height: 96px;
-  max-width: 100%;
+.partner-education-grid li {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--education-cell);
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+}
+.partner-education-grid img {
+  display: block;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
+}
+/* Footer and committee views use the same hierarchy at a smaller scale. */
+.organizations-bar:not(.prominent) .partner-showcase {
+  --organizer-logo: 150px;
+  --partner-logo: 92px;
+  --education-cell: 72px;
+  gap: 28px;
+}
+.organizations-bar.compact .partner-showcase {
+  --organizer-logo: 110px;
+  --partner-logo: 72px;
+  --education-cell: 60px;
+}
+.optional-label {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 0.85em;
 }
 .question-segment.answered {
   background: #e4eee9;
   color: #246745;
 }
 @media (max-width: 900px) {
-  .meeting-organizations .org-education-grid {
+  .partner-lead {
+    gap: 32px;
+  }
+  .partner-pair {
+    padding-inline-start: 32px;
+  }
+  .partner-education-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 @media (max-width: 640px) {
-  .organizations-bar .organizations-grid.meeting-organizations {
+  .organizations-bar .organizations-heading,
+  .organizations-bar.prominent .organizations-heading {
+    margin-bottom: 24px;
+  }
+  .partner-showcase,
+  .organizations-bar:not(.prominent) .partner-showcase {
+    --organizer-logo: 168px;
+    --partner-logo: 84px;
+    --education-cell: 68px;
+    gap: 28px;
+  }
+  .organizations-bar.compact .partner-showcase {
+    --organizer-logo: 120px;
+    --partner-logo: 64px;
+    --education-cell: 56px;
+  }
+  .partner-lead {
     grid-template-columns: minmax(0, 1fr);
-    gap: 18px;
+    gap: 28px;
   }
-  .meeting-organizations .org-partners {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    column-gap: 24px;
+  .partner-pair {
+    gap: 16px;
+    padding: 24px 0 0;
+    border-inline-start: 0;
+    border-top: 1px solid var(--line);
   }
-  .meeting-organizations .org-logo-frame {
-    height: 200px;
+  .partner-card {
+    gap: 12px;
   }
-  .meeting-organizations .org-partners .org-logo-frame {
-    height: 160px;
+  .partner-role {
+    padding: 3px 12px;
+    font-size: 13px;
   }
-  .organizations-bar .meeting-organizations .org-partners .org-logo-img {
-    max-height: 140px;
+  .partner-organizer .partner-role {
+    font-size: 15px;
   }
-  .meeting-organizations .org-education-grid {
+  .partner-logo img {
+    max-width: 150px;
+  }
+  .partner-education {
+    padding-top: 24px;
+    gap: 16px;
+  }
+  .partner-education-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
   }
-  .organizations-bar .meeting-organizations .org-authority .org-logo-img {
-    width: 200px;
-    height: 200px;
+  .partner-education-grid li {
+    padding: 10px 12px;
   }
 }

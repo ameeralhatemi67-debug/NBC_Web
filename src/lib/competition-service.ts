@@ -222,7 +222,11 @@ export class CompetitionService {
             id: a.id,
             questions: safeQuestions(a.questions),
             answers: a.answers,
-            feedback: feedbackFor(c, a.questions, a.answers, Boolean(a.submitted_at)),
+            // Participants never receive correct answers or explanations, during or after the
+            // competition. Only the committee's own test runs may review them.
+            feedback: testRun
+              ? feedbackFor(c, a.questions, a.answers, Boolean(a.submitted_at))
+              : {},
             revision: a.revision,
             submittedAt: a.submitted_at,
             participantNumber: a.participant_number,

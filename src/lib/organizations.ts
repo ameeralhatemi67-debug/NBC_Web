@@ -36,7 +36,7 @@ export const educationalPartners = [
     height: 367,
   },
   { name: 'جامعة الملك فيصل', src: '/images/organizations/kfu.webp', width: 220, height: 80 },
-  { name: 'جامعة حفر الباطن', src: '/images/organizations/uhb.jpg', width: 259, height: 89 },
+  { name: 'جامعة حفر الباطن', src: '/images/organizations/uhb.png', width: 720, height: 233 },
   {
     name: 'جامعة الملك فهد للبترول والمعادن',
     src: '/images/organizations/kfupm.svg',

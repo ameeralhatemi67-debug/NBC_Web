@@ -79,7 +79,11 @@ export function AnswerFeedback({
             ? 'إجابتك صحيحة'
             : 'إجابتك غير صحيحة'}
       </strong>
-      <p>{status === 'pending' ? 'ستظهر النتيجة عند عودة الاتصال.' : explanation}</p>
+      <p>
+        {status === 'pending'
+          ? 'حُفظت إجابتك. لا تُعرض الإجابات الصحيحة حفاظًا على نزاهة المنافسة.'
+          : explanation}
+      </p>
       {children}
     </div>
   );

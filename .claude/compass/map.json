@@ -19,6 +19,36 @@
       "text": "Publish a one-page owner split (us, admin group, committee) to share with the admin group",
       "at": "2026-10-10",
       "source": "auto"
+    },
+    {
+      "id": "imv5a275k0",
+      "text": "Add backup mobile and village/center fields to the registration form (database columns already exist).",
+      "at": "2026-10-12",
+      "source": "auto"
+    },
+    {
+      "id": "imv5a275k1",
+      "text": "Replace the generic Ministry of Education logo with the Eastern Province education directorate logo.",
+      "at": "2026-10-12",
+      "source": "auto"
+    },
+    {
+      "id": "imv5a275k2",
+      "text": "Rename the leftover 'الجهات المشاركة' nav links to match the new section title.",
+      "at": "2026-10-12",
+      "source": "auto"
+    },
+    {
+      "id": "imv5b19k60",
+      "text": "Swap the logo sides if the user's sketch puts the two partners on the right",
+      "at": "2026-10-12",
+      "source": "auto"
+    },
+    {
+      "id": "imv5b19k61",
+      "text": "Offer KFUPM's bilingual 2023 lockup as an alternative to the current English wordmark",
+      "at": "2026-10-12",
+      "source": "auto"
     }
   ],
   "findings": [
@@ -66,6 +96,54 @@
       "id": "cleanup-physical-devices",
       "text": "Desktop, tablet and mobile emulation passed, but real iPhone/Android and production recovery/capacity exercises remain separate checks.",
       "severity": "low",
+      "at": "2026-10-12",
+      "status": "open",
+      "source": "auto"
+    },
+    {
+      "id": "fmv5a275k0",
+      "text": "Correct answers and explanations are sent to participants after submission (competition-result.tsx), contradicting meeting note 1 and terms clause 8.",
+      "severity": "high",
+      "at": "2026-10-12",
+      "status": "open",
+      "source": "auto"
+    },
+    {
+      "id": "fmv5a275k1",
+      "text": "/terms still shows the old 15 rules, not the 25 dark clauses; data-protection clauses 15–25 are missing.",
+      "severity": "medium",
+      "at": "2026-10-12",
+      "status": "open",
+      "source": "auto"
+    },
+    {
+      "id": "fmv5a275k2",
+      "text": "Hafr Al-Batin University logo has 'تجريبي' (beta) printed on it; KFUPM logo is English-only.",
+      "severity": "medium",
+      "at": "2026-10-12",
+      "status": "open",
+      "source": "auto"
+    },
+    {
+      "id": "fmv5b19k60",
+      "text": "Clause 5 (all questions from the book) contradicts the 3 Presidency questions in each bank; the committee must decide",
+      "severity": "medium",
+      "at": "2026-10-12",
+      "status": "open",
+      "source": "auto"
+    },
+    {
+      "id": "fmv5b19k61",
+      "text": "public/documents/participation-rules.pdf is the old 14-rule version and is still publicly reachable",
+      "severity": "low",
+      "at": "2026-10-12",
+      "status": "open",
+      "source": "auto"
+    },
+    {
+      "id": "fmv5b19k62",
+      "text": "The production database is disconnected (empty DATABASE_URL), so registration and the competition cannot work on the live site",
+      "severity": "high",
       "at": "2026-10-12",
       "status": "open",
       "source": "auto"

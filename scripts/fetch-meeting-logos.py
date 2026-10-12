@@ -8,7 +8,7 @@ SOURCES = [
  ('education-eastern.svg', 'الإدارة العامة للتعليم بالمنطقة الشرقية', 'https://sites.moe.gov.sa/assets/images/moe-logo.svg'),
  ('iau.svg', 'جامعة الإمام عبدالرحمن بن فيصل', 'https://www.iau.edu.sa/sites/all/themes/uod_base/assets/images/dga_theme/logo.svg'),
  ('kfu.webp', 'جامعة الملك فيصل', 'https://www.kfu.edu.sa/Style%20Library/UD/ar-sa/images/kfu-logo-normal.webp'),
- ('uhb.jpg', 'جامعة حفر الباطن', 'https://www.uhb.edu.sa/themes/custom/uhb/images/uhb-header-logo.jpg'),
+ ('uhb.png', 'جامعة حفر الباطن', 'https://www.uhb.edu.sa/sites/default/files/site-logo/asd.png'),
  ('kfupm.svg', 'جامعة الملك فهد للبترول والمعادن', 'https://www.kfupm.edu.sa/images/default-source/default-album/kfupm_logo_en.svg?sfvrsn=f12b570c_0'),
  ('pmu.png', 'جامعة الأمير محمد بن فهد', 'https://www.pmu.edu.sa/images/c-logo-new.png'),
 ]

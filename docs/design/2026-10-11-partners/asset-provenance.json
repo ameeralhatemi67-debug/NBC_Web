@@ -66,15 +66,15 @@
     "visualReview": "Verified 2026-10-11 against local decoded artwork and official/supplied source; see logo-review.png"
   },
   {
-    "file": "public/images/organizations/uhb.jpg",
-    "source": "https://www.uhb.edu.sa/themes/custom/uhb/images/uhb-header-logo.jpg",
-    "retrievedAt": "2026-10-11",
-    "sha256": "2f34230a04a0ca8b63fc24f863ee63dfc276884225528880f8a37ff25dfa144d",
-    "width": 259,
-    "height": 89,
-    "format": "jpeg",
-    "method": "Official website download",
-    "visualReview": "Verified 2026-10-11 against local decoded artwork and official/supplied source; see logo-review.png"
+    "file": "public/images/organizations/uhb.png",
+    "source": "https://www.uhb.edu.sa/sites/default/files/site-logo/asd.png",
+    "retrievedAt": "2026-10-12",
+    "sha256": "0b276ea07937d1bc6a8ff06f81155f76627312012e69fbbf48e5b2b5454617d0",
+    "width": 720,
+    "height": 233,
+    "format": "png",
+    "method": "Official site logo (1769x608, SHA-256 664abc64ebac67dbba2fe0489284832e45699a183b06d036b9df221239ad9052). White background made transparent, trimmed, resized to 720px and palette-compressed. Replaces the beta-site header image that carried the word 'تجريبي'.",
+    "visualReview": "Verified 2026-10-12: no beta label, official Arabic/English lockup."
   },
   {
     "file": "public/images/organizations/kfupm.svg",

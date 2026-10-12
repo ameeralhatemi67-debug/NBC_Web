@@ -98,7 +98,9 @@ try {
     assert.equal(termsPage.headers.get('x-frame-options'), 'DENY');
     assert.equal(rulesFile.status, 200);
     assert.equal(new TextDecoder().decode(rulesBytes.slice(0, 5)), '%PDF-');
-    assert.ok(termsText.includes('لا يعتمد الوقت معيارًا للمفاضلة'));
+    assert.ok(termsText.includes('لا يعتمد الوقت المستغرق في الإجابة معيارًا للمفاضلة'));
+    assert.ok(termsText.includes('لا تُعرض الإجابات الصحيحة للمشاركين'));
+    assert.ok(!termsText.includes('تظهر الإجابات الصحيحة'));
     assert.ok(termsText.includes('بعد الإرسال النهائي'));
   });
   const anon = client(),

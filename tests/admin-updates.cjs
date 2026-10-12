@@ -29,7 +29,7 @@ fs.mkdirSync(output, { recursive: true });
         sizes[`${design}-${width}`] = await page.locator('.competition-book-link img').evaluate(img => img.getBoundingClientRect().width);
         if (design !== 'original') {
           const logo = await page.locator('.header-inner .official-brand-mark').getAttribute('src');
-          assert.ok(logo.includes('general-presidency'));
+          assert.ok(logo.includes('authority-logo'));
           await page.screenshot({path: path.join(output, `${design}-hero-${width}.png`), fullPage: false});
           for (const card of await page.locator('.prizes-heading,.prize-stage-card,.recognition-heading,.recognition-card').all()) {
             await card.scrollIntoViewIfNeeded();

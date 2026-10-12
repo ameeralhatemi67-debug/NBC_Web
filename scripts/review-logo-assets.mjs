@@ -29,9 +29,9 @@ const list = [
     'https://www.kfu.edu.sa/Style%20Library/UD/ar-sa/images/kfu-logo-normal.webp',
   ],
   [
-    'uhb.jpg',
-    'public/images/organizations/uhb.jpg',
-    'https://www.uhb.edu.sa/themes/custom/uhb/images/uhb-header-logo.jpg',
+    'uhb.png',
+    'public/images/organizations/uhb.png',
+    'https://www.uhb.edu.sa/sites/default/files/site-logo/asd.png',
   ],
   [
     'kfupm.svg',

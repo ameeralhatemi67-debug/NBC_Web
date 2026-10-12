@@ -245,7 +245,8 @@ test('lifecycle, stage snapshots, concurrent starts, locking, idempotency, scori
     assert.equal((await service.write(student(), check)).attempt!.revision, revision);
     await assert.rejects(service.write(student(), { ...check, selected: [1] }), /مستخدم/);
     await assert.rejects(service.write(student(), event(state, 'CHECK', first.id, [1])), /الأولى/);
-    assert.ok(state.attempt!.feedback[first.id]);
+    // Participants never receive the answer key, even after locking.
+    assert.deepEqual(state.attempt!.feedback, {});
     await assert.rejects(service.write(student(), event(state, 'SUBMIT')), /كل الإجابات/);
     // Select keys from the private immutable snapshots, accounting for option shuffling.
     const privateQuestions = (

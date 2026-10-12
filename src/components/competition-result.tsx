@@ -105,7 +105,7 @@ export function CompetitionResult({
               <BookStage book={data.book} initial="open" closeWhenReady />
             </div>
           </div>
-          {!hidden && (
+          {!hidden && Object.keys(attempt.feedback).length > 0 && (
             <div className="result-strip" role="list" aria-label="نتيجة الأسئلة">
               {attempt.questions.map((question, index) => {
                 const status = questionStatus(attempt, question.id);
@@ -252,7 +252,8 @@ export function CompetitionResult({
             </div>
           </aside>
         )}
-        {hidden && Object.keys(attempt.feedback).length === 0 && (
+        {/* Participants get no answer key, so they only see their own submitted choices. */}
+        {Object.keys(attempt.feedback).length === 0 && (
           <aside className="result-own-answers">
             <h2>إجاباتك</h2>
             {attempt.questions.map((question) => (

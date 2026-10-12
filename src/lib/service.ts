@@ -94,7 +94,7 @@ export async function readPrizes() {
   const db = await getDb();
   return (
     await db.query<{ value: PrizeSettings }>('SELECT value FROM settings WHERE id=$1', ['prizes'])
-  ).rows[0].value;
+  ).rows[0]?.value;
 }
 // Public announcement of the committee's winners, or null while none is published.
 export async function readWinners() {

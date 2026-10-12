@@ -22,7 +22,9 @@ export default async function Winners() {
           <WinnersList announcement={announcement} />
         ) : (
           <section className="empty-state">
-            <p role="status">لم يُعلن الفائزون بعد. تُنشر النتائج النهائية هنا بقرار اللجنة.</p>
+            <p role="status">
+              لم يُعلن الفائزون بعد. تُنشر النتائج هنا بعد اعتمادها من اللجنة المنظمة.
+            </p>
             <Link href="/" className="button outline">
               العودة إلى الرئيسية <Icon />
             </Link>

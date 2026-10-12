@@ -190,7 +190,7 @@ export function CompetitionHero({
             >
               <Image
                 src="/images/competition/book-cover.png"
-                alt="غلاف كتاب الانتماء واللحمة الوطنية لعبدالرحمن بن عبدالله السند"
+                alt="غلاف كتاب الانتماء واللحمة الوطنية لعبدالرحمن بن عبدالله بن محمد السند"
                 width={921}
                 height={1300}
                 sizes="(max-width: 760px) 62vw, 330px"
@@ -201,7 +201,7 @@ export function CompetitionHero({
           <p className="book-scene-caption">
             <span /> كتاب المسابقة <span />
           </p>
-          <p className="book-scene-author">عبدالرحمن بن عبدالله السند</p>
+          <p className="book-scene-author">عبدالرحمن بن عبدالله بن محمد السند</p>
         </div>
       </div>
       <div className="container competition-hero-bottom">

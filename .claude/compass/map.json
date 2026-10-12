@@ -49,6 +49,12 @@
       "text": "Offer KFUPM's bilingual 2023 lockup as an alternative to the current English wordmark",
       "at": "2026-10-12",
       "source": "auto"
+    },
+    {
+      "id": "imv5bohlk0",
+      "text": "Add 'فهرس المصادر والمراجع' (printed p.57) to the book reader's contents list.",
+      "at": "2026-10-12",
+      "source": "auto"
     }
   ],
   "findings": [
@@ -144,6 +150,30 @@
       "id": "fmv5b19k62",
       "text": "The production database is disconnected (empty DATABASE_URL), so registration and the competition cannot work on the live site",
       "severity": "high",
+      "at": "2026-10-12",
+      "status": "open",
+      "source": "auto"
+    },
+    {
+      "id": "fmv5b4f6c0",
+      "text": "Vercel posted no deployment or GitHub status for commit 58893d4, unlike earlier commits; the Git integration may not have triggered.",
+      "severity": "medium",
+      "at": "2026-10-12",
+      "status": "open",
+      "source": "auto"
+    },
+    {
+      "id": "fmv5b4f6c1",
+      "text": "Production DATABASE_URL is still empty, so registration and participation can't work live; only the prizes fallback was added.",
+      "severity": "high",
+      "at": "2026-10-12",
+      "status": "open",
+      "source": "auto"
+    },
+    {
+      "id": "fmv5bohlk0",
+      "text": "Committee decisions still pending: prize approval, media-award criteria, logo publication approval, patronage wording, clause 5 vs Presidency questions.",
+      "severity": "medium",
       "at": "2026-10-12",
       "status": "open",
       "source": "auto"

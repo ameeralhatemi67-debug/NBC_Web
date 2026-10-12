@@ -83,3 +83,7 @@ A dated log of what was done, with its evidence. Oldest first. Updated from Git 
 - Local archive/bundle verification, worktree removal, tracking checks, production build and application-tree comparison are complete.
 - Consolidation and tracking are saved in a local commit on `main`. GitHub push, baseline-tag publication, new production verification and branch retirement remain pending.
 - The existing production deployment and remote branches were left unchanged. Resume instructions: docs/implementation/2026-10-12-cleanup-resume.md.
+
+## 2026-10-12 — Logged by Compass
+
+- 58893d4 fix: withhold answer key, load approved terms, and refine partner logos

@@ -23,7 +23,11 @@ export default async function Book() {
           <div>
             <span className="eyebrow">المعرفة بداية الأثر</span>
             <h1>كتاب المسابقة.</h1>
-            <p>{bundled ? 'الانتماء واللحمة الوطنية، لعبدالرحمن بن عبدالله السند' : book.title}</p>
+            <p>
+              {bundled
+                ? 'الانتماء واللحمة الوطنية، لعبدالرحمن بن عبدالله بن محمد السند'
+                : book.title}
+            </p>
           </div>
           <DemoNote compact />
         </div>

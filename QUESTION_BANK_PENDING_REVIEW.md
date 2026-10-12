@@ -1,5 +1,7 @@
 # Official question bank: pending human review
 
+This is the historical pre-import review note. The current bank is [75 supplied, unapproved drafts](docs/question-bank/2026-10-11/official-drafts.json), with [review instructions and source evidence](docs/question-bank/2026-10-11/REVIEW.md). New campaigns use 20/25/30 questions and feedback after final submission. The older 60-question assumptions below describe the previous system; use the current review instructions for approval and freeze.
+
 The production platform supports 60 questions, but this change does **not** supply 60 approved factual questions. Production initialization creates an empty bank and refuses to open until the committee approves and freezes exactly 20 questions for each stage.
 
 The dedicated NBC backend is provisioned. Production administrator tests can request clearly labeled synthetic snapshots to verify the shared engine while this bank is empty. These are stored only in owned admin test sessions, never in the official question bank or real attempts. This does not complete any of the 60 content reviews below. Keep the official book unapproved and the campaign DRAFT until review is complete.

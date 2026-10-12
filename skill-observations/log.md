@@ -142,3 +142,7 @@
 **Principle:** Correct element order and valid assets do not establish correct spatial distribution.
 
 2026-10-12 spacing checkpoint: shared layout corrected, desktop/tablet/mobile geometry and screenshots verified, production build and formatting passed, and the reviewed correction was committed and pushed. The matching Vercel preview reached READY; production remains the separate environment.
+
+2026-10-12 cleanup checkpoint: working release tagged, full old-worktree archive/history bundle verified, shared dependency junction unlinked safely, worktree removed and main dependencies preserved. History consolidation and corrected tracking are prepared; application-tree comparison, build, push and deployment verification remain in progress.
+
+2026-10-12 safe-stop checkpoint: owner requested pausing cleanup to close the laptop. Verified local backup/worktree removal, unchanged release application files, build and tracking checks are saved with the consolidation. Remote main/tag push, production verification and branch retirement are deferred to the resume handover. Existing production remains unchanged.

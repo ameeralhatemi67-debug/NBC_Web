@@ -3,30 +3,6 @@
   "northStar": null,
   "ideas": [
     {
-      "id": "imv0wsrwl0",
-      "text": "Push D:\\Agents\\main\\mods to a GitHub repo so the mods install with one /plugin install line.",
-      "at": "2026-10-09",
-      "source": "auto"
-    },
-    {
-      "id": "imv0xqmb90",
-      "text": "Check the live production site in the browser to close task 3.3.3.",
-      "at": "2026-10-09",
-      "source": "auto"
-    },
-    {
-      "id": "imv0yshzc0",
-      "text": "Remove this session's temporary mod copies so only the global installs load.",
-      "at": "2026-10-09",
-      "source": "auto"
-    },
-    {
-      "id": "imv0z23ni0",
-      "text": "Restore Compass milestone tooltips without an interactive SVG frame, for example a Text list on hover or click.",
-      "at": "2026-10-09",
-      "source": "auto"
-    },
-    {
       "id": "imv26yen50",
       "text": "Schedule the daily db:cleanup as a Vercel cron instead of a manual script",
       "at": "2026-10-10",
@@ -47,114 +23,50 @@
   ],
   "findings": [
     {
-      "id": "fmv0wsrwl0",
-      "text": "Installed mods run from a cache copy, so edits in D:\\Agents\\main\\mods apply only after 'claude plugin update' and a new session.",
-      "severity": "low",
-      "at": "2026-10-09",
-      "status": "open",
-      "source": "auto"
-    },
-    {
-      "id": "fmv0wsrwl1",
-      "text": "This session still runs its temporary mod copies; if it reloads plugins, each mod could load twice.",
-      "severity": "low",
-      "at": "2026-10-09",
-      "status": "open",
-      "source": "auto"
-    },
-    {
-      "id": "fmv0x5a7s0",
-      "text": "Branch codex/exam-ux-refresh is 19 commits ahead of main, including the whole backend; main lacks them.",
+      "id": "cleanup-paused-local",
+      "text": "Repository cleanup is saved locally on main. Push main and the preserved release tag, verify the exact Vercel production commit, then retire obsolete branches. The owner requested a safe stop; see the cleanup resume handover.",
       "severity": "medium",
-      "at": "2026-10-09",
+      "at": "2026-10-12",
       "status": "open",
       "source": "auto"
     },
     {
-      "id": "fmv0x5a7s1",
-      "text": "A large block of competition-management work (participants, eligibility, winners, campaigns) is still uncommitted.",
-      "severity": "medium",
-      "at": "2026-10-09",
-      "status": "open",
-      "source": "auto"
-    },
-    {
-      "id": "fmv0xqmb90",
-      "text": "NBC_ADMIN_OPEN=true in production removes the staff sign-in wall on /admin, exposing participant data to anyone with the URL.",
+      "id": "cleanup-content-review",
+      "text": "The supplied 75 questions are unapproved drafts. Committee reviewers must verify wording, keys and book/official sources before approval and freeze.",
       "severity": "high",
-      "at": "2026-10-09",
+      "at": "2026-10-12",
       "status": "open",
       "source": "auto"
     },
     {
-      "id": "fmv0xqmb91",
-      "text": "Local checkout is one commit behind origin/main (fa26a77); the uncommitted management work is based on 15a42ae and may conflict.",
-      "severity": "medium",
-      "at": "2026-10-09",
+      "id": "cleanup-policy-approval",
+      "text": "Privacy contact, minors procedure, retention, media/prize criteria, patronage and specialist release approvals remain pending; see the technical gap report.",
+      "severity": "high",
+      "at": "2026-10-12",
       "status": "open",
       "source": "auto"
     },
     {
       "id": "fmv0xqmb92",
-      "text": "Production has OTP_PROVIDER=unifonic but no UNIFONIC_APP_SID or OTP_SENDER_ID, so real SMS sign-in cannot work yet.",
+      "text": "Real SMS activation requires an approved organization account/sender and a successful recorded readiness test. Verify current provider configuration through Admin before activation.",
       "severity": "medium",
-      "at": "2026-10-09",
+      "at": "2026-10-12",
       "status": "open",
       "source": "auto"
     },
     {
-      "id": "fmv0yl4mb1",
-      "text": "The band's SVG sizes are fixed widths (220px or 140px) and haven't been checked against the real desktop band width.",
+      "id": "cleanup-operational-evidence",
+      "text": "Confirm current production storage, staff allowlists/MFA, least privilege, backups and incident procedures before real registration. Historical evidence does not prove present configuration.",
+      "severity": "medium",
+      "at": "2026-10-12",
+      "status": "open",
+      "source": "auto"
+    },
+    {
+      "id": "cleanup-physical-devices",
+      "text": "Desktop, tablet and mobile emulation passed, but real iPhone/Android and production recovery/capacity exercises remain separate checks.",
       "severity": "low",
-      "at": "2026-10-09",
-      "status": "open",
-      "source": "auto"
-    },
-    {
-      "id": "fmv0z23ni0",
-      "text": "NBC_ADMIN_OPEN=true is still set in production, leaving /admin open without staff sign-in.",
-      "severity": "high",
-      "at": "2026-10-09",
-      "status": "open",
-      "source": "auto"
-    },
-    {
-      "id": "fmv0z23ni1",
-      "text": "The capsule's label is SVG text in a plain image; if the system font is missing, it falls back to another font and may fit differently.",
-      "severity": "low",
-      "at": "2026-10-09",
-      "status": "open",
-      "source": "auto"
-    },
-    {
-      "id": "fmv13ggmt0",
-      "text": "Command-line Claude's sign-in has expired, so headless test runs fail; mod loading can only be checked through desktop sessions.",
-      "severity": "low",
-      "at": "2026-10-09",
-      "status": "open",
-      "source": "auto"
-    },
-    {
-      "id": "fmv13ggmt1",
-      "text": "Mods updated mid-session stay on the old version until the session restarts or /reload-plugins runs, which hides UI changes.",
-      "severity": "low",
-      "at": "2026-10-09",
-      "status": "open",
-      "source": "auto"
-    },
-    {
-      "id": "fmv26yen50",
-      "text": "NBC_ADMIN_OPEN=true is live in production: anyone with the URL can use the admin panel and APIs.",
-      "severity": "high",
-      "at": "2026-10-10",
-      "status": "open",
-      "source": "auto"
-    },
-    {
-      "id": "fmv26yen52",
-      "text": "Status.md and Roadmap say the branch isn't merged or deployed, but main already holds it and fa26a77 is live.",
-      "severity": "low",
-      "at": "2026-10-10",
+      "at": "2026-10-12",
       "status": "open",
       "source": "auto"
     }

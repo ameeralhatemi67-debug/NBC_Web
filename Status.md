@@ -1,29 +1,34 @@
-# NBC competition platform — Status
+# NBC competition platform status
 
-Updated 2026-10-09
+Updated 2026-10-12.
 
-Active checkpoint: 4.1 — Competition management
+Active checkpoint: committee content approval and launch readiness.
 
-## Where things stand
+Repository cleanup is paused at the owner's request. The consolidation is saved on local `main`; the GitHub push, release-tag push, new main deployment verification and obsolete-branch retirement remain pending. GitHub `main` still points to `fa26a77`; the live website remains on the preserved `4c63e71` release. See [safe-stop handover](docs/implementation/2026-10-12-cleanup-resume.md).
 
-- Working branch `codex/exam-ux-refresh` holds Versions 2 and 3 and is 19 commits ahead of `main`; it has not been merged or deployed from `main` yet.
-- The competition management work of Checkpoint 4.1 (participants, eligibility, campaigns, site content, book admin, winners) is written and has its own tests, but is not committed.
-- Real SMS OTP is implemented but not activated (Checkpoint 2.3).
+## Release and repository
 
-## Verified
+- `main` is the canonical development and production branch for Vercel project `nbc-web`.
+- The working website baseline is `4c63e712156c145203653b26c5071db47f36898c`, preserved as `release/nbc-working-2026-10-12`. The public website was verified on this baseline before cleanup. Cleanup retains its application files unchanged and consolidates the older branch histories into `main`.
+- Committee management and meeting updates were committed in `04c157e`; logo spacing was corrected in `ce15157`. Both are part of the preserved release.
+- The obsolete `NBC_web_wt` worktree has been backed up and removed. Its source, local configuration, database and artifacts are in ignored `.data/backups/2026-10-12-NBC_web_wt/`, with a verified Git-history bundle. This private backup must stay local.
+- Superseded development branches are retired after the consolidated `main` deployment is verified. Their commits remain in history and the backup bundle.
+- See [cleanup evidence](docs/implementation/2026-10-12-repository-cleanup.md). Use GitHub `main` and the public Vercel alias to check the current deployment commit.
 
-- UX refresh phases 0–6: typecheck, 100 unit tests, 38 integration checks, format check and build passed, plus the browser suites (exam-ux, exam-loop, reader-ui, result-intro-ui, exam-hint-gate, book-3d-ui, admin-ux). Record: docs/implementation/2026-10-06-exam-ux-refresh.md.
-- Production backend on the dedicated NBC database, live and persistent after redeployment (2a78cdb).
-- Not verified: real iPhone and Android phones (only Chrome touch emulation), real GPU for the 3D book, the admin search branch with a readable-text PDF.
+## Implemented and verified
 
-## Next action
+- Participant management, eligibility, campaigns, content editing, book administration, winners management and the announcement page are committed with regression coverage.
+- New campaigns use 20 middle, 25 secondary and 30 university questions. Answers remain editable until final submission; feedback arrives only after server-confirmed submission. Existing campaign rules and locked answers are preserved.
+- The supplied 75 questions are unapproved drafts with original-row/source evidence. Organizer questions use official sources without book-page hints. Committee approval and freeze gates remain in place.
+- The authority and eight partner logos, role labels, responsive spacing, twelve-city list and Arabic corrections are implemented. Name captions beneath logos are removed; alternative text remains.
+- Applicable dark participation clauses are used in terms; privacy is staged for review. Red commentary and correspondence are excluded from participant pages. Prize amounts and the 52,000 SAR total are retained.
+- Meeting verification passed 124 local regression tests, 13 final engine/compatibility checks, local and disposable PostgreSQL/HTTP suites, build/type checks and the 20/25/30 browser journeys. See [meeting handover](docs/implementation/2026-10-11-meeting/README.md) and [spacing review](docs/design/2026-10-12-logo-spacing/README.md).
 
-Run all checks on the uncommitted competition management work and commit it.
+## Next actions and release dependencies
 
-## Open questions
-
-- When to merge `codex/exam-ux-refresh` into `main` and deploy.
-- Hint rule: count the furthest page reached (current), or only pages actually visited.
-- Committee review of the provisional chapter titles and pages.
-- SMS provider setup: Unifonic account, approved sender and production secrets.
-- Keep or remove the two local isolation scripts (`scripts/local-ux-check.cjs`, `scripts/local-ux-no-env.cjs`).
+- Review and approve the 75 drafts, source evidence, book rights and publication version through the committee workflow.
+- Resolve privacy contact, minors' data handling, retention, prize/media-award criteria and patronage wording with the responsible owners.
+- Confirm current production storage, staff authentication, SMS readiness, backups and incident procedures. Historical backend verification does not prove present configuration; cleanup changes no providers, database data or environment settings.
+- Complete real SMS verification/activation only with the organization's approved sender/account and recorded readiness evidence.
+- Complete the specialist approvals in the [technical gap report](docs/implementation/2026-10-11-meeting/TECHNICAL_GAPS.md), then approve the book, freeze the stage banks and schedule/open the competition.
+- Real iPhone/Android testing and production recovery/capacity exercises remain separate checks.

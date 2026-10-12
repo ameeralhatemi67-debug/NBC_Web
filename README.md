@@ -1,14 +1,18 @@
 # NBC competition platform
 
-Arabic RTL book-based competition platform: three education stages, 20 questions per stage, a PDF reader, durable answer synchronization, and isolated administrator test runs. Participant SMS OTP and the existing staff/security setup remain in place.
+Arabic RTL book-based competition platform: three education stages with 20/25/30 questions, a PDF reader, editable saved answers until final submission, durable synchronization, and isolated administrator test runs. Participant SMS OTP and the existing staff/security setup remain in place.
 
-Read the [competition operating guide](docs/implementation/COMPETITION_OPERATIONS.md), [implementation report](docs/implementation/2026-10-04-competition-expansion.md), and [pending question-bank review](QUESTION_BANK_PENDING_REVIEW.md) before launch. The platform is implemented; the 60 official questions still require human authoring and book review.
+Read the [competition operating guide](docs/implementation/COMPETITION_OPERATIONS.md), [meeting handover](docs/implementation/2026-10-11-meeting/README.md), and [supplied question-bank review](docs/question-bank/2026-10-11/REVIEW.md) before launch. The 75 supplied questions are unapproved drafts requiring committee source review and approval.
+
+`main` is the canonical production branch. The working website from `4c63e71` is preserved under tag `release/nbc-working-2026-10-12`; cleanup changes tracking and history without changing application files. See [current status](Status.md), [roadmap](Roadmap.md) and [cleanup evidence](docs/implementation/2026-10-12-repository-cleanup.md).
+
+The owner requested a safe stop after local cleanup verification. The consolidated `main` push and remote branch retirement remain pending; see [resume instructions](docs/implementation/2026-10-12-cleanup-resume.md).
 
 For direct admin sign-in on the Vercel domain, use the [Vercel account sign-in setup](docs/implementation/2026-10-04-admin-access-fix.md). Cloudflare Access is an alternative. Both require explicitly allowlisted staff accounts; the demo role picker remains local-only.
 
 The OTP code and deployment path are implemented. Real SMS activation still requires the organization's Unifonic account, approved Saudi sender, production secrets, managed PostgreSQL, and staff identity setup. See [the deployment guide](docs/implementation/2026-10-04-production-otp.md) and [the implementation specification](docs/implementation/NBC_OTP_Production_Implementation_Spec.md).
 
-The production backend uses private schema `nbc` in the dedicated NBC Supabase project `eerfhnaduachqluowsdo`. Read the [backend report](NBC_BACKEND_IMPLEMENTATION_REPORT.md) and [operator runbook](docs/implementation/NBC_BACKEND_OPERATIONS.md) for migrations, access, diagnostics, retention, backup and rollback. Historical storage was retired and must never be reconnected. The real campaign stays DRAFT and OTP inactive until the content/provider launch checks pass.
+The dedicated production database target is private schema `nbc` in NBC project `eerfhnaduachqluowsdo`. Read the [backend report](NBC_BACKEND_IMPLEMENTATION_REPORT.md) and [operator runbook](docs/implementation/NBC_BACKEND_OPERATIONS.md) for migrations, access, diagnostics, retention, backup and rollback. Verify current storage readiness before launch; historical evidence does not establish current connectivity. Historical storage was retired and must never be reconnected. The real campaign stays DRAFT and OTP inactive until the content/provider launch checks pass.
 
 ## Local development
 
@@ -22,7 +26,7 @@ Open [registration](http://127.0.0.1:3000/register) or [admin](http://127.0.0.1:
 
 Local simulation requires explicit `NBC_RUNTIME_MODE=demo`, `OTP_PROVIDER=fake`, and a six-digit `NBC_DEMO_OTP` chosen in `.env.local`. Enter that local fixture manually. The UI labels simulation but never displays the code. The API never returns it. Fake mode and the role picker are blocked in production; demo HTTP access is restricted to loopback. Keep demo data synthetic. Remote demo sharing is no longer supported.
 
-Local PGlite storage defaults to `.data/nbc`. Run one process per PGlite directory. Production always requires `DATABASE_URL`; it never falls back to `/tmp` or PGlite. Local sample participants and 60 clearly marked synthetic questions are seeded only in explicit local mode with PGlite. Production seeds no competition questions. Every new competition starts in DRAFT with answer feedback after locking and leaderboard publication after close. Local administrators can enter the participant exam view from تجربة الإدارة, or freeze the fixture bank and open a local competition.
+Local PGlite storage defaults to `.data/nbc`. Run one process per PGlite directory. Production always requires `DATABASE_URL`; it never falls back to `/tmp` or PGlite. Local sample participants and synthetic questions are seeded only in explicit local mode with PGlite. Production seeds no competition questions. New campaigns start in DRAFT with 20/25/30 questions, final-submission locking, feedback after confirmed submission and leaderboard publication after close. Existing campaign rules remain intact. Local administrators can enter the participant exam view from تجربة الإدارة, or freeze the fixture bank and open a local competition.
 
 ## Production deployment
 
@@ -31,7 +35,7 @@ Local PGlite storage defaults to `.data/nbc`. Run one process per PGlite directo
 3. Apply reviewed source-derived migrations with authenticated NBC operator access or `npm run db:migrate` using its operator configuration, then build/deploy. Runtime cannot run DDL. Do not run a second divergent Supabase migration tree.
 4. Preserve the existing Vercel staff sign-in, MFA acknowledgment and subject allowlists. Cloudflare Access remains an optional alternative. Public participant paths remain public.
 5. Open Admin > إعداد التحقق والأمان. Complete sender/account approvals, check readiness, run the real SMS verification test, acknowledge internal operational checks, and activate.
-   Then follow the competition operating guide to import/review the 60 questions, approve the book, freeze the three stage banks, and schedule/open the competition. Test runs are available without creating real participant attempts.
+   Then follow the operating guide and supplied-bank review to import the 75 drafts, verify their sources, approve the book and questions, freeze the stage banks, and schedule/open the competition. Test runs are available without creating real participant attempts.
 6. Schedule `npm run db:cleanup` daily with the same database/security environment. Monitor delivery errors, abuse counts, costs and database backups.
 
 Migration/cleanup commands read the process environment. In local development with Node.js 22, use `node --env-file=.env.local --import tsx scripts/migrate.mjs` or the corresponding cleanup script. Do not use demo environment files for production.

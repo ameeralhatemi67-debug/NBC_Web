@@ -1,6 +1,6 @@
 # NBC competition platform — Progress
 
-A dated log of what was done, with its evidence. Oldest first. Rebuilt from git history on 2026-10-09.
+A dated log of what was done, with its evidence. Oldest first. Updated from Git history and verification records on 2026-10-12.
 
 ## 2026-09-15 — Platform started
 
@@ -57,4 +57,29 @@ A dated log of what was done, with its evidence. Oldest first. Rebuilt from git 
 ## 2026-10-09 — Core files and competition management in progress
 
 - Roadmap.md, Status.md and Progress.md created for Compass.
-- Not committed yet: participant management, eligibility, campaigns, site content, book admin and winners announcement, with tests/eligibility.test.ts, tests/management.test.ts and tests/winners.test.ts.
+- At this checkpoint, participant management, eligibility, campaigns, site content, book admin and winners announcement were uncommitted. They were later included in `04c157e` on 2026-10-12, with their regression tests.
+
+## 2026-10-11 to 2026-10-12: Meeting implementation and release
+
+- `04c157e` committed the meeting updates and committee workflows, including the previously uncommitted management features.
+- Prepared 75 unapproved questions, stage counts 20/25/30, final-submission locking and feedback, source evidence, logos/cities/Arabic corrections, applicable terms, draft privacy and technical gaps.
+- Regression, disposable PostgreSQL, HTTP, build/type and browser journey checks passed. Evidence: docs/implementation/2026-10-11-meeting/README.md.
+- `ce15157` corrected shared logo spacing and role alignment. Desktop, tablet and mobile measurements showed nine loaded images and no horizontal overflow. Evidence: docs/design/2026-10-12-logo-spacing/README.md.
+- `4c63e71` committed Compass configuration and tracking files. Its application code matches `ce15157`.
+- The public production alias was verified on `4c63e71`, deployment `dpl_7LyMKyMLHxT7MrGtFviEiDCLiYMH`, READY on 2026-10-12. Before cleanup, GitHub `main` still pointed to the older `fa26a77`.
+
+## 2026-10-12: Repository cleanup
+
+- Preserved the working release as `release/nbc-working-2026-10-12` at `4c63e71`.
+- Joined older `main`/`codex/exam-integrity` history while retaining the complete application tree from the working release. Updated `main` through a fast-forward, without a force-push or applying the older exam implementation.
+- Backed up `NBC_web_wt` at `08b3edb`: 1,853 files, local environment/database, artifacts, SHA-256 inventory and a verified Git-history bundle. The private backup is in ignored `.data/backups/2026-10-12-NBC_web_wt/`.
+- Compared every archived file with ZIP contents and the source before removal. Unlinked only the shared dependency junction, removed the Git worktree and checked the main dependencies remained unchanged.
+- Corrected Status.md, Roadmap.md, this log, README and active Compass findings. Earlier records remain recoverable from preserved Git history.
+- Superseded-branch retirement is pending the consolidated `main` push and deployment verification. Commits are preserved in the consolidated local history and the backup.
+- Content approval, question freeze, providers, database data and launch decisions remain separate. Evidence: docs/implementation/2026-10-12-repository-cleanup.md.
+
+## 2026-10-12: Owner-requested safe stop
+
+- Local archive/bundle verification, worktree removal, tracking checks, production build and application-tree comparison are complete.
+- Consolidation and tracking are saved in a local commit on `main`. GitHub push, baseline-tag publication, new production verification and branch retirement remain pending.
+- The existing production deployment and remote branches were left unchanged. Resume instructions: docs/implementation/2026-10-12-cleanup-resume.md.

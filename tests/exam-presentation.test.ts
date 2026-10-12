@@ -41,9 +41,9 @@ test('strip correctness requires a locked answer and server feedback', () => {
     answers: { q: { selected: [0], locked: false, checkedAt: null } },
     feedback: {},
   } as Pick<ExamAttempt, 'answers' | 'feedback'>;
-  assert.equal(questionStatus(attempt, 'q'), 'unvisited');
+  assert.equal(questionStatus(attempt, 'q'), 'answered');
   attempt.feedback.q = { isCorrect: true, correctAnswers: [1], explanation: 'server' };
-  assert.equal(questionStatus(attempt, 'q'), 'unvisited');
+  assert.equal(questionStatus(attempt, 'q'), 'answered');
   attempt.answers.q.locked = true;
   assert.equal(questionStatus(attempt, 'q'), 'correct');
   attempt.feedback.q.isCorrect = false;

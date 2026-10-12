@@ -1,6 +1,8 @@
 // Pure rules for the committee launch control. No React, no network: unit-tested.
 import {
+  DEFAULT_MAX_PER_PHONE,
   effectiveState,
+  questionCount,
   stageKeys,
   stageNames,
   type BookVersion,
@@ -8,6 +10,7 @@ import {
   type CompetitionQuestion,
   type Stage,
 } from './competition-domain';
+import { resolveEligibility } from './eligibility';
 import { arPlural, riyadhDateTime, resultSentence } from './format';
 import { leaderboardModeLines, resultHiddenLine, resultReceivedTitle } from './result-presentation';
 
@@ -132,13 +135,15 @@ export type StageReadiness = {
   approved: number;
   drafts: number;
   active: number;
+  expected: number;
   ok: boolean;
   reason: string;
 };
-// Mirrors the server rule in validateBank: exactly 20 active questions, all approved.
+// Mirrors validateBank: the campaign's stage count, with every active question approved.
 export function stageReadiness(
   questions: CompetitionQuestion[],
   book: BookVersion,
+  campaign?: Competition,
 ): StageReadiness[] {
   return stageKeys.map((stage) => {
     const active = questions.filter(
@@ -146,13 +151,13 @@ export function stageReadiness(
     );
     const approved = active.filter((q) => q.approved).length;
     const drafts = active.length - approved;
-    const ok = active.length === QUESTIONS_PER_STAGE && drafts === 0;
+    const expected = questionCount(campaign, stage);
+    const ok = active.length === expected && drafts === 0;
     let reason = '';
     if (!ok) {
-      if (active.length > QUESTIONS_PER_STAGE)
-        reason = `يوجد ${active.length} سؤالًا نشطًا. عطّل الزائد ليبقى 20 بالضبط.`;
-      else if (approved < QUESTIONS_PER_STAGE)
-        reason = `ينقص ${QUESTIONS_PER_STAGE - approved} من الأسئلة المعتمدة.`;
+      if (active.length > expected)
+        reason = `يوجد ${active.length} سؤالًا نشطًا. عطّل الزائد ليبقى ${expected} بالضبط.`;
+      else if (approved < expected) reason = `ينقص ${expected - approved} من الأسئلة المعتمدة.`;
       if (drafts > 0) reason += ` ${drafts} مسودات نشطة تمنع الاعتماد.`;
     }
     return {
@@ -161,6 +166,7 @@ export function stageReadiness(
       approved,
       drafts,
       active: active.length,
+      expected,
       ok,
       reason: reason.trim(),
     };
@@ -175,8 +181,12 @@ export type Precondition = {
   detail: string;
   stage?: Stage;
 };
-export function preconditions(book: BookVersion, questions: CompetitionQuestion[]) {
-  const stages = stageReadiness(questions, book);
+export function preconditions(
+  book: BookVersion,
+  questions: CompetitionQuestion[],
+  campaign?: Competition,
+) {
+  const stages = stageReadiness(questions, book, campaign);
   const list: Precondition[] = [
     {
       id: 'book',
@@ -188,7 +198,7 @@ export function preconditions(book: BookVersion, questions: CompetitionQuestion[
       id: `stage-${s.stage}`,
       ok: s.ok,
       label: s.name,
-      detail: `${s.approved} من ${QUESTIONS_PER_STAGE} سؤالًا معتمدًا${s.reason ? ` · ${s.reason}` : ''}`,
+      detail: `${s.approved} من ${s.expected} سؤالًا معتمدًا${s.reason ? ` · ${s.reason}` : ''}`,
       stage: s.stage,
     })),
     {
@@ -240,6 +250,9 @@ export const settingKeys = [
   'leaderboardMode',
   'closingPolicy',
   'graceMinutes',
+  'eligibility',
+  'registrationPaused',
+  'maxPerPhone',
 ] as const;
 export type SettingKey = (typeof settingKeys)[number];
 export function changedSettings(saved: Competition, current: Competition): SettingKey[] {
@@ -250,6 +263,17 @@ export function changedSettings(saved: Competition, current: Competition): Setti
       saved.closingPolicy === 'immediate'
     )
       return false;
+    if (key === 'registrationPaused')
+      return (saved.registrationPaused ?? false) !== (current.registrationPaused ?? false);
+    if (key === 'maxPerPhone')
+      return (
+        (saved.maxPerPhone ?? DEFAULT_MAX_PER_PHONE) !==
+        (current.maxPerPhone ?? DEFAULT_MAX_PER_PHONE)
+      );
+    if (key === 'eligibility')
+      return (
+        JSON.stringify(resolveEligibility(saved)) !== JSON.stringify(resolveEligibility(current))
+      );
     return saved[key] !== current[key];
   });
 }

@@ -9,7 +9,7 @@ import {
   initializeCompetition,
   officialBook,
 } from '../src/lib/competition-service';
-import { competitionFixtures } from '../src/lib/competition-fixtures';
+import { competitionFixtures, fixturesForCampaign } from '../src/lib/competition-fixtures';
 import {
   applyEvent,
   assertWindow,
@@ -39,6 +39,14 @@ async function fixture() {
   const db = await disposableDatabase();
   await migrate(db);
   await initializeCompetition(db);
+  // These regressions deliberately exercise the preserved legacy per-question campaign.
+  await db.query(
+    "UPDATE competitions SET body=(body - 'questionCounts') || '{\"answerMode\":\"per_question\"}'::jsonb WHERE id='nbc-1448-2026'",
+  );
+  if (db.kind === 'pglite')
+    await db.query(
+      "UPDATE questions SET body=jsonb_set(body,'{active}','false') WHERE id ~ '-demo(2[1-9]|30)$'",
+    );
   if (db.kind === 'postgres') {
     for (const q of competitionFixtures) {
       await db.query('INSERT INTO questions VALUES($1,$2)', [q.id, JSON.stringify(q)]);
@@ -292,6 +300,13 @@ test('lifecycle, stage snapshots, concurrent starts, locking, idempotency, scori
     );
     await service.saveQuestion(admin, { id: q.id, version: 2, approve: true });
     await action(service, 'create');
+    for (const extra of fixturesForCampaign(await service.current()).filter(
+      (q) => !competitionFixtures.some((old) => old.id === q.id),
+    ))
+      await db.query(
+        'INSERT INTO questions VALUES($1,$2) ON CONFLICT(id) DO UPDATE SET body=excluded.body',
+        [extra.id, JSON.stringify({ ...extra, approved: true })],
+      );
     await open(service);
     const next = await service.start(student());
     assert.notEqual(next.attempt!.id, state.attempt!.id);

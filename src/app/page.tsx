@@ -2,19 +2,36 @@ import Link from 'next/link';
 import { CompetitionPrizes } from '@/components/competition-prizes';
 import { CompetitionHero } from '@/components/competition-hero';
 import { Header, Footer, Icon, Reveal, OrganizationsBar } from '@/components/ui';
-import { faqs } from '@/lib/content';
 import { connection } from 'next/server';
-import { readPrizes } from '@/lib/service';
+import { readPrizes, readSiteContent, readWinners, readPublicStatus } from '@/lib/service';
+import { CompetitionStatus, statusSentence } from '@/components/competition-status';
 import { isLocalMode } from '@/lib/runtime';
+import { stageKeys, questionCount, meetingQuestionCounts } from '@/lib/competition-domain';
 export default async function Home() {
   await connection();
   // Public information must remain readable while the production database is being configured.
   const prizes = await readPrizes().catch(() => null);
+  const winners = await readWinners().catch(() => null);
+  const [content, status] = await Promise.all([readSiteContent(), readPublicStatus()]);
+  const registrationOpen = status?.registration.open ?? true;
   return (
     <>
       <Header />
       <main id="main">
-        <CompetitionHero />
+        <CompetitionHero intro={content.heroIntro} registrationOpen={registrationOpen} />
+        {status && <CompetitionStatus status={status} />}
+        {winners && (
+          <section className="winners-banner container" aria-labelledby="winners-banner-title">
+            <div>
+              <span className="eyebrow">النتائج النهائية</span>
+              <h2 id="winners-banner-title">أُعلن الفائزون في المسابقة</h2>
+              <p>تهانينا للفائزين في المراحل الثلاث، وشكرًا لكل من شارك وقرأ وأسهم.</p>
+            </div>
+            <Link href="/winners" className="button primary">
+              اطّلع على الفائزين <Icon />
+            </Link>
+          </section>
+        )}
         <OrganizationsBar prominent />
         {prizes ? (
           <CompetitionPrizes settings={prizes} />
@@ -49,15 +66,8 @@ export default async function Home() {
               <em>صلةً بيننا.</em>
             </h2>
             <div>
-              <p>
-                مسابقة معرفية تنطلق من كتاب «الانتماء واللحمة الوطنية» لعبدالرحمن بن عبدالله السند،
-                لتعزيز قيم الانتماء الوطني والولاء للوطن وقيادته، وترسيخ التماسك المجتمعي والوعي
-                الفكري.
-              </p>
-              <p className="muted">
-                تجمع بين القراءة والتحليل والتنافس العادل، وتدعو الشباب إلى فهم دورهم في حماية
-                المكتسبات الوطنية وتعزيز الهوية الوطنية في ضوء رؤية المملكة 2030.
-              </p>
+              <p>{content.aboutIntro}</p>
+              {content.aboutDetails && <p className="muted">{content.aboutDetails}</p>}
               <Link href="/book" className="text-link">
                 ابدأ من الكتاب <Icon size={19} />
               </Link>
@@ -70,18 +80,18 @@ export default async function Home() {
               <div>
                 <span className="eyebrow">02 / رحلة المشاركة</span>
                 <h2>
-                  ثلاث خطوات.
+                  ثلاث خطوات،
                   <br className="mobile-only" /> وأثرٌ يبقى.
                 </h2>
               </div>
-              <p>من أول صفحة، إلى مشاركة تفتخر بها.</p>
+              <p>من أول صفحة إلى مشاركة تفخر بها.</p>
             </Reveal>
             <div className="journey-grid">
               {[
                 {
                   n: '١',
                   icon: 'user',
-                  title: 'سجّل حضورك',
+                  title: 'سجّل مشاركتك',
                   text: 'أنشئ حسابك وحدد مرحلتك التعليمية، لتبدأ رحلتك في المسابقة.',
                 },
                 {
@@ -115,7 +125,7 @@ export default async function Home() {
           <Reveal>
             <span className="eyebrow">03 / لمن هذه الرحلة؟</span>
             <h2>
-              لكل مرحلة،
+              لكل مرحلة
               <br />
               <em>مساحة للمعرفة.</em>
             </h2>
@@ -130,6 +140,13 @@ export default async function Home() {
                 <div className="audience-row">
                   <span className="small-index">0{i + 1}</span>
                   <h3>{stage}</h3>
+                  <span>
+                    {questionCount(
+                      status ?? { questionCounts: meetingQuestionCounts },
+                      stageKeys[i],
+                    )}{' '}
+                    سؤالًا
+                  </span>
                   <Icon name={i === 2 ? 'grad' : 'book'} size={28} />
                 </div>
               </Reveal>
@@ -139,11 +156,11 @@ export default async function Home() {
         <section className="book-invitation container">
           <Reveal className="book-invitation-inner">
             <div>
-              <span className="eyebrow light">صفحة جديدة تبدأ بك</span>
+              <span className="eyebrow light">رحلتك المعرفية تبدأ من هنا</span>
               <h2>
-                خذ وقتك في القراءة.
+                تمهّل في القراءة؛
                 <br />
-                المعرفة تستحق.
+                فالمعرفة تستحق التأمل.
               </h2>
               <p>
                 كتاب مفتوح، وأسئلة تدعوك للفهم. لا مؤقت للإجابة،
@@ -159,40 +176,52 @@ export default async function Home() {
             </div>
           </Reveal>
         </section>
-        <section id="faq" className="section container faq-section">
-          <Reveal>
-            <span className="eyebrow">04 / قبل أن تبدأ</span>
-            <h2>
-              كل ما تحتاج
-              <br />
-              <em>إلى معرفته.</em>
-            </h2>
-            <p className="muted">إجابات واضحة، لبداية مطمئنة.</p>
-          </Reveal>
-          <div className="faq-list">
-            {faqs.map((f, i) => (
-              <details key={f.q}>
-                <summary>
-                  <span className="small-index">0{i + 1}</span>
-                  {f.q}
-                  <span className="faq-plus">+</span>
-                </summary>
-                <p>{f.a}</p>
-              </details>
-            ))}
-          </div>
-        </section>
+        {content.faqs.length > 0 && (
+          <section id="faq" className="section container faq-section">
+            <Reveal>
+              <span className="eyebrow">04 / قبل أن تبدأ</span>
+              <h2>
+                كل ما تحتاج
+                <br />
+                <em>إلى معرفته.</em>
+              </h2>
+              <p className="muted">إجابات واضحة لبداية مطمئنة.</p>
+            </Reveal>
+            <div className="faq-list">
+              {content.faqs.map((f, i) => (
+                <details key={f.q}>
+                  <summary>
+                    <span className="small-index">0{i + 1}</span>
+                    {f.q}
+                    <span className="faq-plus">+</span>
+                  </summary>
+                  <p>{f.a}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+        )}
         <section className="closing-section">
           <Reveal>
             <span className="eyebrow">رحلتك تبدأ بخطوة</span>
-            <h2>اقرأ. شارك. اترك أثرًا.</h2>
-            <Link href="/register" className="button primary">
-              ابدأ المشاركة <Icon />
+            <h2>اقرأ، وشارك، واترك أثرًا.</h2>
+            <Link
+              href={registrationOpen ? '/register' : winners ? '/winners' : '/register?mode=login'}
+              className="button primary"
+            >
+              {registrationOpen
+                ? 'ابدأ المشاركة'
+                : winners
+                  ? 'اطّلع على الفائزين'
+                  : 'ادخل إلى مساحتك'}{' '}
+              <Icon />
             </Link>
             <p className="closing-note">
               {isLocalMode()
                 ? 'عرض محلي بمحتوى اصطناعي للاختبار'
-                : 'تُتاح المشاركة خلال فترة المسابقة التي تعتمدها الجهة المنظمة'}
+                : status
+                  ? statusSentence(status, null)
+                  : 'تُتاح المشاركة خلال فترة المسابقة التي تعتمدها الجهة المنظمة'}
             </p>
           </Reveal>
         </section>

@@ -1,8 +1,10 @@
 import type { NextConfig } from 'next';
 const config: NextConfig = {
-  serverExternalPackages: ['@electric-sql/pglite', 'pg'],
+  serverExternalPackages: ['@electric-sql/pglite', 'pg', 'pdfjs-dist'],
   poweredByHeader: false,
-  outputFileTracingIncludes: { '/api/*': ['./public/books/*.pdf'] },
+  outputFileTracingIncludes: {
+    '/api/*': ['./public/books/*.pdf', './node_modules/pdfjs-dist/legacy/build/*.mjs'],
+  },
   async headers() {
     return [
       {

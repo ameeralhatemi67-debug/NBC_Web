@@ -139,6 +139,97 @@ export const migrations = [
       ALTER FUNCTION guard_snapshot_rows() SET search_path=pg_catalog;
     `,
   },
+  {
+    id: '008_winners',
+    sql: `
+      CREATE TABLE competition_awards (
+        competition_id TEXT NOT NULL REFERENCES competitions(id),
+        award_key TEXT NOT NULL,
+        stage TEXT CHECK(stage IS NULL OR stage IN ('middle','highschool','university')),
+        place INT NOT NULL CHECK(place BETWEEN 1 AND 6),
+        attempt_id TEXT REFERENCES attempts(id),
+        label TEXT,
+        reason TEXT,
+        decided_by TEXT NOT NULL,
+        decided_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        PRIMARY KEY(competition_id,award_key),
+        CHECK((stage IS NOT NULL AND attempt_id IS NOT NULL) OR (stage IS NULL AND label IS NOT NULL))
+      );
+      CREATE UNIQUE INDEX competition_awards_attempt ON competition_awards(competition_id,attempt_id) WHERE attempt_id IS NOT NULL;
+      CREATE TABLE competition_winner_publications (
+        competition_id TEXT PRIMARY KEY REFERENCES competitions(id),
+        published_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        published_by TEXT NOT NULL,
+        show_names BOOLEAN NOT NULL,
+        snapshot JSONB NOT NULL
+      );
+    `,
+  },
+  {
+    id: '009_participant_admin',
+    sql: `
+      ALTER TABLE participants ADD COLUMN erased_at TIMESTAMPTZ;
+      CREATE INDEX participants_phone ON participants(phone);
+      CREATE INDEX participants_created ON participants(created_at);
+    `,
+  },
+  {
+    id: '010_book_storage',
+    sql: `
+      CREATE TABLE book_files (sha256 TEXT PRIMARY KEY, bytes BYTEA NOT NULL, size_bytes INT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
+      CREATE TABLE book_uploads (id TEXT PRIMARY KEY, actor TEXT NOT NULL, title TEXT NOT NULL, sha256 TEXT NOT NULL, size_bytes INT NOT NULL, parts INT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
+      CREATE TABLE book_upload_chunks (upload_id TEXT NOT NULL REFERENCES book_uploads(id) ON DELETE CASCADE, part INT NOT NULL, bytes BYTEA NOT NULL, PRIMARY KEY(upload_id,part));
+    `,
+  },
+  {
+    id: '011_meeting_rules',
+    sql: `
+      ALTER TABLE attempt_questions DROP CONSTRAINT attempt_question_ordinal;
+      ALTER TABLE attempt_questions ADD CONSTRAINT attempt_question_ordinal CHECK(ordinal BETWEEN 0 AND 29);
+      UPDATE competitions SET body = jsonb_set(body, '{eligibility,cities,الشرقية}',
+        '["الدمام","الأحساء","الجبيل","القطيف","الخبر","الخفجي","رأس تنورة","بقيق","النعيرية","قرية العليا","البيضاء","حفر الباطن"]'::jsonb)
+        WHERE body->'eligibility'->'cities' ? 'الشرقية';
+      DELETE FROM competition_question_sets WHERE competition_id IN (
+        SELECT c.id FROM competitions c WHERE c.id=(SELECT value #>> '{}' FROM settings WHERE id='current_competition')
+          AND c.body->>'state'='DRAFT' AND NOT EXISTS(SELECT 1 FROM attempts a WHERE a.competition_id=c.id)
+      );
+      UPDATE competitions c SET body = body || jsonb_build_object(
+        'questionCounts', jsonb_build_object('middle',20,'highschool',25,'university',30),
+        'answerMode','final_submission','frozenAt',NULL,'version',COALESCE((body->>'version')::int,0)+1)
+        WHERE c.id=(SELECT value #>> '{}' FROM settings WHERE id='current_competition')
+          AND body->>'state'='DRAFT' AND NOT EXISTS(SELECT 1 FROM attempts a WHERE a.competition_id=c.id);
+    `,
+  },
+  {
+    id: '012_meeting_saved_copy',
+    // Frozen SQL: future public-copy edits must not change this migration checksum.
+    sql: `UPDATE settings SET value=replace(value::text,'مسابقة الانتماءواللحمة الوطنية', 'مسابقة الانتماء واللحمة الوطنية')::jsonb WHERE id='site_content';
+UPDATE settings SET value=replace(value::text,'معرفة تُلهمنا. وانتماء يجمعنا.', 'معرفة تُلهمنا، وانتماء يجمعنا.')::jsonb WHERE id='site_content';
+UPDATE settings SET value=replace(value::text,'لطلاب وطالبات المتوسطة والثانوية', 'لطلاب وطالبات المرحلتين المتوسطة والثانوية')::jsonb WHERE id='site_content';
+UPDATE settings SET value=replace(value::text,'كتاب يفتح باب الانتماء.', 'كتاب يفتح آفاق الانتماء.')::jsonb WHERE id='site_content';
+UPDATE settings SET value=replace(value::text,'لمعرفتكم قيمة. ولتميّزكم تقدير.', 'لمعرفتكم قيمة، ولتميّزكم تقدير.')::jsonb WHERE id='site_content';
+UPDATE settings SET value=replace(value::text,'6 مراكز في كل مرحلة تعليمية', 'ستة مراكز للفائزين في كل مرحلة تعليمية')::jsonb WHERE id='site_content';
+UPDATE settings SET value=replace(value::text,'من أول صفحة، إلى مشاركة تفتخر بها.', 'من أول صفحة إلى مشاركة تفخر بها.')::jsonb WHERE id='site_content';
+UPDATE settings SET value=replace(value::text,'سجّل حضورك', 'سجّل مشاركتك')::jsonb WHERE id='site_content';
+UPDATE settings SET value=replace(value::text,'ثلاث خطوات. وأثرٌ يبقى.', 'ثلاث خطوات، وأثرٌ يبقى.')::jsonb WHERE id='site_content';
+UPDATE settings SET value=replace(value::text,'اقرأ. شارك. اترك أثرًا.', 'اقرأ، وشارك، واترك أثرًا.')::jsonb WHERE id='site_content';
+UPDATE settings SET value=replace(value::text,'لكل مرحلة، مساحة للمعرفة.', 'لكل مرحلة مساحة للمعرفة.')::jsonb WHERE id='site_content';
+UPDATE settings SET value=replace(value::text,'إجابات واضحة، لبداية مطمئنة.', 'إجابات واضحة لبداية مطمئنة.')::jsonb WHERE id='site_content';
+UPDATE settings SET value=replace(value::text,'صفحة جديدة تبدأ بك', 'رحلتك المعرفية تبدأ من هنا')::jsonb WHERE id='site_content';
+UPDATE settings SET value=replace(value::text,'خذ وقتك في القراءة. المعرفة تستحق.', 'تمهّل في القراءة؛ فالمعرفة تستحق التأمل.')::jsonb WHERE id='site_content';
+UPDATE settings SET value=replace(value::text,'خذ وقتك. المعرفة تستحق.', 'تمهّل في القراءة؛ فالمعرفة تستحق التأمل.')::jsonb WHERE id='site_content';
+UPDATE settings SET value=replace(value::text,'سياسة تثبيت الإجابات', 'آلية الإجابة وإرسال المشاركة')::jsonb WHERE id='site_content';
+UPDATE settings SET value=replace(value::text,'لكل مرحلة 20 سؤالًا', 'للمتوسطة 20 سؤالًا، وللثانوية 25 سؤالًا، وللجامعية 30 سؤالًا')::jsonb WHERE id='site_content';
+UPDATE settings SET value=replace(value::text,'يمكنك تعديل اختيارك حتى تضغط «تحقق من الإجابة»، وبعدها تُثبت الإجابة نهائيًا.', 'يمكنك تعديل إجاباتك حتى الإرسال النهائي، وبعده تُعتمد الإجابات ولا يمكن تغييرها.')::jsonb WHERE id='site_content';
+UPDATE settings SET value=replace(value::text,'تظهر الإجابة الصحيحة والتوضيح بعد تثبيت إجابتك فقط، ولا يمكن تغيير الإجابة المثبتة.', 'تظهر الإجابات الصحيحة والتوضيحات بعد الإرسال النهائي المؤكد من الخادم فقط، ولا يمكن تغيير الإجابات بعد الإرسال.')::jsonb WHERE id='site_content';
+UPDATE settings SET value=replace(value::text,'تظهر الإجابة الصحيحة والتوضيح بعد تثبيت إجابة السؤال، ولا يمكن تغيير الإجابة المثبتة.', 'يمكن تعديل جميع الإجابات حتى الإرسال النهائي. تظهر الإجابات الصحيحة والتوضيحات بعد استلام المشاركة نهائيًا.')::jsonb WHERE id='site_content';
+UPDATE settings SET value=replace(value::text,'تعتمد جميع الأسئلة على محتوى كتاب «الانتماء واللحمة الوطنية»، وتكون الأسئلة موضوعية فقط.', 'تعتمد الأسئلة على كتاب «الانتماء واللحمة الوطنية»، مع ثلاثة أسئلة عن الجهة المنظمة تستند إلى مصادر رسمية في كل مرحلة. جميع الأسئلة موضوعية.')::jsonb WHERE id='site_content';
+      UPDATE settings SET value=jsonb_set(value,'{bookTopics}',
+        '["تعريف الوطن والمواطنة والانتماء واللحمة الوطنية.","تأصيل الانتماء للوطن ومحبته في نصوص الوحيين.","الانتماء والمواطنة في حياة السلف الصالح.","الانتماء واللحمة الوطنية في الشريعة.","حقوق الانتماء إلى الوطن.","محاذير لا بد من التنبه لها."]'::jsonb)
+        WHERE id='site_content' AND value->'bookTopics'=
+        '["مفهوم الانتماء الوطني ومرتكزاته الشرعية.","اللحمة الوطنية وأثرها في مواجهة التحديات الفكرية.","دور الشباب في حماية المكتسبات الوطنية.","رؤية المملكة 2030 وتعزيز الهوية الوطنية.","صور واقعية للتماسك المجتمعي في المملكة."]'::jsonb;
+    `,
+  },
 ];
 export const migrationChecksum = (sql: string) => createHash('sha256').update(sql).digest('hex');
 export async function migrate(db: Database) {

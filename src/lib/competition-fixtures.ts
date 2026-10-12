@@ -1,5 +1,10 @@
 import { seedQuestions } from './seed';
-import { stageKeys, type CompetitionQuestion } from './competition-domain';
+import {
+  stageKeys,
+  questionCount,
+  type Competition,
+  type CompetitionQuestion,
+} from './competition-domain';
 import { officialBook } from './competition-service';
 // Synthetic UI fixtures only. These have no verified relationship to the PDF pages.
 export const competitionFixtures: CompetitionQuestion[] = stageKeys.flatMap((stage) =>
@@ -26,3 +31,13 @@ export const competitionFixtures: CompetitionQuestion[] = stageKeys.flatMap((sta
     };
   }),
 );
+
+export function fixturesForCampaign(c: Competition): CompetitionQuestion[] {
+  return stageKeys.flatMap((stage) =>
+    Array.from({ length: questionCount(c, stage) }, (_, i) => ({
+      ...competitionFixtures.filter((q) => q.stage === stage)[i % 20],
+      id: `${stage}-demo${String(i + 1).padStart(2, '0')}`,
+      title: `[تجريبي ${i + 1}] ${seedQuestions[i % seedQuestions.length].title}`,
+    })),
+  );
+}

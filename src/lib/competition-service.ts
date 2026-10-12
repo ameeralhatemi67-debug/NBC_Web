@@ -5,8 +5,24 @@ import type { Database, Queryable } from './database';
 import { AppError } from './domain';
 import type { Session } from './service';
 import { isLocalMode } from './runtime';
+import { defaultPrizes, type PrizeSettings } from './prizes';
+import {
+  PLACES,
+  awardAmount,
+  awardKey,
+  evaluateStage,
+  reasonProblem,
+  type Candidate,
+  type WinnersAnnouncement,
+} from './winners';
+import { registrationState } from './competition-domain';
+import { BookStore } from './book-store';
+import { resolveEligibility, validateEligibility, type Eligibility } from './eligibility';
 import {
   applyEvent,
+  finalSubmission,
+  meetingQuestionCounts,
+  questionCount,
   assertWindow,
   effectiveState,
   feedbackFor,
@@ -14,6 +30,7 @@ import {
   registeredStage,
   safeQuestions,
   stageKeys,
+  stageNames,
   validateBank,
   validateQuestion,
   type AnswerMap,
@@ -48,6 +65,8 @@ export function newCompetition(id: string, bookVersionId = officialBook.id): Com
     bookVersionId,
     frozenAt: null,
     version: 1,
+    questionCounts: { ...meetingQuestionCounts },
+    answerMode: 'final_submission',
   };
 }
 function requireRole(s: Session, roles: string[]) {
@@ -88,7 +107,8 @@ function shuffled<T>(items: T[]): T[] {
 }
 export function snapshotQuestions(questions: CompetitionQuestion[]) {
   return shuffled(questions).map((q) => {
-    const order = shuffled(q.options.map((_, i) => i));
+    const indices = q.options.map((_, i) => i);
+    const order = q.preserveOptionOrder ? indices : shuffled(indices);
     const correctAnswers = q.correctAnswers.map((i) => order.indexOf(i));
     return {
       ...q,
@@ -118,6 +138,37 @@ export class CompetitionService {
     ).rows[0]?.body;
     if (!c || c.id === 'legacy-demo') throw new AppError('المسابقة غير مهيأة.', 409);
     return c;
+  }
+  // Public registration options. Existing participants keep their stored region and city.
+  // Registration policy for the OTP service: open/closed, per-phone cap and the allowed places.
+  async registrationInfo() {
+    const c = await this.current().catch(() => null);
+    return {
+      eligibility: resolveEligibility(c),
+      ...(c ? registrationState(c, this.now()) : { open: true, reason: null, maxPerPhone: 3 }),
+    };
+  }
+  // Public, read-only summary the home and registration pages use.
+  async publicStatus() {
+    const c = await this.current();
+    const state = effectiveState(c, this.now());
+    return {
+      title: c.title,
+      state,
+      opensAt: c.opensAt,
+      closesAt: c.closesAt,
+      closedAt: c.closedAt,
+      registration: registrationState(c, this.now()),
+      winnersPublished: await this.isPublished(this.db, c.id),
+      questionCounts: Object.fromEntries(
+        stageKeys.map((stage) => [stage, questionCount(c, stage)]),
+      ) as Record<Stage, number>,
+      answerMode: c.answerMode ?? 'per_question',
+    };
+  }
+  async registrationOptions(): Promise<Eligibility> {
+    // Before the first competition record exists the original default (الشرقية) applies.
+    return resolveEligibility(await this.current().catch(() => null));
   }
   async book(c: Competition, tx: Queryable = this.db) {
     const book = (
@@ -171,7 +222,7 @@ export class CompetitionService {
             id: a.id,
             questions: safeQuestions(a.questions),
             answers: a.answers,
-            feedback: feedbackFor(c, a.questions, a.answers),
+            feedback: feedbackFor(c, a.questions, a.answers, Boolean(a.submitted_at)),
             revision: a.revision,
             submittedAt: a.submitted_at,
             participantNumber: a.participant_number,
@@ -230,7 +281,8 @@ export class CompetitionService {
           [c.id, stage],
         )
       ).rows[0]?.questions;
-      if (!bank || bank.length !== 20) throw new AppError('بنك المرحلة غير مكتمل.', 409);
+      if (!bank || bank.length !== questionCount(c, stage))
+        throw new AppError('بنك المرحلة غير مكتمل.', 409);
       const questions = snapshotQuestions(bank);
       const id = randomUUID();
       let number: string;
@@ -247,8 +299,8 @@ export class CompetitionService {
         ).rows.length
       );
       await tx.query(
-        'INSERT INTO attempts(id,participant_id,competition_id,stage,participant_number,questions,max_score) VALUES($1,$2,$3,$4,$5,$6,20)',
-        [id, s.participant_id, c.id, stage, number, JSON.stringify(questions)],
+        'INSERT INTO attempts(id,participant_id,competition_id,stage,participant_number,questions,max_score) VALUES($1,$2,$3,$4,$5,$6,$7)',
+        [id, s.participant_id, c.id, stage, number, JSON.stringify(questions), questions.length],
       );
       for (const [i, q] of questions.entries())
         await tx.query('INSERT INTO attempt_questions VALUES($1,$2,$3,$4)', [
@@ -345,6 +397,7 @@ export class CompetitionService {
             [c.id, test],
           )
         ).rows.map((r) => r.question_id),
+        c,
       );
       if (test) {
         await tx.query(
@@ -364,6 +417,13 @@ export class CompetitionService {
             'INSERT INTO attempt_answers(attempt_id,question_id,selected,checked_at) VALUES($1,$2,$3,$4) ON CONFLICT(attempt_id,question_id) DO UPDATE SET selected=excluded.selected,checked_at=excluded.checked_at,synced_at=now()',
             [a.id, e.questionId, JSON.stringify(answer.selected), answer.checkedAt],
           );
+        }
+        if (e.kind === 'SUBMIT' && finalSubmission(c)) {
+          for (const [questionId, answer] of Object.entries(result.answers))
+            await tx.query(
+              'UPDATE attempt_answers SET checked_at=$1,synced_at=now() WHERE attempt_id=$2 AND question_id=$3',
+              [answer.checkedAt, a.id, questionId],
+            );
         }
         await tx.query(
           'UPDATE attempts SET revision=revision+1,submitted_at=$1,score=$2,percentage=$3,receipt=$4 WHERE id=$5',
@@ -389,7 +449,11 @@ export class CompetitionService {
     });
     return test ? this.testState(s, e.attemptId) : this.state(s, competitionId);
   }
-  async leaderboard(id: string | undefined, stage: Stage) {
+  async leaderboard(
+    id: string | undefined,
+    stage: Stage,
+    options: { page?: number; pageSize?: number; me?: string } = {},
+  ) {
     if (!stageKeys.includes(stage)) throw new AppError('مرحلة غير صالحة.');
     const c = await this.current(this.db, id);
     if (!(
@@ -398,27 +462,55 @@ export class CompetitionService {
         effectiveState(c, this.now()) === 'RESULTS_PUBLISHED')
     ))
       throw new AppError('قائمة الترتيب غير منشورة.', 403);
+    const pageSize = Math.min(100, Math.max(1, Math.trunc(options.pageSize ?? 50) || 50));
+    const page = Math.max(1, Math.trunc(options.page ?? 1) || 1);
+    // Ranking is done in SQL so a large stage is never loaded whole: equal percentages share a rank.
+    const ranked =
+      'SELECT participant_number,score,max_score,percentage,RANK() OVER (ORDER BY percentage DESC) AS rank FROM attempts WHERE competition_id=$1 AND stage=$2 AND submitted_at IS NOT NULL';
+    type Row = {
+      participant_number: string;
+      score: number;
+      max_score: number;
+      percentage: number;
+      rank: string | number;
+    };
+    const toEntry = (r: Row) => ({
+      participantNumber: r.participant_number,
+      score: Number(r.score),
+      maxScore: Number(r.max_score),
+      percentage: Number(r.percentage),
+      rank: Number(r.rank),
+    });
     const rows = (
-      await this.db.query<{
-        participant_number: string;
-        score: number;
-        max_score: number;
-        percentage: number;
-      }>(
-        'SELECT participant_number,score,max_score,percentage FROM attempts WHERE competition_id=$1 AND stage=$2 AND submitted_at IS NOT NULL',
-        [c.id, stage],
+      await this.db.query<Row>(
+        `SELECT * FROM (${ranked}) t ORDER BY rank,participant_number LIMIT $3 OFFSET $4`,
+        [c.id, stage, pageSize, (page - 1) * pageSize],
       )
     ).rows;
+    const total = Number(
+      (
+        await this.db.query<{ n: string }>(
+          'SELECT count(*) AS n FROM attempts WHERE competition_id=$1 AND stage=$2 AND submitted_at IS NOT NULL',
+          [c.id, stage],
+        )
+      ).rows[0].n,
+    );
+    const mine = options.me
+      ? (
+          await this.db.query<Row>(`SELECT * FROM (${ranked}) t WHERE participant_number=$3`, [
+            c.id,
+            stage,
+            options.me,
+          ])
+        ).rows[0]
+      : undefined;
     return {
       stage,
-      entries: rankResults(
-        rows.map((r) => ({
-          participantNumber: r.participant_number,
-          score: r.score,
-          maxScore: r.max_score,
-          percentage: r.percentage,
-        })),
-      ),
+      entries: rows.map(toEntry),
+      total,
+      page,
+      pageSize,
+      mine: mine ? toEntry(mine) : null,
     };
   }
   async testState(s: Session, id: string, tx: Queryable = this.db) {
@@ -459,15 +551,16 @@ export class CompetitionService {
       ).rows.map((q) => q.body);
     // Synthetic content exists only inside owned test snapshots, never in the
     // question bank, participant attempts, or a frozen production competition.
-    if (questions.length !== 20 && body.synthetic === true) {
-      const { competitionFixtures } = await import('./competition-fixtures');
-      questions = competitionFixtures
+    const count = questionCount(c, stage);
+    if (questions.length !== count && body.synthetic === true) {
+      const { fixturesForCampaign } = await import('./competition-fixtures');
+      questions = fixturesForCampaign(c)
         .filter((q) => q.stage === stage)
         .map((q) => ({ ...q, bookVersionId: c.bookVersionId, approved: false }));
     }
-    if (questions.length !== 20)
+    if (questions.length !== count)
       throw new AppError(
-        'أضف 20 سؤالًا للمرحلة قبل التجربة. يمكن تجربة المسودات دون اعتمادها.',
+        `أضف ${count} سؤالًا للمرحلة قبل التجربة. يمكن تجربة المسودات دون اعتمادها.`,
         409,
       );
     const book = await this.book(c, tx);
@@ -537,7 +630,7 @@ export class CompetitionService {
           participantNumber: r.participant_number,
           score: r.score,
           percentage: r.percentage,
-          maxScore: 20,
+          maxScore: questionCount(state.competition, registeredStage(state.participant.stage)),
         })),
       ),
     };
@@ -549,6 +642,7 @@ export class CompetitionService {
       published: effectiveState(c, this.now()) === 'RESULTS_PUBLISHED',
       competition: { ...c, state: effectiveState(c, this.now()) },
       book: await this.book(c),
+      books: await new BookStore(this.db).list(),
       competitions: (
         await this.db.query<{ body: Competition }>(
           'SELECT body FROM competitions ORDER BY created_at',
@@ -579,6 +673,8 @@ export class CompetitionService {
         const next = {
           ...newCompetition(randomUUID(), c.bookVersionId),
           ...(isLocalMode() && c.fixture ? { fixture: true } : {}),
+          // A new campaign starts with the previous campaign's regions; the admin can change them.
+          ...(c.eligibility ? { eligibility: c.eligibility } : {}),
         };
         next.title = String(body.title || 'مسابقة جديدة').slice(0, 160);
         await tx.query('INSERT INTO competitions(id,body) VALUES($1,$2)', [
@@ -592,7 +688,18 @@ export class CompetitionService {
         return;
       }
       if (body.version !== c.version) throw new AppError('إعدادات أحدث. حدّث الصفحة.', 409);
-      if (body.action === 'freeze') {
+      if (body.action === 'adopt-meeting-rules') {
+        if (
+          effectiveState(c, this.now()) !== 'DRAFT' ||
+          (await tx.query('SELECT id FROM attempts WHERE competition_id=$1 LIMIT 1', [c.id])).rows
+            .length
+        )
+          throw new AppError('يمكن تطبيق قواعد الاجتماع على مسابقة مسودة بلا محاولات فقط.', 409);
+        c.questionCounts = { ...meetingQuestionCounts };
+        c.answerMode = 'final_submission';
+        c.frozenAt = null;
+        await tx.query('DELETE FROM competition_question_sets WHERE competition_id=$1', [c.id]);
+      } else if (body.action === 'freeze') {
         if (!['DRAFT', 'SCHEDULED'].includes(effectiveState(c, this.now())))
           throw new AppError('لا يمكن تغيير نسخة مسابقة بدأت.', 409);
         const book = await this.book(c, tx);
@@ -603,13 +710,23 @@ export class CompetitionService {
             [book.id],
           )
         ).rows.map((r) => r.body);
-        validateBank(bank, book, isLocalMode() && c.fixture === true);
+        validateBank(bank, book, isLocalMode() && c.fixture === true, c);
         for (const stage of stageKeys)
           await tx.query(
             'INSERT INTO competition_question_sets VALUES($1,$2,$3) ON CONFLICT(competition_id,stage) DO UPDATE SET questions=excluded.questions',
             [c.id, stage, JSON.stringify(bank.filter((q) => q.stage === stage))],
           );
         c.frozenAt = new Date(this.now()).toISOString();
+      } else if (body.action === 'set-book') {
+        if (effectiveState(c, this.now()) !== 'DRAFT' || c.frozenAt)
+          throw new AppError('لا يمكن تغيير الكتاب بعد اعتماد نسخة الأسئلة.', 409);
+        const next = (
+          await tx.query<{ body: BookVersion }>('SELECT body FROM book_versions WHERE id=$1', [
+            typeof body.bookVersionId === 'string' ? body.bookVersionId : '',
+          ])
+        ).rows[0]?.body;
+        if (!next) throw new AppError('نسخة الكتاب غير موجودة.', 404);
+        c.bookVersionId = next.id;
       } else if (body.action === 'approve-book') {
         const b = await this.book(c, tx);
         await this.verifyBook(b);
@@ -674,6 +791,17 @@ export class CompetitionService {
           throw new AppError('مواعيد غير صالحة.');
         if (c.state === 'RESULTS_PUBLISHED')
           throw new AppError('اسحب النشر قبل تغيير السياسة.', 409);
+        if (body.registrationPaused !== undefined && typeof body.registrationPaused !== 'boolean')
+          throw new AppError('إعداد إيقاف التسجيل غير صالح.');
+        if (
+          body.maxPerPhone !== undefined &&
+          (!Number.isInteger(body.maxPerPhone) ||
+            Number(body.maxPerPhone) < 1 ||
+            Number(body.maxPerPhone) > 20)
+        )
+          throw new AppError('الحد الأقصى للتسجيلات لكل جوال يجب أن يكون من 1 إلى 20.');
+        const eligibility: Eligibility | undefined =
+          body.eligibility === undefined ? c.eligibility : validateEligibility(body.eligibility);
         if (
           body.scheduled &&
           (!c.frozenAt || !opensAt || !closesAt || effectiveState(c, this.now()) !== 'DRAFT')
@@ -689,6 +817,11 @@ export class CompetitionService {
           opensAt,
           closesAt,
           state: body.scheduled ? 'SCHEDULED' : c.state,
+          ...(eligibility ? { eligibility } : {}),
+          ...(body.registrationPaused !== undefined
+            ? { registrationPaused: body.registrationPaused as boolean }
+            : {}),
+          ...(body.maxPerPhone !== undefined ? { maxPerPhone: Number(body.maxPerPhone) } : {}),
         };
       } else throw new AppError('إجراء غير صالح.');
       c.version++;
@@ -700,7 +833,10 @@ export class CompetitionService {
   async verifyBook(b: BookVersion) {
     if (!/^\/books\/[a-f0-9]{64}\.pdf$/.test(b.url))
       throw new AppError('مسار نسخة الكتاب غير صالح.', 409);
-    const bytes = await readFile(path.join(process.cwd(), 'public', b.url)).catch(() => null);
+    // Uploaded books live in the database; the bundled book is a checksum-named public file.
+    const bytes = b.parts
+      ? await new BookStore(this.db).whole(b.sha256)
+      : await readFile(path.join(process.cwd(), 'public', b.url)).catch(() => null);
     if (!bytes || createHash('sha256').update(bytes).digest('hex') !== b.sha256)
       throw new AppError('ملف نسخة الكتاب مفقود أو تغير. شغّل تجهيز الأصول.', 409);
   }
@@ -741,10 +877,25 @@ export class CompetitionService {
           source: String(body.source ?? ''),
           stage: body.stage as Stage,
           type: body.type as CompetitionQuestion['type'],
-          pdfPage: Number(body.pdfPage),
-          printedPage: Number(body.printedPage),
-          hintPdfPageStart: Number(body.hintPdfPageStart),
-          hintPdfPageEnd: Number(body.hintPdfPageEnd),
+          pdfPage: body.pdfPage === null ? null : Number(body.pdfPage),
+          ...(body.pdfPageEnd !== undefined ? { pdfPageEnd: Number(body.pdfPageEnd) } : {}),
+          printedPage: body.printedPage === null ? null : Number(body.printedPage),
+          hintPdfPageStart: body.hintPdfPageStart === null ? null : Number(body.hintPdfPageStart),
+          hintPdfPageEnd: body.hintPdfPageEnd === null ? null : Number(body.hintPdfPageEnd),
+          ...(body.printedPageEnd !== undefined
+            ? { printedPageEnd: Number(body.printedPageEnd) }
+            : {}),
+          ...(body.sourceKind !== undefined
+            ? { sourceKind: body.sourceKind as CompetitionQuestion['sourceKind'] }
+            : {}),
+          ...(body.sourceUrl !== undefined ? { sourceUrl: String(body.sourceUrl) } : {}),
+          ...(body.sourceRow !== undefined ? { sourceRow: String(body.sourceRow) } : {}),
+          ...(body.sourceVerified !== undefined
+            ? { sourceVerified: body.sourceVerified as boolean }
+            : {}),
+          ...(body.preserveOptionOrder !== undefined
+            ? { preserveOptionOrder: body.preserveOptionOrder as boolean }
+            : {}),
           answerExplanation: String(body.answerExplanation ?? ''),
           topic: String(body.topic ?? ''),
           difficulty: body.difficulty as CompetitionQuestion['difficulty'],
@@ -756,7 +907,7 @@ export class CompetitionService {
           approved: false,
         };
       }
-      validateQuestion(next, book);
+      validateQuestion(next, book, next.approved);
       if (next.approved && next.fixture && !isLocalMode())
         throw new AppError('لا يمكن اعتماد سؤال تجريبي في الإنتاج.', 409);
       await tx.query(
@@ -832,6 +983,8 @@ export class CompetitionService {
       await tx.query('SELECT id FROM competitions WHERE id=$1 FOR UPDATE', [c.id]);
       c = await this.current(tx, c.id);
       if (c.state === 'RESULTS_PUBLISHED') throw new AppError('اسحب النشر قبل تصحيح النتائج.', 409);
+      if (await this.isPublished(tx, c.id))
+        throw new AppError('اسحب نشر الفائزين قبل تصحيح النتائج.', 409);
       const sets = (
         await tx.query<{ questions: CompetitionQuestion[] }>(
           'SELECT questions FROM competition_question_sets WHERE competition_id=$1',
@@ -901,12 +1054,316 @@ export class CompetitionService {
       });
     });
   }
+  // ---- Winners: committee decisions, then an explicit public announcement ----
+  private async prizeSettings(tx: Queryable): Promise<PrizeSettings> {
+    const row = (
+      await tx.query<{ value: PrizeSettings }>("SELECT value FROM settings WHERE id='prizes'")
+    ).rows[0];
+    return row?.value ?? defaultPrizes;
+  }
+  // Winners are chosen only after scores can no longer change, like result publication.
+  private async assertFinal(tx: Queryable, c: Competition) {
+    const state = effectiveState(c, this.now());
+    if (state !== 'CLOSED' && state !== 'RESULTS_PUBLISHED')
+      throw new AppError('أغلق المسابقة قبل اختيار الفائزين.', 409);
+    const close = c.closedAt ?? c.closesAt;
+    if (
+      c.closingPolicy === 'grace' &&
+      close &&
+      this.now() < Date.parse(close) + c.graceMinutes * 60000
+    )
+      throw new AppError('انتظر انتهاء مهلة المزامنة قبل اختيار الفائزين.', 409);
+    if (
+      (
+        await tx.query('SELECT id FROM attempts WHERE competition_id=$1 AND recovery_until > $2', [
+          c.id,
+          new Date(this.now()),
+        ])
+      ).rows.length
+    )
+      throw new AppError('انتظر انتهاء مهلة المعالجة التقنية.', 409);
+  }
+  private async isPublished(tx: Queryable, competitionId: string) {
+    return !!(
+      await tx.query('SELECT 1 FROM competition_winner_publications WHERE competition_id=$1', [
+        competitionId,
+      ])
+    ).rows.length;
+  }
+  async winners(s: Session) {
+    requireRole(s, ['admin']);
+    const c = await this.current();
+    const prizes = await this.prizeSettings(this.db);
+    let blocker = '';
+    try {
+      await this.assertFinal(this.db, c);
+    } catch (e) {
+      if (!(e instanceof AppError)) throw e;
+      blocker = e.message;
+    }
+    const awards = (
+      await this.db.query<{
+        award_key: string;
+        stage: Stage | null;
+        place: number;
+        attempt_id: string | null;
+        label: string | null;
+        reason: string | null;
+        decided_by: string;
+        decided_at: string;
+      }>('SELECT * FROM competition_awards WHERE competition_id=$1 ORDER BY stage,place', [c.id])
+    ).rows;
+    const publication = (
+      await this.db.query<{ published_at: string; published_by: string; show_names: boolean }>(
+        'SELECT published_at,published_by,show_names FROM competition_winner_publications WHERE competition_id=$1',
+        [c.id],
+      )
+    ).rows[0];
+    const select =
+      'SELECT a.id AS "attemptId",a.participant_number AS "participantNumber",p.name,p.institution,a.stage,a.score,a.max_score AS "maxScore",a.percentage FROM attempts a JOIN participants p ON p.id=a.participant_id';
+    const stages = [];
+    for (const stage of stageKeys) {
+      const own = awards.filter((a) => a.stage === stage);
+      const top = (
+        await this.db.query<Candidate>(
+          `${select} WHERE a.competition_id=$1 AND a.stage=$2 AND a.submitted_at IS NOT NULL ORDER BY a.percentage DESC,a.participant_number LIMIT 60`,
+          [c.id, stage],
+        )
+      ).rows;
+      const missing = own
+        .map((a) => a.attempt_id!)
+        .filter((id) => !top.some((t) => t.attemptId === id));
+      if (missing.length)
+        top.push(
+          ...(await this.db.query<Candidate>(`${select} WHERE a.id = ANY($1::text[])`, [missing]))
+            .rows,
+        );
+      const submitted = Number(
+        (
+          await this.db.query<{ n: string }>(
+            'SELECT count(*) AS n FROM attempts WHERE competition_id=$1 AND stage=$2 AND submitted_at IS NOT NULL',
+            [c.id, stage],
+          )
+        ).rows[0].n,
+      );
+      stages.push({
+        stage,
+        submitted,
+        candidates: top.map((t) => ({
+          ...t,
+          score: Number(t.score),
+          maxScore: Number(t.maxScore),
+          percentage: Number(t.percentage),
+        })),
+        places: Array.from({ length: PLACES }, (_, i) => ({
+          place: i + 1,
+          attemptId: own.find((a) => a.place === i + 1)?.attempt_id ?? null,
+          amount: awardAmount(prizes, stage, i + 1),
+        })),
+        reason: own[0]?.reason ?? '',
+        decidedBy: own[0]?.decided_by ?? null,
+        decidedAt: own[0]?.decided_at ?? null,
+      });
+    }
+    const media = awards.find((a) => a.award_key === 'media');
+    return {
+      competition: { id: c.id, title: c.title, state: effectiveState(c, this.now()) },
+      blocker,
+      stages,
+      media: {
+        label: media?.label ?? '',
+        amount: prizes.mediaPrize,
+        decidedBy: media?.decided_by ?? null,
+        decidedAt: media?.decided_at ?? null,
+      },
+      publication: publication
+        ? {
+            publishedAt: publication.published_at,
+            publishedBy: publication.published_by,
+            showNames: publication.show_names,
+          }
+        : null,
+    };
+  }
+  async saveWinners(s: Session, body: Record<string, unknown>) {
+    requireRole(s, ['admin']);
+    const stage = body.stage as Stage;
+    if (!stageKeys.includes(stage)) throw new AppError('مرحلة غير صالحة.');
+    if (!Array.isArray(body.places) || body.places.length !== PLACES)
+      throw new AppError(`يلزم ${PLACES} مراكز.`);
+    const places = body.places.map((p) => (typeof p === 'string' && p ? p : null));
+    const reason = String(body.reason ?? '').trim();
+    await this.db.transaction(async (tx) => {
+      const c0 = await this.current(tx);
+      await tx.query('SELECT id FROM competitions WHERE id=$1 FOR UPDATE', [c0.id]);
+      const c = await this.current(tx, c0.id);
+      await this.assertFinal(tx, c);
+      if (await this.isPublished(tx, c.id))
+        throw new AppError('اسحب نشر الفائزين قبل تعديل القرار.', 409);
+      const rows = (
+        await tx.query<{ attemptId: string; percentage: number }>(
+          'SELECT id AS "attemptId",percentage FROM attempts WHERE competition_id=$1 AND stage=$2 AND submitted_at IS NOT NULL',
+          [c.id, stage],
+        )
+      ).rows.map((r) => ({ attemptId: r.attemptId, percentage: Number(r.percentage) }));
+      const evaluation = evaluateStage(rows, places);
+      if (evaluation.errors.length) throw new AppError(evaluation.errors[0]);
+      const problem = reasonProblem(evaluation, reason);
+      if (problem) throw new AppError(problem);
+      const before = (
+        await tx.query<{ place: number; attempt_id: string }>(
+          'SELECT place,attempt_id FROM competition_awards WHERE competition_id=$1 AND stage=$2 ORDER BY place',
+          [c.id, stage],
+        )
+      ).rows;
+      await tx.query('DELETE FROM competition_awards WHERE competition_id=$1 AND stage=$2', [
+        c.id,
+        stage,
+      ]);
+      for (const [i, attemptId] of places.entries())
+        if (attemptId)
+          await tx.query(
+            'INSERT INTO competition_awards(competition_id,award_key,stage,place,attempt_id,reason,decided_by) VALUES($1,$2,$3,$4,$5,$6,$7)',
+            [c.id, awardKey(stage, i + 1), stage, i + 1, attemptId, reason || null, actor(s)],
+          );
+      const { errors: _errors, ...flags } = evaluation;
+      await audit(tx, s, 'اختيار فائزي المرحلة', {
+        competitionId: c.id,
+        stage,
+        before,
+        after: places,
+        reason,
+        flags,
+      });
+    });
+    return this.winners(s);
+  }
+  async saveMediaWinner(s: Session, body: Record<string, unknown>) {
+    requireRole(s, ['admin']);
+    const label = String(body.label ?? '').trim();
+    if (label.length > 160) throw new AppError('اسم الفائز بجائزة الإعلام طويل جدًا.');
+    await this.db.transaction(async (tx) => {
+      const c0 = await this.current(tx);
+      await tx.query('SELECT id FROM competitions WHERE id=$1 FOR UPDATE', [c0.id]);
+      const c = await this.current(tx, c0.id);
+      if (await this.isPublished(tx, c.id))
+        throw new AppError('اسحب نشر الفائزين قبل تعديل القرار.', 409);
+      await tx.query(
+        "DELETE FROM competition_awards WHERE competition_id=$1 AND award_key='media'",
+        [c.id],
+      );
+      if (label)
+        await tx.query(
+          "INSERT INTO competition_awards(competition_id,award_key,stage,place,label,decided_by) VALUES($1,'media',NULL,1,$2,$3)",
+          [c.id, label, actor(s)],
+        );
+      await audit(tx, s, 'اختيار فائز الإعلام', { competitionId: c.id, label });
+    });
+    return this.winners(s);
+  }
+  async publishWinners(s: Session, body: Record<string, unknown>) {
+    requireRole(s, ['admin']);
+    if (typeof body.showNames !== 'boolean') throw new AppError('حدد طريقة عرض الفائزين.');
+    const showNames = body.showNames;
+    await this.db.transaction(async (tx) => {
+      const c0 = await this.current(tx);
+      await tx.query('SELECT id FROM competitions WHERE id=$1 FOR UPDATE', [c0.id]);
+      const c = await this.current(tx, c0.id);
+      await this.assertFinal(tx, c);
+      const prizes = await this.prizeSettings(tx);
+      const rows = (
+        await tx.query<{
+          stage: Stage;
+          place: number;
+          participant_number: string;
+          score: number;
+          max_score: number;
+          name: string;
+          institution: string | null;
+        }>(
+          'SELECT aw.stage,aw.place,a.participant_number,a.score,a.max_score,p.name,p.institution FROM competition_awards aw JOIN attempts a ON a.id=aw.attempt_id JOIN participants p ON p.id=a.participant_id WHERE aw.competition_id=$1 AND aw.stage IS NOT NULL ORDER BY aw.place',
+          [c.id],
+        )
+      ).rows;
+      const stages: WinnersAnnouncement['stages'] = [];
+      for (const stage of stageKeys) {
+        const own = rows.filter((r) => r.stage === stage);
+        const submitted = Number(
+          (
+            await tx.query<{ n: string }>(
+              'SELECT count(*) AS n FROM attempts WHERE competition_id=$1 AND stage=$2 AND submitted_at IS NOT NULL',
+              [c.id, stage],
+            )
+          ).rows[0].n,
+        );
+        if (submitted > 0 && !own.length)
+          throw new AppError(`حدد فائزي ${stageNames[stage]} قبل النشر.`, 409);
+        stages.push({
+          stage,
+          awards: own.map((r) => ({
+            place: r.place,
+            amount: awardAmount(prizes, stage, r.place),
+            participantNumber: r.participant_number,
+            score: Number(r.score),
+            maxScore: Number(r.max_score),
+            ...(showNames ? { name: r.name, institution: r.institution } : {}),
+          })),
+        });
+      }
+      const media = (
+        await tx.query<{ label: string }>(
+          "SELECT label FROM competition_awards WHERE competition_id=$1 AND award_key='media'",
+          [c.id],
+        )
+      ).rows[0];
+      const snapshot: WinnersAnnouncement = {
+        competitionId: c.id,
+        title: c.title,
+        publishedAt: new Date(this.now()).toISOString(),
+        showNames,
+        stages,
+        media: media ? { label: media.label, amount: prizes.mediaPrize } : null,
+      };
+      await tx.query(
+        'INSERT INTO competition_winner_publications(competition_id,published_at,published_by,show_names,snapshot) VALUES($1,$2,$3,$4,$5) ON CONFLICT(competition_id) DO UPDATE SET published_at=excluded.published_at,published_by=excluded.published_by,show_names=excluded.show_names,snapshot=excluded.snapshot',
+        [c.id, snapshot.publishedAt, actor(s), showNames, JSON.stringify(snapshot)],
+      );
+      await audit(tx, s, 'نشر إعلان الفائزين', { competitionId: c.id, showNames });
+    });
+    return this.winners(s);
+  }
+  async withdrawWinners(s: Session) {
+    requireRole(s, ['admin']);
+    await this.db.transaction(async (tx) => {
+      const c = await this.current(tx);
+      await tx.query('SELECT id FROM competitions WHERE id=$1 FOR UPDATE', [c.id]);
+      const removed = await tx.query(
+        'DELETE FROM competition_winner_publications WHERE competition_id=$1 RETURNING competition_id',
+        [c.id],
+      );
+      if (!removed.rows.length) throw new AppError('إعلان الفائزين غير منشور.', 409);
+      await audit(tx, s, 'سحب إعلان الفائزين', { competitionId: c.id });
+    });
+    return this.winners(s);
+  }
+  // Public: only the frozen snapshot the committee published, never live awards.
+  async publicWinners(id?: string): Promise<WinnersAnnouncement | null> {
+    const c = await this.current(this.db, id);
+    return (
+      (
+        await this.db.query<{ snapshot: WinnersAnnouncement }>(
+          'SELECT snapshot FROM competition_winner_publications WHERE competition_id=$1',
+          [c.id],
+        )
+      ).rows[0]?.snapshot ?? null
+    );
+  }
 }
 
 export async function initializeCompetition(db: Database) {
   const fixtures =
     isLocalMode() && db.kind === 'pglite'
-      ? (await import('./competition-fixtures')).competitionFixtures
+      ? (await import('./competition-fixtures')).fixturesForCampaign(newCompetition('local'))
       : null;
   await db.transaction(async (tx) => {
     await tx.query('INSERT INTO book_versions(id,body) VALUES($1,$2) ON CONFLICT DO NOTHING', [

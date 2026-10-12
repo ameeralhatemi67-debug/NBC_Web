@@ -37,9 +37,9 @@ try {
   const tables = (
     await operator.query("SELECT tablename,rowsecurity FROM pg_tables WHERE schemaname='nbc'")
   ).rows;
-  assert.equal(tables.length, 22);
+  assert.equal(tables.length, 27);
   assert.ok(tables.every((t) => t.rowsecurity));
-  pass('source-derived fresh export creates 22 private tables with RLS');
+  pass('source-derived fresh export creates 27 private tables with RLS');
   for (const role of ['anon', 'authenticated', 'service_role']) {
     await operator.query(`SET ROLE ${role}`);
     await assert.rejects(operator.query('SELECT * FROM nbc.settings'), /permission denied/);

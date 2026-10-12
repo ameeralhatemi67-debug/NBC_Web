@@ -3,16 +3,14 @@ import { useState } from 'react';
 import {
   stageKeys,
   stageNames,
+  questionCount,
+  hintTarget,
+  type Competition,
   type BookVersion,
   type CompetitionQuestion,
   type Stage,
 } from '@/lib/competition-domain';
-import {
-  derivedHint,
-  questionBlocked,
-  questionChecks,
-  withDerivedHint,
-} from '@/lib/admin-workshop';
+import { questionBlocked, questionChecks, withDerivedHint } from '@/lib/admin-workshop';
 import { AdminPageViewer } from './admin-page-viewer';
 import { AnswerFeedback, AnswerOption } from './question-card-parts';
 import { Icon } from './ui';
@@ -21,9 +19,11 @@ import { Icon } from './ui';
 export function QuestionPreview({
   q,
   onOpenSource,
+  count = 20,
 }: {
   q: CompetitionQuestion;
   onOpenSource: (page: number) => void;
+  count?: number;
 }) {
   const options = q.options.map((option, i) => ({ option, i }));
   return (
@@ -32,7 +32,7 @@ export function QuestionPreview({
         <section className="question-card">
           <header className="question-toolbar">
             <span>
-              السؤال <bdi dir="ltr">1 / 20</bdi>
+              السؤال <bdi dir="ltr">1 / {count}</bdi>
             </span>
           </header>
           <div className="question-body">
@@ -60,14 +60,17 @@ export function QuestionPreview({
               })}
             </fieldset>
             <AnswerFeedback status="correct" explanation={q.answerExplanation.trim() || '...'}>
-              <button
-                type="button"
-                className="source-page-chip"
-                onClick={() => onOpenSource(q.pdfPage)}
-              >
-                <Icon name="book" size={16} />
-                افتح الصفحة <bdi dir="ltr">{q.pdfPage}</bdi>
-              </button>
+              {q.pdfPage !== null && (
+                <button
+                  type="button"
+                  className="source-page-chip"
+                  onClick={() => q.pdfPage !== null && onOpenSource(q.pdfPage)}
+                >
+                  <Icon name="book" size={16} />
+                  افتح الصفحة <bdi dir="ltr">{q.pdfPage}</bdi>
+                </button>
+              )}
+              {q.sourceKind === 'official' && <span>مصدر رسمي مستقل عن الكتاب</span>}
             </AnswerFeedback>
           </div>
         </section>
@@ -82,18 +85,21 @@ export function AdminQuestionEditor({
   busy,
   onSave,
   onClose,
+  campaign,
 }: {
   draft: CompetitionQuestion;
   book: BookVersion;
   busy: boolean;
   onSave: (question: CompetitionQuestion) => Promise<unknown>;
   onClose: () => void;
+  campaign?: Competition;
 }) {
   const [q, setQ] = useState(draft);
-  const [viewerPage, setViewerPage] = useState(draft.pdfPage);
+  const [viewerPage, setViewerPage] = useState(draft.pdfPage ?? 1);
   const checks = questionChecks(q, book);
   const blocked = questionBlocked(checks);
-  const hint = derivedHint(q.pdfPage);
+  const target = hintTarget(q);
+  const hint = { hintPdfPageStart: target?.[0], hintPdfPageEnd: target?.[1] };
   const set = (patch: Partial<CompetitionQuestion>) => setQ({ ...q, ...patch });
   return (
     <form
@@ -102,12 +108,13 @@ export function AdminQuestionEditor({
       onSubmit={async (event) => {
         event.preventDefault();
         if (blocked) return;
-        // The hint is derived: always the source page and the one before it.
+        // The hint follows the recorded range, or the source page and its predecessor.
         const result = await onSave(withDerivedHint(q));
         if (result !== false) onClose();
       }}
     >
       <h3>السؤال {q.id}</h3>
+      {q.sourceRow && <p className="field-hint">مرجع الملف الأصلي: {q.sourceRow}</p>}
       <div className="editor-split">
         <div className="editor-fields">
           <label>
@@ -171,37 +178,104 @@ export function AdminQuestionEditor({
               </label>
             </div>
           ))}
-          <div className="field-grid">
+          <label>
+            نوع المصدر
+            <select
+              value={q.sourceKind ?? 'book'}
+              onChange={(e) =>
+                set({
+                  sourceKind: e.target.value as 'book' | 'official',
+                  sourceVerified: false,
+                  ...(e.target.value === 'official'
+                    ? {
+                        pdfPage: null,
+                        pdfPageEnd: undefined,
+                        printedPage: null,
+                        printedPageEnd: undefined,
+                        hintPdfPageStart: null,
+                        hintPdfPageEnd: null,
+                      }
+                    : {}),
+                })
+              }
+            >
+              <option value="book">الكتاب</option>
+              <option value="official">مصدر رسمي</option>
+            </select>
+          </label>
+          {q.sourceKind === 'official' && (
             <label>
-              صفحة المصدر (PDF)
+              رابط المصدر الرسمي
               <input
-                type="number"
-                required
-                min={1}
-                max={book.pageCount}
-                value={q.pdfPage}
-                onChange={(e) => {
-                  set({ pdfPage: Number(e.target.value) });
-                  setViewerPage(Math.min(book.pageCount, Math.max(1, Number(e.target.value) || 1)));
-                }}
+                type="url"
+                value={q.sourceUrl ?? ''}
+                onChange={(e) => set({ sourceUrl: e.target.value })}
               />
             </label>
-            <label>
-              الصفحة المطبوعة
-              <input
-                type="number"
-                required
-                min={1}
-                max={book.pageCount}
-                value={q.printedPage}
-                onChange={(e) => set({ printedPage: Number(e.target.value) })}
-              />
-            </label>
-          </div>
-          <p className="field-hint" data-testid="hint-derived">
-            يعرض التلميح تلقائيًا الصفحة <bdi dir="ltr">{hint.hintPdfPageStart}</bdi> والصفحة{' '}
-            <bdi dir="ltr">{hint.hintPdfPageEnd}</bdi>.
-          </p>
+          )}
+          {q.sourceKind !== 'official' && (
+            <div className="field-grid">
+              <label>
+                صفحة المصدر (PDF)
+                <input
+                  type="number"
+                  required={q.sourceVerified !== false}
+                  min={1}
+                  max={book.pageCount}
+                  value={q.pdfPage ?? ''}
+                  onChange={(e) => {
+                    set({ pdfPage: e.target.value ? Number(e.target.value) : null });
+                    setViewerPage(
+                      Math.min(book.pageCount, Math.max(1, Number(e.target.value) || 1)),
+                    );
+                  }}
+                />
+              </label>
+              <label>
+                الصفحة المطبوعة
+                <input
+                  type="number"
+                  required={q.sourceVerified !== false && q.pdfPage !== 1}
+                  min={1}
+                  max={book.pageCount}
+                  value={q.printedPage ?? ''}
+                  onChange={(e) =>
+                    set({ printedPage: e.target.value ? Number(e.target.value) : null })
+                  }
+                />
+              </label>
+              <label>
+                نهاية النطاق المطبوع (اختياري)
+                <input
+                  type="number"
+                  min={q.printedPage ?? 1}
+                  max={book.pageCount}
+                  value={q.printedPageEnd ?? ''}
+                  onChange={(e) =>
+                    set({ printedPageEnd: e.target.value ? Number(e.target.value) : undefined })
+                  }
+                />
+              </label>
+              <label>
+                نهاية نطاق PDF (اختياري)
+                <input
+                  type="number"
+                  min={q.pdfPage ?? 1}
+                  max={book.pageCount - 1}
+                  value={q.pdfPageEnd ?? ''}
+                  onChange={(e) =>
+                    set({ pdfPageEnd: e.target.value ? Number(e.target.value) : undefined })
+                  }
+                />
+              </label>
+            </div>
+          )}
+          {q.sourceKind !== 'official' && (
+            <p className="field-hint" data-testid="hint-derived">
+              يعرض التلميح تلقائيًا الصفحة <bdi dir="ltr">{hint.hintPdfPageStart}</bdi> والصفحة{' '}
+              <bdi dir="ltr">{hint.hintPdfPageEnd}</bdi>.
+            </p>
+          )}
           <label>
             المحور
             <input value={q.topic} onChange={(e) => set({ topic: e.target.value })} />
@@ -222,17 +296,33 @@ export function AdminQuestionEditor({
           <label>
             شاهد المصدر، للجنة فقط
             <textarea
-              required={!q.fixture}
+              required={!q.fixture && q.sourceVerified !== false}
               value={q.sourceExcerpt}
               onChange={(e) => set({ sourceExcerpt: e.target.value })}
             />
           </label>
           <label>
-            التفسير بعد التثبيت في الوضع التعليمي
+            التوضيح بعد الإرسال النهائي
             <textarea
               value={q.answerExplanation}
               onChange={(e) => set({ answerExplanation: e.target.value })}
             />
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={q.sourceVerified === true}
+              onChange={(e) => set({ sourceVerified: e.target.checked })}
+            />{' '}
+            راجعت النص والإجابة والمصدر والصفحات؛ صالح للاعتماد
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={q.preserveOptionOrder ?? false}
+              onChange={(e) => set({ preserveOptionOrder: e.target.checked })}
+            />{' '}
+            الحفاظ على ترتيب الخيارات الأصلي
           </label>
           <label>
             <input
@@ -245,15 +335,21 @@ export function AdminQuestionEditor({
         </div>
         <div className="editor-side">
           <h4>كما يراه الطالب</h4>
-          <QuestionPreview q={q} onOpenSource={setViewerPage} />
-          <h4>صفحة المصدر</h4>
-          <AdminPageViewer
-            book={book}
-            page={viewerPage}
-            onPageChange={setViewerPage}
-            sourcePage={q.pdfPage}
-            onUse={(page) => set({ pdfPage: page })}
+          <QuestionPreview
+            q={q}
+            count={questionCount(campaign, q.stage)}
+            onOpenSource={setViewerPage}
           />
+          <h4>صفحة المصدر</h4>
+          {q.sourceKind !== 'official' && (
+            <AdminPageViewer
+              book={book}
+              page={viewerPage}
+              onPageChange={setViewerPage}
+              sourcePage={q.pdfPage ?? 1}
+              onUse={(page) => set({ pdfPage: page })}
+            />
+          )}
         </div>
       </div>
       <ul className="check-chips" aria-label="فحص السؤال">

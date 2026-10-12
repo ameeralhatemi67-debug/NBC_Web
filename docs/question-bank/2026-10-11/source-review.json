@@ -1,0 +1,1600 @@
+{
+  "bookSha256": "ec07ef57e563ada8bba244317aeeef0e34c8caa0ea7e10bee228232615db79fd",
+  "records": [
+    {
+      "id": "middle-1448-001",
+      "fileSha256": "2a1a107ae5acb4894703b9c98316144d2e75f9644438fa9e4986259e69e4dfc9",
+      "sourceRow": "اسئلة المرحلة المتوسطة.docx | table 1, row 2, item 1",
+      "originalText": "عنوان الكتاب هو:أ. الانتماء والمواطنة.ب. فقه الانتماءجـ. الانتماء واللحمة الوطنية.",
+      "originalAnswerKey": "ج",
+      "originalPageReference": "الغلاف",
+      "normalizedTitle": "عنوان الكتاب هو:",
+      "normalizedOptions": [
+        "الانتماء والمواطنة.",
+        "فقه الانتماء",
+        "الانتماء واللحمة الوطنية."
+      ],
+      "answerIndex": 2,
+      "bookMapping": {
+        "printedStart": null,
+        "printedEnd": null,
+        "pdfStart": 1,
+        "pdfEnd": 1
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "middle-1448-002",
+      "fileSha256": "2a1a107ae5acb4894703b9c98316144d2e75f9644438fa9e4986259e69e4dfc9",
+      "sourceRow": "اسئلة المرحلة المتوسطة.docx | table 1, row 3, item 2",
+      "originalText": "الوطن مجرد حدود جغرافية تُدَّرَس:أ. صح.\nب. خطأ.",
+      "originalAnswerKey": "ب",
+      "originalPageReference": "8",
+      "normalizedTitle": "الوطن مجرد حدود جغرافية تُدَّرَس:",
+      "normalizedOptions": [
+        "صح.",
+        "خطأ."
+      ],
+      "answerIndex": 1,
+      "bookMapping": {
+        "printedStart": 8,
+        "printedEnd": 8,
+        "pdfStart": 10,
+        "pdfEnd": 10
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "middle-1448-003",
+      "fileSha256": "2a1a107ae5acb4894703b9c98316144d2e75f9644438fa9e4986259e69e4dfc9",
+      "sourceRow": "اسئلة المرحلة المتوسطة.docx | table 1, row 4, item 3",
+      "originalText": "عدد مطالب الكتاب:أ. أربعة مطالب.ب. ستة مطالب.ج. ثمانية مطالب.",
+      "originalAnswerKey": "ب",
+      "originalPageReference": "8-9",
+      "normalizedTitle": "عدد مطالب الكتاب:",
+      "normalizedOptions": [
+        "أربعة مطالب.",
+        "ستة مطالب.",
+        "ثمانية مطالب."
+      ],
+      "answerIndex": 1,
+      "bookMapping": {
+        "printedStart": 8,
+        "printedEnd": 9,
+        "pdfStart": 10,
+        "pdfEnd": 11
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "middle-1448-004",
+      "fileSha256": "2a1a107ae5acb4894703b9c98316144d2e75f9644438fa9e4986259e69e4dfc9",
+      "sourceRow": "اسئلة المرحلة المتوسطة.docx | table 1, row 5, item 4",
+      "originalText": "ذكر المؤلف أن فطرة الإنسان السوي تقضي ألَّا يفارق موطنه إلا:\nمضطرًا.\nمختارًا.\nجـ. لا شيء مما سبق.",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "16",
+      "normalizedTitle": "ذكر المؤلف أن فطرة الإنسان السوي تقضي ألَّا يفارق موطنه إلا:",
+      "normalizedOptions": [
+        "مضطرًا.",
+        "مختارًا.",
+        "لا شيء مما سبق."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 16,
+        "printedEnd": 16,
+        "pdfStart": 18,
+        "pdfEnd": 18
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "middle-1448-005",
+      "fileSha256": "2a1a107ae5acb4894703b9c98316144d2e75f9644438fa9e4986259e69e4dfc9",
+      "sourceRow": "اسئلة المرحلة المتوسطة.docx | table 1, row 6, item 5",
+      "originalText": "أقرَّ الله تعالى لرسله وأنبيائه عليهم السلام محبة أوطانهم.أ. صح.\nب. خطأ .",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "20",
+      "normalizedTitle": "أقرَّ الله تعالى لرسله وأنبيائه عليهم السلام محبة أوطانهم.",
+      "normalizedOptions": [
+        "صح.",
+        "خطأ ."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 20,
+        "printedEnd": 20,
+        "pdfStart": 22,
+        "pdfEnd": 22
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "middle-1448-006",
+      "fileSha256": "2a1a107ae5acb4894703b9c98316144d2e75f9644438fa9e4986259e69e4dfc9",
+      "sourceRow": "اسئلة المرحلة المتوسطة.docx | table 1, row 7, item 6",
+      "originalText": "المدينة التي قال عنها رسول الله ﷺ :\"إنّك لخير أرض الله، وأحب أرض الله إلى الله، ولولا أني أُخرجت منك ما خرجت\" هي:\nالطائف.\nالمدينة.\nجـ. مكة.",
+      "originalAnswerKey": "جـ",
+      "originalPageReference": "22",
+      "normalizedTitle": "المدينة التي قال عنها رسول الله ﷺ :\"إنّك لخير أرض الله، وأحب أرض الله إلى الله، ولولا أني أُخرجت منك ما خرجت\" هي:",
+      "normalizedOptions": [
+        "الطائف.",
+        "المدينة.",
+        "مكة."
+      ],
+      "answerIndex": 2,
+      "bookMapping": {
+        "printedStart": 22,
+        "printedEnd": 22,
+        "pdfStart": 24,
+        "pdfEnd": 24
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "middle-1448-007",
+      "fileSha256": "2a1a107ae5acb4894703b9c98316144d2e75f9644438fa9e4986259e69e4dfc9",
+      "sourceRow": "اسئلة المرحلة المتوسطة.docx | table 1, row 8, item 7",
+      "originalText": "الإنسان في السفر يكون على حال من عدم الاستقرار والراحة والاطمئنان حتى يرجع إلى وطنه.أ. صح.ب. خطأ.",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "24",
+      "normalizedTitle": "الإنسان في السفر يكون على حال من عدم الاستقرار والراحة والاطمئنان حتى يرجع إلى وطنه.",
+      "normalizedOptions": [
+        "صح.",
+        "خطأ."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 24,
+        "printedEnd": 24,
+        "pdfStart": 26,
+        "pdfEnd": 26
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "middle-1448-008",
+      "fileSha256": "2a1a107ae5acb4894703b9c98316144d2e75f9644438fa9e4986259e69e4dfc9",
+      "sourceRow": "اسئلة المرحلة المتوسطة.docx | table 1, row 9, item 8",
+      "originalText": "من أفضل الأعمال وأعظمها الحج المبرور لأنه:\nيجمع بين العبادة المالية والبدنية .ب. فيه مفارقة الوطن المألوف، وترك الأهل والولد.جـ. جميع ما سبق .",
+      "originalAnswerKey": "جـ",
+      "originalPageReference": "24",
+      "normalizedTitle": "من أفضل الأعمال وأعظمها الحج المبرور لأنه:",
+      "normalizedOptions": [
+        "يجمع بين العبادة المالية والبدنية .",
+        "فيه مفارقة الوطن المألوف، وترك الأهل والولد.",
+        "جميع ما سبق ."
+      ],
+      "answerIndex": 2,
+      "bookMapping": {
+        "printedStart": 24,
+        "printedEnd": 24,
+        "pdfStart": 26,
+        "pdfEnd": 26
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "middle-1448-009",
+      "fileSha256": "2a1a107ae5acb4894703b9c98316144d2e75f9644438fa9e4986259e69e4dfc9",
+      "sourceRow": "اسئلة المرحلة المتوسطة.docx | table 1, row 10, item 9",
+      "originalText": "عنوان (المطلب الثالث) هو :أ. حقوق الانتماء إلى الوطن.ب. الانتماء والمواطنة في حياة السلف الصالح.جـ. محاذير لابد من التنبه لها.",
+      "originalAnswerKey": "ب",
+      "originalPageReference": "25",
+      "normalizedTitle": "عنوان (المطلب الثالث) هو :",
+      "normalizedOptions": [
+        "حقوق الانتماء إلى الوطن.",
+        "الانتماء والمواطنة في حياة السلف الصالح.",
+        "محاذير لابد من التنبه لها."
+      ],
+      "answerIndex": 1,
+      "bookMapping": {
+        "printedStart": 25,
+        "printedEnd": 25,
+        "pdfStart": 27,
+        "pdfEnd": 27
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "middle-1448-010",
+      "fileSha256": "2a1a107ae5acb4894703b9c98316144d2e75f9644438fa9e4986259e69e4dfc9",
+      "sourceRow": "اسئلة المرحلة المتوسطة.docx | table 1, row 11, item 10",
+      "originalText": "ما المدينة التي هاجر إليها النبي - ﷺ؟أ. تبوك.ب. المدينة المنورة .جـ. القدس.",
+      "originalAnswerKey": "ب",
+      "originalPageReference": "25",
+      "normalizedTitle": "ما المدينة التي هاجر إليها النبي ﷺ؟",
+      "normalizedOptions": [
+        "تبوك.",
+        "المدينة المنورة .",
+        "القدس."
+      ],
+      "answerIndex": 1,
+      "bookMapping": {
+        "printedStart": 25,
+        "printedEnd": 25,
+        "pdfStart": 27,
+        "pdfEnd": 27
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "middle-1448-011",
+      "fileSha256": "2a1a107ae5acb4894703b9c98316144d2e75f9644438fa9e4986259e69e4dfc9",
+      "sourceRow": "اسئلة المرحلة المتوسطة.docx | table 1, row 12, item 11",
+      "originalText": "ما البلد التي هاجر إليها بعض الصحابة قبل الهجرة،  ولم يستقروا فيها استقرار المقيم؟أ. اليمن.\nالشام.\nجـ. الحبشة .",
+      "originalAnswerKey": "جـ",
+      "originalPageReference": "25",
+      "normalizedTitle": "ما البلد التي هاجر إليها بعض الصحابة قبل الهجرة، ولم يستقروا فيها استقرار المقيم؟",
+      "normalizedOptions": [
+        "اليمن.",
+        "الشام.",
+        "الحبشة ."
+      ],
+      "answerIndex": 2,
+      "bookMapping": {
+        "printedStart": 25,
+        "printedEnd": 25,
+        "pdfStart": 27,
+        "pdfEnd": 27
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "middle-1448-012",
+      "fileSha256": "2a1a107ae5acb4894703b9c98316144d2e75f9644438fa9e4986259e69e4dfc9",
+      "sourceRow": "اسئلة المرحلة المتوسطة.docx | table 1, row 13, item 12",
+      "originalText": "ما حكم الدفاع عن الوطن بالنفس والمال إذا دهمه العدو؟\nمستحب.\nجائز.\nجـ. واجب.",
+      "originalAnswerKey": "جـ",
+      "originalPageReference": "33",
+      "normalizedTitle": "ما حكم الدفاع عن الوطن بالنفس والمال إذا دهمه العدو؟",
+      "normalizedOptions": [
+        "مستحب.",
+        "جائز.",
+        "واجب."
+      ],
+      "answerIndex": 2,
+      "bookMapping": {
+        "printedStart": 33,
+        "printedEnd": 33,
+        "pdfStart": 35,
+        "pdfEnd": 35
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "middle-1448-013",
+      "fileSha256": "2a1a107ae5acb4894703b9c98316144d2e75f9644438fa9e4986259e69e4dfc9",
+      "sourceRow": "اسئلة المرحلة المتوسطة.docx | table 1, row 14, item 13",
+      "originalText": "ما حكم الدفاع عن الوطن، ورفع رايته في العالمين، والوقوف في وجه كل متربص حاقد يريد الشر بهذا الوطن؟\nمستحب.\nمباح.\nجـ. فريضة.",
+      "originalAnswerKey": "جـ",
+      "originalPageReference": "39",
+      "normalizedTitle": "ما حكم الدفاع عن الوطن، ورفع رايته في العالمين، والوقوف في وجه كل متربص حاقد يريد الشر بهذا الوطن؟",
+      "normalizedOptions": [
+        "مستحب.",
+        "مباح.",
+        "فريضة."
+      ],
+      "answerIndex": 2,
+      "bookMapping": {
+        "printedStart": 39,
+        "printedEnd": 39,
+        "pdfStart": 41,
+        "pdfEnd": 41
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "middle-1448-014",
+      "fileSha256": "2a1a107ae5acb4894703b9c98316144d2e75f9644438fa9e4986259e69e4dfc9",
+      "sourceRow": "اسئلة المرحلة المتوسطة.docx | table 1, row 15, item 14",
+      "originalText": "ما الذي يترتب على السمع والطاعة لولاة الأمور بالمعروف؟\nتنتظم الأمور، وتصلح الأحوال، ويأمن الناس.\nيضعف الدين.\nجـ. ينتشر الظلم.",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "40",
+      "normalizedTitle": "ما الذي يترتب على السمع والطاعة لولاة الأمور بالمعروف؟",
+      "normalizedOptions": [
+        "تنتظم الأمور، وتصلح الأحوال، ويأمن الناس.",
+        "يضعف الدين.",
+        "ينتشر الظلم."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 40,
+        "printedEnd": 40,
+        "pdfStart": 42,
+        "pdfEnd": 42
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "middle-1448-015",
+      "fileSha256": "2a1a107ae5acb4894703b9c98316144d2e75f9644438fa9e4986259e69e4dfc9",
+      "sourceRow": "اسئلة المرحلة المتوسطة.docx | table 1, row 16, item 15",
+      "originalText": "إذا أراد المرء أن ينصح لإمامه، فكيف تكون النصيحة؟\nتكون بينهما بالسر لا بالعلانية.\nتكون في خطب الجمعة.\nجـ. يكتبها في وسائل التواصل.",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "45",
+      "normalizedTitle": "إذا أراد المرء أن ينصح لإمامه، فكيف تكون النصيحة؟",
+      "normalizedOptions": [
+        "تكون بينهما بالسر لا بالعلانية.",
+        "تكون في خطب الجمعة.",
+        "يكتبها في وسائل التواصل."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 45,
+        "printedEnd": 45,
+        "pdfStart": 47,
+        "pdfEnd": 47
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "middle-1448-016",
+      "fileSha256": "2a1a107ae5acb4894703b9c98316144d2e75f9644438fa9e4986259e69e4dfc9",
+      "sourceRow": "اسئلة المرحلة المتوسطة.docx | table 1, row 17, item 16",
+      "originalText": "قامت المملكة العربية السعودية على كتاب الله وسنة نبيه ﷺ منذ المعاهدة المباركة بين الإمام محمد بن سعود، وشيخ الإسلام في زمانه محمد بن عبد الوهاب ـ  رحمهما الله ـ.\nصح.\nب. خطأ.",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "47",
+      "normalizedTitle": "قامت المملكة العربية السعودية على كتاب الله وسنة نبيه ﷺ منذ المعاهدة المباركة بين الإمام محمد بن سعود، وشيخ الإسلام في زمانه محمد بن عبد الوهاب ـ رحمهما الله ـ.",
+      "normalizedOptions": [
+        "صح.",
+        "خطأ."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 47,
+        "printedEnd": 47,
+        "pdfStart": 49,
+        "pdfEnd": 49
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "middle-1448-017",
+      "fileSha256": "2a1a107ae5acb4894703b9c98316144d2e75f9644438fa9e4986259e69e4dfc9",
+      "sourceRow": "اسئلة المرحلة المتوسطة.docx | table 1, row 18, item 17",
+      "originalText": "إن ما تنعم به دولتنا، المملكة العربية السعودية، من أمنٍ وأمانٍ إنما هو:\nبتوفيق الله ـ عز وجل ـ أولًا وآخرًا، ولتحكيم ولاة أمرنا منذ نشأة الدولة عام 1157هـ على كتابَ الله وسنةَ رسوله ﷺ، والتفافِ الرعية على ولاتهم.\nبمساعدة الدول الأخرى.\nجـ. بدون سبب.",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "53",
+      "normalizedTitle": "إن ما تنعم به دولتنا، المملكة العربية السعودية، من أمنٍ وأمانٍ إنما هو:",
+      "normalizedOptions": [
+        "بتوفيق الله ـ عز وجل ـ أولًا وآخرًا، ولتحكيم ولاة أمرنا منذ نشأة الدولة عام 1157هـ على كتابَ الله وسنةَ رسوله ﷺ، والتفافِ الرعية على ولاتهم.",
+        "بمساعدة الدول الأخرى.",
+        "بدون سبب."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 53,
+        "printedEnd": 53,
+        "pdfStart": 55,
+        "pdfEnd": 55
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "middle-1448-018",
+      "fileSha256": "2a1a107ae5acb4894703b9c98316144d2e75f9644438fa9e4986259e69e4dfc9",
+      "sourceRow": "اسئلة المرحلة المتوسطة.docx | table 1, row 19, item 18",
+      "originalText": "الجهة التي تنظم المسابقة:\nالرئاسة العامة لهيئة الأمر بالمعروف والنهي عن المنكر.\nوزارة الصحة.\nجـ. وزارة الطاقة",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "-",
+      "normalizedTitle": "الجهة التي تنظم المسابقة:",
+      "normalizedOptions": [
+        "الرئاسة العامة لهيئة الأمر بالمعروف والنهي عن المنكر.",
+        "وزارة الصحة.",
+        "وزارة الطاقة"
+      ],
+      "answerIndex": 0,
+      "bookMapping": null,
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "middle-1448-019",
+      "fileSha256": "2a1a107ae5acb4894703b9c98316144d2e75f9644438fa9e4986259e69e4dfc9",
+      "sourceRow": "اسئلة المرحلة المتوسطة.docx | table 1, row 20, item 19",
+      "originalText": "الرقم الموحد للرئاسة العامة لهيئة الأمر بالمعروف والنهي عن المنكر.\n999 \n993\n             جـ. 1909",
+      "originalAnswerKey": "جـ",
+      "originalPageReference": "الموقع الرسمي",
+      "normalizedTitle": "الرقم الموحد للرئاسة العامة لهيئة الأمر بالمعروف والنهي عن المنكر.",
+      "normalizedOptions": [
+        "999",
+        "993",
+        "1909"
+      ],
+      "answerIndex": 2,
+      "bookMapping": null,
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "middle-1448-020",
+      "fileSha256": "2a1a107ae5acb4894703b9c98316144d2e75f9644438fa9e4986259e69e4dfc9",
+      "sourceRow": "اسئلة المرحلة المتوسطة.docx | table 1, row 21, item 20",
+      "originalText": "من اختصاصات الرئاسة العامة لهيئة الأمر بالمعروف والنهي عن المنكر؟\nأ. القيام بواجب الأمر بالمعروف والنهي عن المنكر والدعوة إليه بالرفق واللين.\nب. الإسهام مع الجهات المختصة في مكافحة المخدرات وبيان أضرارها على الأسرة والمجتمع.\nجـ. جميع ما سبق",
+      "originalAnswerKey": "جـ",
+      "originalPageReference": "تنظيم الرئاسة",
+      "normalizedTitle": "من اختصاصات الرئاسة العامة لهيئة الأمر بالمعروف والنهي عن المنكر؟",
+      "normalizedOptions": [
+        "القيام بواجب الأمر بالمعروف والنهي عن المنكر والدعوة إليه بالرفق واللين.",
+        "الإسهام مع الجهات المختصة في مكافحة المخدرات وبيان أضرارها على الأسرة والمجتمع.",
+        "جميع ما سبق"
+      ],
+      "answerIndex": 2,
+      "bookMapping": null,
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-001",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 2, item 1",
+      "originalText": "عنوان الكتاب هو:أ. الانتماء والمواطنة.ب. فقه الانتماءجـ. الانتماء واللحمة الوطنية.",
+      "originalAnswerKey": "ج",
+      "originalPageReference": "الغلاف",
+      "normalizedTitle": "عنوان الكتاب هو:",
+      "normalizedOptions": [
+        "الانتماء والمواطنة.",
+        "فقه الانتماء",
+        "الانتماء واللحمة الوطنية."
+      ],
+      "answerIndex": 2,
+      "bookMapping": {
+        "printedStart": null,
+        "printedEnd": null,
+        "pdfStart": 1,
+        "pdfEnd": 1
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-002",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 3, item 2",
+      "originalText": "بكى الأقدمون والمُحدَثون فراق الديار، وتلهفوا في العودة إليها، وجادت قرائحهم في التغني بمآثر أوطانهم:أ- شعرًا.ب - نثراً.ج - شعرًا ونثرًا.",
+      "originalAnswerKey": "ج",
+      "originalPageReference": "7",
+      "normalizedTitle": "بكى الأقدمون والمُحدَثون فراق الديار، وتلهفوا في العودة إليها، وجادت قرائحهم في التغني بمآثر أوطانهم:",
+      "normalizedOptions": [
+        "شعرًا.",
+        "نثراً.",
+        "شعرًا ونثرًا."
+      ],
+      "answerIndex": 2,
+      "bookMapping": {
+        "printedStart": 7,
+        "printedEnd": 7,
+        "pdfStart": 9,
+        "pdfEnd": 9
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-003",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 4, item 3",
+      "originalText": "موطن الإنسان هو:\nموضع خطره وخوفه.\nموضع أمنه، ومسكن قلبه، ومجمع أهله، ومحرز ملكه، ومأنس ضيفه، وملتقى صديقه.\nجـ. مكان مؤقت يتركه متى شاء.",
+      "originalAnswerKey": "ب",
+      "originalPageReference": "11",
+      "normalizedTitle": "موطن الإنسان هو:",
+      "normalizedOptions": [
+        "موضع خطره وخوفه.",
+        "موضع أمنه، ومسكن قلبه، ومجمع أهله، ومحرز ملكه، ومأنس ضيفه، وملتقى صديقه.",
+        "مكان مؤقت يتركه متى شاء."
+      ],
+      "answerIndex": 1,
+      "bookMapping": {
+        "printedStart": 11,
+        "printedEnd": 11,
+        "pdfStart": 13,
+        "pdfEnd": 13
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-004",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 5, item 4",
+      "originalText": "الوطن في الاصطلاح هو:أ. المنزل الذي تسكن فيهب. المكان الذي تعمل فيه.جـ. مولد الرجل والبلد الذي هو فيه.",
+      "originalAnswerKey": "ج",
+      "originalPageReference": "12",
+      "normalizedTitle": "الوطن في الاصطلاح هو:",
+      "normalizedOptions": [
+        "المنزل الذي تسكن فيه",
+        "المكان الذي تعمل فيه.",
+        "مولد الرجل والبلد الذي هو فيه."
+      ],
+      "answerIndex": 2,
+      "bookMapping": {
+        "printedStart": 12,
+        "printedEnd": 12,
+        "pdfStart": 14,
+        "pdfEnd": 14
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-005",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 6, item 5",
+      "originalText": "ارتباط المرء بوطنه وانتماؤه إليه يُعدُّ:\nأمرًا كمالياً يمكن الاستغناء عنه.\nحاجة من حاجات النفس الإنسانية، لا ينفك عنها المرء.\nجـ. ارتباط ليس له قيمة.",
+      "originalAnswerKey": "ب",
+      "originalPageReference": "13",
+      "normalizedTitle": "ارتباط المرء بوطنه وانتماؤه إليه يُعدُّ:",
+      "normalizedOptions": [
+        "أمرًا كمالياً يمكن الاستغناء عنه.",
+        "حاجة من حاجات النفس الإنسانية، لا ينفك عنها المرء.",
+        "ارتباط ليس له قيمة."
+      ],
+      "answerIndex": 1,
+      "bookMapping": {
+        "printedStart": 13,
+        "printedEnd": 13,
+        "pdfStart": 15,
+        "pdfEnd": 15
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-006",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 7, item 6",
+      "originalText": "قال تعالى: (ولو أنا كتبنا عليهم أن اقتلوا أنفسكم أو اخرجوا من دياركم ما فعلوه إلا قليل منهم)، في هذه الآية الكريمة إشارة إلى:\nأ. حب الوطن وتعلق الناس به .ب. الهجرة من الوطن إلى وطن آخر .جـ. سهولة مفارقة الوطن على النفس .",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "15",
+      "normalizedTitle": "قال تعالى: (ولو أنا كتبنا عليهم أن اقتلوا أنفسكم أو اخرجوا من دياركم ما فعلوه إلا قليل منهم)، في هذه الآية الكريمة إشارة إلى:",
+      "normalizedOptions": [
+        "حب الوطن وتعلق الناس به .",
+        "الهجرة من الوطن إلى وطن آخر .",
+        "سهولة مفارقة الوطن على النفس ."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 15,
+        "printedEnd": 15,
+        "pdfStart": 17,
+        "pdfEnd": 17
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-007",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 8, item 7",
+      "originalText": "قال الرازي –رحمه الله- \" ومعلوم أن مفارقة الوطن ....\"\nأ. أصعب الأمور. \nب. أسهل الأمور.\nجـ. أحب الأمور.",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "21",
+      "normalizedTitle": "قال الرازي –رحمه الله- \" ومعلوم أن مفارقة الوطن ....\"",
+      "normalizedOptions": [
+        "أصعب الأمور.",
+        "أسهل الأمور.",
+        "أحب الأمور."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 21,
+        "printedEnd": 21,
+        "pdfStart": 23,
+        "pdfEnd": 23
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-008",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 9, item 8",
+      "originalText": "المدينة التي كان نبي الله ﷺ- يستعذب الحديث عنها بعد فراقها هي :أ. بادية بني سعد.\nب. مكة المكرمة.جـ. الجحفة.",
+      "originalAnswerKey": "ب",
+      "originalPageReference": "22",
+      "normalizedTitle": "المدينة التي كان نبي الله ﷺ- يستعذب الحديث عنها بعد فراقها هي :",
+      "normalizedOptions": [
+        "بادية بني سعد.",
+        "مكة المكرمة.",
+        "الجحفة."
+      ],
+      "answerIndex": 1,
+      "bookMapping": {
+        "printedStart": 22,
+        "printedEnd": 22,
+        "pdfStart": 24,
+        "pdfEnd": 24
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-009",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 10, item 9",
+      "originalText": "لماذا تحمَّل الصحابة أذى كفار قريش في مكة؟أ. طلباً للمال.ب. لمقام الرسول -ﷺ- بين أظهرهم وبقائهم في أرضهم ووطنهم .جـ. طلباً للراحة.",
+      "originalAnswerKey": "ب",
+      "originalPageReference": "25",
+      "normalizedTitle": "لماذا تحمَّل الصحابة أذى كفار قريش في مكة؟",
+      "normalizedOptions": [
+        "طلباً للمال.",
+        "لمقام الرسول -ﷺ- بين أظهرهم وبقائهم في أرضهم ووطنهم .",
+        "طلباً للراحة."
+      ],
+      "answerIndex": 1,
+      "bookMapping": {
+        "printedStart": 25,
+        "printedEnd": 25,
+        "pdfStart": 27,
+        "pdfEnd": 27
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-010",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 11, item 10",
+      "originalText": "ماذا كان يتمنى المهاجرون الذين هاجروا إلى الحبشة؟أ. البقاء فيها دائماً.ب. السفر إلى بلاد الشام .جـ. العودة إلى وطنهم مكة المكرمة. ",
+      "originalAnswerKey": "جـ",
+      "originalPageReference": "25",
+      "normalizedTitle": "ماذا كان يتمنى المهاجرون الذين هاجروا إلى الحبشة؟",
+      "normalizedOptions": [
+        "البقاء فيها دائماً.",
+        "السفر إلى بلاد الشام .",
+        "العودة إلى وطنهم مكة المكرمة."
+      ],
+      "answerIndex": 2,
+      "bookMapping": {
+        "printedStart": 25,
+        "printedEnd": 25,
+        "pdfStart": 27,
+        "pdfEnd": 27
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-011",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 12, item 11",
+      "originalText": "قال رسول الله ﷺ \"لولا الهجرة لكنت امرأً من...\":\nأ .قريش.ب. الأنصار.جـ. أهل مكة.",
+      "originalAnswerKey": "ب",
+      "originalPageReference": "26",
+      "normalizedTitle": "قال رسول الله ﷺ \"لولا الهجرة لكنت امرأً من...\":",
+      "normalizedOptions": [
+        "قريش.",
+        "الأنصار.",
+        "أهل مكة."
+      ],
+      "answerIndex": 1,
+      "bookMapping": {
+        "printedStart": 26,
+        "printedEnd": 26,
+        "pdfStart": 28,
+        "pdfEnd": 28
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-012",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 13, item 12",
+      "originalText": "كان النبي ﷺ إذا قدم من سفر، وأبصر جدران المدينة، ...؟أ. أسرع بناقته لشوقه إليها.ب. يبكي من الفرح .جـ. يصوم شكراً لله .",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "27",
+      "normalizedTitle": "كان النبي ﷺ إذا قدم من سفر، وأبصر جدران المدينة، ...؟",
+      "normalizedOptions": [
+        "أسرع بناقته لشوقه إليها.",
+        "يبكي من الفرح .",
+        "يصوم شكراً لله ."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 27,
+        "printedEnd": 27,
+        "pdfStart": 29,
+        "pdfEnd": 29
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-013",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 14, item 13",
+      "originalText": "نقل أبو نُعيم عن إبراهيم بن أدهم -رحمهما الله- قوله: (عالجتُ العبادة، فما وجدت شيئًا أشدَّ عليَّ من نزاع النفس إلى (.....):\nأ. المال.ب. الوطن.جـ. الوظيفة.",
+      "originalAnswerKey": "ب",
+      "originalPageReference": "29",
+      "normalizedTitle": "نقل أبو نُعيم عن إبراهيم بن أدهم -رحمهما الله- قوله: (عالجتُ العبادة، فما وجدت شيئًا أشدَّ عليَّ من نزاع النفس إلى (.....)):",
+      "normalizedOptions": [
+        "المال.",
+        "الوطن.",
+        "الوظيفة."
+      ],
+      "answerIndex": 1,
+      "bookMapping": {
+        "printedStart": 29,
+        "printedEnd": 29,
+        "pdfStart": 31,
+        "pdfEnd": 31
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-014",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 15, item 14",
+      "originalText": "قال ابن تيمية -رحمه الله-:\"والنفس تحنُّ إلى الوطن\".\nأ.     صح.\nب. خطأ.",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "30",
+      "normalizedTitle": "قال ابن تيمية -رحمه الله-:\"والنفس تحنُّ إلى الوطن\".",
+      "normalizedOptions": [
+        "صح.",
+        "خطأ."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 30,
+        "printedEnd": 30,
+        "pdfStart": 32,
+        "pdfEnd": 32
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-015",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 16, item 15",
+      "originalText": "ما حكم الدفاع عن الوطن بالنفس والمال إذا دهمه العدو؟\nمستحب.\nجائز.\nجـ. واجب.",
+      "originalAnswerKey": "جـ",
+      "originalPageReference": "33",
+      "normalizedTitle": "ما حكم الدفاع عن الوطن بالنفس والمال إذا دهمه العدو؟",
+      "normalizedOptions": [
+        "مستحب.",
+        "جائز.",
+        "واجب."
+      ],
+      "answerIndex": 2,
+      "bookMapping": {
+        "printedStart": 33,
+        "printedEnd": 33,
+        "pdfStart": 35,
+        "pdfEnd": 35
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-016",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 17, item 16",
+      "originalText": "تُعدُّ مكافحةُ المخدرات، ومحاربةُ أصحاب الفكر الضال، ومن يخططون لقتل الأنفس المعصومة وشقِّ عصا الطاعة، من صور حراسة الوطن من الأعداء.\nصح.\nب. خطأ.",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "35",
+      "normalizedTitle": "تُعدُّ مكافحةُ المخدرات، ومحاربةُ أصحاب الفكر الضال، ومن يخططون لقتل الأنفس المعصومة وشقِّ عصا الطاعة، من صور حراسة الوطن من الأعداء.",
+      "normalizedOptions": [
+        "صح.",
+        "خطأ."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 35,
+        "printedEnd": 35,
+        "pdfStart": 37,
+        "pdfEnd": 37
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-017",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 18, item 17",
+      "originalText": "ما هدي الصحابة رضي الله عنهم بعد النبي ﷺ تجاه ولاة الأمور؟\nنازعوا الأمر أهله.\nلم ينازعوا الأمر أهله.\nجـ. خرجوا عليهم بالسيف.",
+      "originalAnswerKey": "ب",
+      "originalPageReference": "41",
+      "normalizedTitle": "ما هدي الصحابة رضي الله عنهم بعد النبي ﷺ تجاه ولاة الأمور؟",
+      "normalizedOptions": [
+        "نازعوا الأمر أهله.",
+        "لم ينازعوا الأمر أهله.",
+        "خرجوا عليهم بالسيف."
+      ],
+      "answerIndex": 1,
+      "bookMapping": {
+        "printedStart": 41,
+        "printedEnd": 41,
+        "pdfStart": 43,
+        "pdfEnd": 43
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-018",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 19, item 18",
+      "originalText": "قول النبي ﷺ في الخوارج: «لئن أدركتهم لأقتلنهم قتل عاد»، على ماذا يدل؟\nدليل على خبث عملهم وسوئه وعظم خطرهم على المجتمع.\nعلى فضلهم ومكانتهم.\nجـ. على أنهم من الفرقة الناجية.",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "43",
+      "normalizedTitle": "قول النبي ﷺ في الخوارج: «لئن أدركتهم لأقتلنهم قتل عاد»، على ماذا يدل؟",
+      "normalizedOptions": [
+        "دليل على خبث عملهم وسوئه وعظم خطرهم على المجتمع.",
+        "على فضلهم ومكانتهم.",
+        "على أنهم من الفرقة الناجية."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 43,
+        "printedEnd": 43,
+        "pdfStart": 45,
+        "pdfEnd": 45
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-019",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 20, item 19",
+      "originalText": "ما التوجيه النبوي الكريم لمن أراد أن ينصح لذي سلطان؟\nيبديه علانية أمام الناس.\nيأخذ بيده فيخلو  به، فإن قبل منه فذاك، وإلا كان قد أدى الذي عليه.\nجـ. يكتب عنه في وسائل التواصل الاجتماعي.",
+      "originalAnswerKey": "ب",
+      "originalPageReference": "46",
+      "normalizedTitle": "ما التوجيه النبوي الكريم لمن أراد أن ينصح لذي سلطان؟",
+      "normalizedOptions": [
+        "يبديه علانية أمام الناس.",
+        "يأخذ بيده فيخلو به، فإن قبل منه فذاك، وإلا كان قد أدى الذي عليه.",
+        "يكتب عنه في وسائل التواصل الاجتماعي."
+      ],
+      "answerIndex": 1,
+      "bookMapping": {
+        "printedStart": 46,
+        "printedEnd": 46,
+        "pdfStart": 48,
+        "pdfEnd": 48
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-020",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 21, item 20",
+      "originalText": "قامت المملكة العربية السعودية على كتاب الله وسنة نبيه ﷺ منذ المعاهدة المباركة بين الإمام محمد بن سعود، وشيخ الإسلام في زمانه محمد بن عبد الوهاب ـ رحمهما الله ـ.\nصح.\nب. خطأ.",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "47",
+      "normalizedTitle": "قامت المملكة العربية السعودية على كتاب الله وسنة نبيه ﷺ منذ المعاهدة المباركة بين الإمام محمد بن سعود، وشيخ الإسلام في زمانه محمد بن عبد الوهاب ـ رحمهما الله ـ.",
+      "normalizedOptions": [
+        "صح.",
+        "خطأ."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 47,
+        "printedEnd": 47,
+        "pdfStart": 49,
+        "pdfEnd": 49
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-021",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 22, item 21",
+      "originalText": "إن ما تنعم به دولتنا، المملكة العربية السعودية، من أمنٍ وأمانٍ إنما هو:\nبتوفيق الله ـ عز وجل ـ أولًا وآخرًا، ولتحكيم ولاة أمرنا منذ نشأة الدولة عام 1157هـ  على كتابَ الله وسنةَ رسوله ﷺ، والتفافِ الرعية على ولاتهم.\nبمساعدة الدول الأخرى.\nجـ. بدون سبب.",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "53",
+      "normalizedTitle": "إن ما تنعم به دولتنا، المملكة العربية السعودية، من أمنٍ وأمانٍ إنما هو:",
+      "normalizedOptions": [
+        "بتوفيق الله ـ عز وجل ـ أولًا وآخرًا، ولتحكيم ولاة أمرنا منذ نشأة الدولة عام 1157هـ على كتابَ الله وسنةَ رسوله ﷺ، والتفافِ الرعية على ولاتهم.",
+        "بمساعدة الدول الأخرى.",
+        "بدون سبب."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 53,
+        "printedEnd": 53,
+        "pdfStart": 55,
+        "pdfEnd": 55
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-022",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 23, item 22",
+      "originalText": "ختم المؤلف كتاب \"الانتماء واللحمة الوطنية\" بما يلي:\nالدعاء لهذه البلاد فقط.\nالدعاء لهذه البلاد ولخادم الحرمين الشريفين.\nجـ. الدعاء لهذه البلاد ولخادم الحرمين الشريفين وولي عهده. ",
+      "originalAnswerKey": "جـ",
+      "originalPageReference": "56",
+      "normalizedTitle": "ختم المؤلف كتاب \"الانتماء واللحمة الوطنية\" بما يلي:",
+      "normalizedOptions": [
+        "الدعاء لهذه البلاد فقط.",
+        "الدعاء لهذه البلاد ولخادم الحرمين الشريفين.",
+        "الدعاء لهذه البلاد ولخادم الحرمين الشريفين وولي عهده."
+      ],
+      "answerIndex": 2,
+      "bookMapping": {
+        "printedStart": 56,
+        "printedEnd": 56,
+        "pdfStart": 58,
+        "pdfEnd": 58
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-023",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 24, item 23",
+      "originalText": "الجهة التي تنظم المسابقة:\nالرئاسة العامة لهيئة الأمر بالمعروف والنهي عن المنكر.\nوزارة الصحة.\n             جـ. وزارة الطاقة",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "-",
+      "normalizedTitle": "الجهة التي تنظم المسابقة:",
+      "normalizedOptions": [
+        "الرئاسة العامة لهيئة الأمر بالمعروف والنهي عن المنكر.",
+        "وزارة الصحة.",
+        "وزارة الطاقة"
+      ],
+      "answerIndex": 0,
+      "bookMapping": null,
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-024",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 25, item 24",
+      "originalText": "الرقم الموحد للرئاسة العامة لهيئة الأمر بالمعروف والنهي عن المنكر.\n999.\n993.\n             جـ. 1909",
+      "originalAnswerKey": "جـ",
+      "originalPageReference": "الموقع الرسمي",
+      "normalizedTitle": "الرقم الموحد للرئاسة العامة لهيئة الأمر بالمعروف والنهي عن المنكر.",
+      "normalizedOptions": [
+        "999.",
+        "993.",
+        "1909"
+      ],
+      "answerIndex": 2,
+      "bookMapping": null,
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "highschool-1448-025",
+      "fileSha256": "dd0d1c42ecdb0f26be18c7ce9ed2821aff0d02bf75e94391ce4d855f53864971",
+      "sourceRow": "أسئلة المرحلة الثانوية.docx | table 1, row 26, item 25",
+      "originalText": "من اختصاصات الرئاسة العامة لهيئة الأمر بالمعروف والنهي عن المنكر؟\nأ. القيام بواجب الأمر بالمعروف والنهي عن المنكر والدعوة إليه بالرفق واللين.\nب. الإسهام مع الجهات المختصة في مكافحة المخدرات وبيان أضرارها على الأسرة والمجتمع.\nجـ. جميع ما سبق",
+      "originalAnswerKey": "جـ",
+      "originalPageReference": "تنظيم الرئاسة",
+      "normalizedTitle": "من اختصاصات الرئاسة العامة لهيئة الأمر بالمعروف والنهي عن المنكر؟",
+      "normalizedOptions": [
+        "القيام بواجب الأمر بالمعروف والنهي عن المنكر والدعوة إليه بالرفق واللين.",
+        "الإسهام مع الجهات المختصة في مكافحة المخدرات وبيان أضرارها على الأسرة والمجتمع.",
+        "جميع ما سبق"
+      ],
+      "answerIndex": 2,
+      "bookMapping": null,
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-001",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 2, item 1",
+      "originalText": "عنوان الكتاب هو:أ. الانتماء والمواطنة.ب. فقه الانتماءجـ. الانتماء واللحمة الوطنية.",
+      "originalAnswerKey": "ج",
+      "originalPageReference": "الغلاف",
+      "normalizedTitle": "عنوان الكتاب هو:",
+      "normalizedOptions": [
+        "الانتماء والمواطنة.",
+        "فقه الانتماء",
+        "الانتماء واللحمة الوطنية."
+      ],
+      "answerIndex": 2,
+      "bookMapping": {
+        "printedStart": null,
+        "printedEnd": null,
+        "pdfStart": 1,
+        "pdfEnd": 1
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-002",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 3, item 2",
+      "originalText": "حَفظت الشريعة الضرورات الخمس وهي:\nأ. الدين، النفس، العقل، المال، النسل.\nب. الدين، السكن، العقل، النفس، النسل.\nجـ. الوالدان، الدين، المال، النسل، العقل.",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "7",
+      "normalizedTitle": "حَفظت الشريعة الضرورات الخمس وهي:",
+      "normalizedOptions": [
+        "الدين، النفس، العقل، المال، النسل.",
+        "الدين، السكن، العقل، النفس، النسل.",
+        "الوالدان، الدين، المال، النسل، العقل."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 7,
+        "printedEnd": 7,
+        "pdfStart": 9,
+        "pdfEnd": 9
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-003",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 4, item 3",
+      "originalText": "ورد في كلام المؤلف أن العرب كانت تقول: إذا أردت أن تعرف الرجل، فانظر كيف:\nمفارقته لوطنه.\nتحننه إلى أوطانه.\nجـ.  بغضه لوطنه.",
+      "originalAnswerKey": "ب",
+      "originalPageReference": "11",
+      "normalizedTitle": "ورد في كلام المؤلف أن العرب كانت تقول: إذا أردت أن تعرف الرجل، فانظر كيف:",
+      "normalizedOptions": [
+        "مفارقته لوطنه.",
+        "تحننه إلى أوطانه.",
+        "بغضه لوطنه."
+      ],
+      "answerIndex": 1,
+      "bookMapping": {
+        "printedStart": 11,
+        "printedEnd": 11,
+        "pdfStart": 13,
+        "pdfEnd": 13
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-004",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 5, item 4",
+      "originalText": "في العصر الحاضر ترتبط الأوطان بـ:\nالعصبية القبلية فقط.\nالحدود الدولية، وولاية حاكم واحد .\nجـ.  اللغة الواحدة.",
+      "originalAnswerKey": "ب",
+      "originalPageReference": "12",
+      "normalizedTitle": "في العصر الحاضر ترتبط الأوطان بـ:",
+      "normalizedOptions": [
+        "العصبية القبلية فقط.",
+        "الحدود الدولية، وولاية حاكم واحد .",
+        "اللغة الواحدة."
+      ],
+      "answerIndex": 1,
+      "bookMapping": {
+        "printedStart": 12,
+        "printedEnd": 12,
+        "pdfStart": 14,
+        "pdfEnd": 14
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-005",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 6, item 5",
+      "originalText": "قال الشيخ السعدي - رحمه الله - :  في تفسير قوله تعالى(فلما قضى موسى الأجل ) اشتاق إلى...أ. أهله فقط.ب. عشيرته فقط.جـ. أهله  ووالدته وعشيرته ووطنه .",
+      "originalAnswerKey": "جـ",
+      "originalPageReference": "17",
+      "normalizedTitle": "قال الشيخ السعدي - رحمه الله - : في تفسير قوله تعالى(فلما قضى موسى الأجل ) اشتاق إلى...",
+      "normalizedOptions": [
+        "أهله فقط.",
+        "عشيرته فقط.",
+        "أهله ووالدته وعشيرته ووطنه ."
+      ],
+      "answerIndex": 2,
+      "bookMapping": {
+        "printedStart": 17,
+        "printedEnd": 17,
+        "pdfStart": 19,
+        "pdfEnd": 19
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-006",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 7, item 6",
+      "originalText": "أكمل: أشار شيخ الإسلام ابن تيمية - رحمه الله - إلى أن فراق الوطن من ...... الذي يُصيب المرء.أ. الخير .ب. الرخاء جـ. الابتلاء.",
+      "originalAnswerKey": "جـ",
+      "originalPageReference": "17",
+      "normalizedTitle": "أكمل: أشار شيخ الإسلام ابن تيمية - رحمه الله - إلى أن فراق الوطن من ...... الذي يُصيب المرء.",
+      "normalizedOptions": [
+        "الخير .",
+        "الرخاء",
+        "الابتلاء."
+      ],
+      "answerIndex": 2,
+      "bookMapping": {
+        "printedStart": 17,
+        "printedEnd": 17,
+        "pdfStart": 19,
+        "pdfEnd": 19
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-007",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 8, item 7",
+      "originalText": "نزل قوله تعالى: (إن الذي فرض عليك القرآن لرادك إلى معاد)، على النبي - ﷺ- في طريقه للهجرة :أ. تسلية له على مفارقة بلده .ب. تشجيعًا له على مفارقة بلده.جـ. للمساواة بين مفارقة البلد أو البقاء فيه.",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "17-18",
+      "normalizedTitle": "نزل قوله تعالى: (إن الذي فرض عليك القرآن لرادك إلى معاد)، على النبي ﷺ في طريقه للهجرة :",
+      "normalizedOptions": [
+        "تسلية له على مفارقة بلده .",
+        "تشجيعًا له على مفارقة بلده.",
+        "للمساواة بين مفارقة البلد أو البقاء فيه."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 17,
+        "printedEnd": 18,
+        "pdfStart": 19,
+        "pdfEnd": 20
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-008",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 9, item 8",
+      "originalText": "جعل الله -عز وجل- النفي من الوطن نوعًا من العقوبة على قاطع الطريق. \nأ. صح.ب. خطأ.",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "18",
+      "normalizedTitle": "جعل الله -عز وجل- النفي من الوطن نوعًا من العقوبة على قاطع الطريق.",
+      "normalizedOptions": [
+        "صح.",
+        "خطأ."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 18,
+        "printedEnd": 18,
+        "pdfStart": 20,
+        "pdfEnd": 20
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-009",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 10, item 9",
+      "originalText": "قال الشافعي –رحمه الله – \"يكفي مفارقة الوطن والعشيرة...\"\nأ. عزاً ومجداً\nب. خذلاناً  وذلاً\nجـ. راحة وأمناً.",
+      "originalAnswerKey": "ب",
+      "originalPageReference": "19",
+      "normalizedTitle": "قال الشافعي –رحمه الله – \"يكفي مفارقة الوطن والعشيرة...\"",
+      "normalizedOptions": [
+        "عزاً ومجداً",
+        "خذلاناً وذلاً",
+        "راحة وأمناً."
+      ],
+      "answerIndex": 1,
+      "bookMapping": {
+        "printedStart": 19,
+        "printedEnd": 19,
+        "pdfStart": 21,
+        "pdfEnd": 21
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-010",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 11, item 10",
+      "originalText": "الفتنة في قوله تعالى: ((والفتنة أشد من القتل)) على أحد التفسيرات هي:أ. الإخراج من الوطن.ب. البقاء في الوطن.\nجـ. كره الوطن.",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "20",
+      "normalizedTitle": "الفتنة في قوله تعالى: ((والفتنة أشد من القتل)) على أحد التفسيرات هي:",
+      "normalizedOptions": [
+        "الإخراج من الوطن.",
+        "البقاء في الوطن.",
+        "كره الوطن."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 20,
+        "printedEnd": 20,
+        "pdfStart": 22,
+        "pdfEnd": 22
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-011",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 12, item 11",
+      "originalText": "قوله -ﷺ-: (أو مخرجي هم ؟!)) يؤخذ منه:أ. شدة مفارقة الوطن على النفس.ب. سهولة مفارقة الوطن على النفس.\nجـ. المساواة بين مفارقة الوطن وعدم مفارقته .",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "21",
+      "normalizedTitle": "قوله ﷺ: (أو مخرجي هم؟!) يؤخذ منه:",
+      "normalizedOptions": [
+        "شدة مفارقة الوطن على النفس.",
+        "سهولة مفارقة الوطن على النفس.",
+        "المساواة بين مفارقة الوطن وعدم مفارقته ."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 21,
+        "printedEnd": 21,
+        "pdfStart": 23,
+        "pdfEnd": 23
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-012",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 13, item 12",
+      "originalText": "قال النبي -ﷺ- للأعرابي عندما سأله عن الهجرة: (ويحك، إن شأنها شديد)، وذلك لأن فيها :\nترك الوطن، ومفارقة الأصحاب والأحباب.\nسهولة الانتقال من مكان إلى مكان.\nجـ. سهولة نقل المتاع\n\n",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "24",
+      "normalizedTitle": "قال النبي ﷺ للأعرابي عندما سأله عن الهجرة: (ويحك، إن شأنها شديد)، وذلك لأن فيها :",
+      "normalizedOptions": [
+        "ترك الوطن، ومفارقة الأصحاب والأحباب.",
+        "سهولة الانتقال من مكان إلى مكان.",
+        "سهولة نقل المتاع"
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 24,
+        "printedEnd": 24,
+        "pdfStart": 26,
+        "pdfEnd": 26
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-013",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 14, item 13",
+      "originalText": "قال رسول الله ﷺ: «إني أُريت دار هجرتكم، ذات نخل بين لابتين». فالإخبار بالهجرة يحتاج إلى:\nأ. تلطف .ب. استعجال.جـ. تأجيل.",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "25",
+      "normalizedTitle": "قال رسول الله ﷺ: «إني أُريت دار هجرتكم، ذات نخل بين لابتين». فالإخبار بالهجرة يحتاج إلى:",
+      "normalizedOptions": [
+        "تلطف .",
+        "استعجال.",
+        "تأجيل."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 25,
+        "printedEnd": 25,
+        "pdfStart": 27,
+        "pdfEnd": 27
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-014",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 15, item 14",
+      "originalText": "مِن العلماء الذين اشتهروا بأسماء أوطانهم: البصري نسبة إلى البصرة، والبخاري نسبةً إلى بُخارى، والصنعاني نسبة إلى صنعاء .أ. صح.ب. خطأ.",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "30",
+      "normalizedTitle": "مِن العلماء الذين اشتهروا بأسماء أوطانهم: البصري نسبة إلى البصرة، والبخاري نسبةً إلى بُخارى، والصنعاني نسبة إلى صنعاء .",
+      "normalizedOptions": [
+        "صح.",
+        "خطأ."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 30,
+        "printedEnd": 30,
+        "pdfStart": 32,
+        "pdfEnd": 32
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-015",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 16, item 15",
+      "originalText": "ما حكم الدفاع عن الوطن بالنفس والمال إذا دهمه العدو؟\nمستحب.\nجائز.\nجـ. واجب.",
+      "originalAnswerKey": "جـ",
+      "originalPageReference": "33",
+      "normalizedTitle": "ما حكم الدفاع عن الوطن بالنفس والمال إذا دهمه العدو؟",
+      "normalizedOptions": [
+        "مستحب.",
+        "جائز.",
+        "واجب."
+      ],
+      "answerIndex": 2,
+      "bookMapping": {
+        "printedStart": 33,
+        "printedEnd": 33,
+        "pdfStart": 35,
+        "pdfEnd": 35
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-016",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 17, item 16",
+      "originalText": "قال الشيخ ابن باز -رحمه الله-: \"دلَّ الكتاب والسنة الصحيحة على أن الرباط في الثغور من: ...\"\nالأعمال المباحة.\nالأعمال المكروهة.\nجـ.       الجهاد في سبيل الله لمن أصلح الله نيته.",
+      "originalAnswerKey": "جـ",
+      "originalPageReference": "34",
+      "normalizedTitle": "قال الشيخ ابن باز -رحمه الله-: \"دلَّ الكتاب والسنة الصحيحة على أن الرباط في الثغور من: ...\"",
+      "normalizedOptions": [
+        "الأعمال المباحة.",
+        "الأعمال المكروهة.",
+        "الجهاد في سبيل الله لمن أصلح الله نيته."
+      ],
+      "answerIndex": 2,
+      "bookMapping": {
+        "printedStart": 34,
+        "printedEnd": 34,
+        "pdfStart": 36,
+        "pdfEnd": 36
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-017",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 18, item 17",
+      "originalText": "من القائل: \"لا إسلام إلا بجماعة، ولا جماعة إلا بإمارة، ولا إمارة إلا بطاعة\"؟\nعمر بن عبد العزيز – رحمه الله -.\nعمر بن الخطاب -رضي الله عنه-.\nجـ.     أحمد بن حنبل -رحمه الله-.",
+      "originalAnswerKey": "ب",
+      "originalPageReference": "40",
+      "normalizedTitle": "من القائل: \"لا إسلام إلا بجماعة، ولا جماعة إلا بإمارة، ولا إمارة إلا بطاعة\"؟",
+      "normalizedOptions": [
+        "عمر بن عبد العزيز – رحمه الله -.",
+        "عمر بن الخطاب -رضي الله عنه-.",
+        "أحمد بن حنبل -رحمه الله-."
+      ],
+      "answerIndex": 1,
+      "bookMapping": {
+        "printedStart": 40,
+        "printedEnd": 40,
+        "pdfStart": 42,
+        "pdfEnd": 42
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-018",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 19, item 18",
+      "originalText": "بماذا أوصى النبي ﷺ أصحابه وأمته في حديث العرباض بن سارية -رضي الله عنه-.؟\nبتقوى الله، والسمع والطاعة، وإن كان عبدًا حبشيًا.\nبترك الدنيا والزهد فيها.\nجـ.      بالهجرة إلى الحبشة.\n",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "40",
+      "normalizedTitle": "بماذا أوصى النبي ﷺ أصحابه وأمته في حديث العرباض بن سارية -رضي الله عنه-.؟",
+      "normalizedOptions": [
+        "بتقوى الله، والسمع والطاعة، وإن كان عبدًا حبشيًا.",
+        "بترك الدنيا والزهد فيها.",
+        "بالهجرة إلى الحبشة."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 40,
+        "printedEnd": 40,
+        "pdfStart": 42,
+        "pdfEnd": 42
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-019",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 20, item 19",
+      "originalText": "كيف وصف النبي ﷺ الخوارج في حديث: «حدثاء الأسنان...»؟\nعقلاء وحكماء.\nسفهاء الأحلام.\nجـ. أهل فقه وعلم.",
+      "originalAnswerKey": "ب",
+      "originalPageReference": "42",
+      "normalizedTitle": "كيف وصف النبي ﷺ الخوارج في حديث: «حدثاء الأسنان...»؟",
+      "normalizedOptions": [
+        "عقلاء وحكماء.",
+        "سفهاء الأحلام.",
+        "أهل فقه وعلم."
+      ],
+      "answerIndex": 1,
+      "bookMapping": {
+        "printedStart": 42,
+        "printedEnd": 42,
+        "pdfStart": 44,
+        "pdfEnd": 44
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-020",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 21, item 20",
+      "originalText": "أكمل قول النبي ﷺ : \"ثلاثٌ لا يُغِل عليهن قلبُ مسلم...\"\nالصبر، والشكر، والتوكل.\nإخلاص العمل لله، ومناصحة أئمة المسلمين، ولزوم  جماعتهم.\nجـ. الصلاة، والزكاة، وعيادة المريض.",
+      "originalAnswerKey": "ب",
+      "originalPageReference": "45",
+      "normalizedTitle": "أكمل قول النبي ﷺ : \"ثلاثٌ لا يُغِل عليهن قلبُ مسلم...\"",
+      "normalizedOptions": [
+        "الصبر، والشكر، والتوكل.",
+        "إخلاص العمل لله، ومناصحة أئمة المسلمين، ولزوم جماعتهم.",
+        "الصلاة، والزكاة، وعيادة المريض."
+      ],
+      "answerIndex": 1,
+      "bookMapping": {
+        "printedStart": 45,
+        "printedEnd": 45,
+        "pdfStart": 47,
+        "pdfEnd": 47
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-021",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 22, item 21",
+      "originalText": "النصيحة لولي الأمر ليست كنصيحة غيره من أفراد الناس، وإنما هي: \nمعاونتهم على الحق، وطاعتهم فيه، وأمرهم به.\nتركهم وعدم نصحهم.\nجـ. تأليب الناس عليهم في وسائل التواصل.",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "45",
+      "normalizedTitle": "النصيحة لولي الأمر ليست كنصيحة غيره من أفراد الناس، وإنما هي:",
+      "normalizedOptions": [
+        "معاونتهم على الحق، وطاعتهم فيه، وأمرهم به.",
+        "تركهم وعدم نصحهم.",
+        "تأليب الناس عليهم في وسائل التواصل."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 45,
+        "printedEnd": 45,
+        "pdfStart": 47,
+        "pdfEnd": 47
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-022",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 23, item 22",
+      "originalText": "من لوازم النصح لإمام المسلمين:\nالخروج عليه وتأليب الناس ضده.\nمعاداته وبغضه.\nجـ. الدعاء له، وعدم الخروج عليه، ولزوم الجماعة.",
+      "originalAnswerKey": "جـ",
+      "originalPageReference": "47",
+      "normalizedTitle": "من لوازم النصح لإمام المسلمين:",
+      "normalizedOptions": [
+        "الخروج عليه وتأليب الناس ضده.",
+        "معاداته وبغضه.",
+        "الدعاء له، وعدم الخروج عليه، ولزوم الجماعة."
+      ],
+      "answerIndex": 2,
+      "bookMapping": {
+        "printedStart": 47,
+        "printedEnd": 47,
+        "pdfStart": 49,
+        "pdfEnd": 49
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-023",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 24, item 23",
+      "originalText": "قامت المملكة العربية السعودية على كتاب الله وسنة نبيه ﷺ منذ المعاهدة المباركة بين الإمام محمد بن سعود، وشيخ الإسلام في زمانه محمد بن عبد الوهاب ـ رحمهما الله ـ.\nصح.\nب. خطأ.",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "47",
+      "normalizedTitle": "قامت المملكة العربية السعودية على كتاب الله وسنة نبيه ﷺ منذ المعاهدة المباركة بين الإمام محمد بن سعود، وشيخ الإسلام في زمانه محمد بن عبد الوهاب ـ رحمهما الله ـ.",
+      "normalizedOptions": [
+        "صح.",
+        "خطأ."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 47,
+        "printedEnd": 47,
+        "pdfStart": 49,
+        "pdfEnd": 49
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-024",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 25, item 24",
+      "originalText": "إن ما تنعم به دولتنا، المملكة العربية السعودية، من أمنٍ وأمانٍ إنما هو:\nبتوفيق الله ـ عز وجل ـ أولًا وآخرًا، ولتحكيم ولاة أمرنا منذ نشأة الدولة عام 1157هـ على كتابَ الله وسنةَ رسوله ﷺ، والتفافِ الرعية على ولاتهم.\nبمساعدة الدول الأخرى.\nجـ. بدون سبب.",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "53",
+      "normalizedTitle": "إن ما تنعم به دولتنا، المملكة العربية السعودية، من أمنٍ وأمانٍ إنما هو:",
+      "normalizedOptions": [
+        "بتوفيق الله ـ عز وجل ـ أولًا وآخرًا، ولتحكيم ولاة أمرنا منذ نشأة الدولة عام 1157هـ على كتابَ الله وسنةَ رسوله ﷺ، والتفافِ الرعية على ولاتهم.",
+        "بمساعدة الدول الأخرى.",
+        "بدون سبب."
+      ],
+      "answerIndex": 0,
+      "bookMapping": {
+        "printedStart": 53,
+        "printedEnd": 53,
+        "pdfStart": 55,
+        "pdfEnd": 55
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-025",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 26, item 25",
+      "originalText": "البيعة الشرعية لإمام المسلمين تكون في حال:\nالمنشط دون المكره.\nاليسر دون العسر.\nجـ. المنشط والمكره واليسر والعسر.",
+      "originalAnswerKey": "جـ",
+      "originalPageReference": "53",
+      "normalizedTitle": "البيعة الشرعية لإمام المسلمين تكون في حال:",
+      "normalizedOptions": [
+        "المنشط دون المكره.",
+        "اليسر دون العسر.",
+        "المنشط والمكره واليسر والعسر."
+      ],
+      "answerIndex": 2,
+      "bookMapping": {
+        "printedStart": 53,
+        "printedEnd": 53,
+        "pdfStart": 55,
+        "pdfEnd": 55
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-026",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 27, item 26",
+      "originalText": "تحاك المخططات بين ثالوث الشر وأعوانهم على وطننا لــ؟\nإشاعة الفوضى والخراب.\nتدمير مقدراته الاقتصادية.\nجـ. جميع ما سبق.",
+      "originalAnswerKey": "ج",
+      "originalPageReference": "54",
+      "normalizedTitle": "تحاك المخططات بين ثالوث الشر وأعوانهم على وطننا لــ؟",
+      "normalizedOptions": [
+        "إشاعة الفوضى والخراب.",
+        "تدمير مقدراته الاقتصادية.",
+        "جميع ما سبق."
+      ],
+      "answerIndex": 2,
+      "bookMapping": {
+        "printedStart": 54,
+        "printedEnd": 54,
+        "pdfStart": 56,
+        "pdfEnd": 56
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-027",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 28, item 27",
+      "originalText": "من الأعداء الذين يتكالبون على هذا الوطن:\nأعداء الإسلام، والعقيدة السلفية الصحيحة.\nأصحاب الثورات والمظاهرات.\nجـ. جميع ما سبق.",
+      "originalAnswerKey": "جـ",
+      "originalPageReference": "55",
+      "normalizedTitle": "من الأعداء الذين يتكالبون على هذا الوطن:",
+      "normalizedOptions": [
+        "أعداء الإسلام، والعقيدة السلفية الصحيحة.",
+        "أصحاب الثورات والمظاهرات.",
+        "جميع ما سبق."
+      ],
+      "answerIndex": 2,
+      "bookMapping": {
+        "printedStart": 55,
+        "printedEnd": 55,
+        "pdfStart": 57,
+        "pdfEnd": 57
+      },
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-028",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 29, item 28",
+      "originalText": "الجهة التي تنظم المسابقة:\nالرئاسة العامة لهيئة الأمر بالمعروف والنهي عن المنكر.\nوزارة الصحة.\nجـ. وزارة الطاقة",
+      "originalAnswerKey": "أ",
+      "originalPageReference": "-",
+      "normalizedTitle": "الجهة التي تنظم المسابقة:",
+      "normalizedOptions": [
+        "الرئاسة العامة لهيئة الأمر بالمعروف والنهي عن المنكر.",
+        "وزارة الصحة.",
+        "وزارة الطاقة"
+      ],
+      "answerIndex": 0,
+      "bookMapping": null,
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-029",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 30, item 29",
+      "originalText": "الرقم الموحد للرئاسة العامة لهيئة الأمر بالمعروف والنهي عن المنكر.\n999.\n993.\nجـ. 1909",
+      "originalAnswerKey": "جـ",
+      "originalPageReference": "الموقع الرسمي",
+      "normalizedTitle": "الرقم الموحد للرئاسة العامة لهيئة الأمر بالمعروف والنهي عن المنكر.",
+      "normalizedOptions": [
+        "999.",
+        "993.",
+        "1909"
+      ],
+      "answerIndex": 2,
+      "bookMapping": null,
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    },
+    {
+      "id": "university-1448-030",
+      "fileSha256": "1032521eaba4886477472c4f75c846b9536673ce8116addb8014ace183a43dbe",
+      "sourceRow": "اسئلة المرحلة الجامعية.docx | table 1, row 31, item 30",
+      "originalText": "من اختصاصات الرئاسة العامة لهيئة الأمر بالمعروف والنهي عن المنكر؟\nأ. القيام بواجب الأمر بالمعروف والنهي عن المنكر والدعوة إليه بالرفق واللين.\nب. الإسهام مع الجهات المختصة في مكافحة المخدرات وبيان أضرارها على الأسرة والمجتمع.\nجـ. جميع ما سبق",
+      "originalAnswerKey": "جـ",
+      "originalPageReference": "تنظيم الرئاسة",
+      "normalizedTitle": "من اختصاصات الرئاسة العامة لهيئة الأمر بالمعروف والنهي عن المنكر؟",
+      "normalizedOptions": [
+        "القيام بواجب الأمر بالمعروف والنهي عن المنكر والدعوة إليه بالرفق واللين.",
+        "الإسهام مع الجهات المختصة في مكافحة المخدرات وبيان أضرارها على الأسرة والمجتمع.",
+        "جميع ما سبق"
+      ],
+      "answerIndex": 2,
+      "bookMapping": null,
+      "review": "Text/options/key checked against OOXML; book references visually checked against SHA-bound PDF; committee approval pending"
+    }
+  ]
+}

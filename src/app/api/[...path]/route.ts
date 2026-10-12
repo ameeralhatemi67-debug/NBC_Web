@@ -12,42 +12,32 @@ import {
   newSession,
   participantState,
   revokeSession,
-  sessionFor,
   startAttempt,
   updateQuestion,
   updatePrizes,
-  type Session,
+  readSiteContent,
+  updateSiteContent,
 } from '@/lib/service';
 import { OtpService, strictKeys } from '@/lib/otp';
 import { readiness, healthCheck, updateSecurity } from '@/lib/otp-readiness';
 import { cleanupSecurity } from '@/lib/security-store';
-import { isProduction, isLocalMode } from '@/lib/runtime';
-import { staffSession } from '@/lib/staff-auth';
-import { staffCookie, vercelStaffSession } from '@/lib/vercel-staff';
+import { isLocalMode, isProduction } from '@/lib/runtime';
 import { assertRequest, jsonBody, requestIp } from '@/lib/request-security';
+import { requireRole, resolveSession, sessionCookieName } from '@/lib/api-session';
+import { ParticipantAdmin } from '@/lib/participant-admin';
+import { CampaignHistory } from '@/lib/campaigns';
+import { BookStore } from '@/lib/book-store';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-function role(session: Session | null, allowed: Session['role'][]): Session {
-  if (!session) throw new AppError('سجّل الدخول للمتابعة.', 401);
-  if (!allowed.includes(session.role)) throw new AppError('ليست لديك صلاحية لهذا الإجراء.', 403);
-  return session;
-}
+const role = requireRole;
 async function respond(req: NextRequest) {
   try {
     assertRequest(req);
-    const cookieName = isProduction() ? '__Host-nbc-session' : 'nbc-session';
+    const cookieName = sessionCookieName();
     const route = req.nextUrl.pathname.replace('/api/', '');
     const jar = await cookies();
     const token = jar.get(cookieName)?.value;
-    let session: Session | null = null;
-    if (route.startsWith('admin') || route === 'export') {
-      const staff =
-        process.env.NBC_STAFF_AUTH === 'vercel'
-          ? await vercelStaffSession(jar.get(staffCookie)?.value)
-          : await staffSession(req.headers.get('cf-access-jwt-assertion'));
-      if (staff) session = staff;
-    }
-    if (!session) session = await sessionFor(token);
+    const session = await resolveSession(req, route);
     let result: unknown;
     let setToken: string | undefined;
     const body = req.method === 'POST' ? await jsonBody(req) : {};
@@ -78,10 +68,52 @@ async function respond(req: NextRequest) {
           staff.role === 'editor'
             ? { ...state, participants: [], audit: [], published: false }
             : state;
-      } else if (route === 'leaderboard') {
-        result = await new CompetitionService(await getDb()).leaderboard(
+      } else if (route === 'registration-options') {
+        // Public: the regions and cities the current competition accepts.
+        const info = await new CompetitionService(await getDb()).registrationInfo();
+        result = {
+          ...info.eligibility,
+          registration: { open: info.open, reason: info.reason },
+        };
+      } else if (route === 'status') {
+        // Public: competition state for the home and registration pages.
+        result = await new CompetitionService(await getDb()).publicStatus();
+      } else if (route === 'site-content') {
+        result = await readSiteContent();
+      } else if (route === 'admin/site-content') {
+        role(session, ['admin']);
+        result = await readSiteContent();
+      } else if (route === 'admin/participants') {
+        const q = req.nextUrl.searchParams;
+        result = await new ParticipantAdmin(await getDb()).list(role(session, ['admin']), {
+          page: Number(q.get('page') ?? 1),
+          q: q.get('q') ?? '',
+          stage: q.get('stage') ?? '',
+          status: q.get('status') ?? '',
+        });
+      } else if (route === 'admin/campaigns') {
+        result = await new CampaignHistory(await getDb()).list(role(session, ['admin']));
+      } else if (route === 'admin/campaign') {
+        const q = req.nextUrl.searchParams;
+        result = await new CampaignHistory(await getDb()).results(role(session, ['admin']), {
+          id: q.get('id') ?? '',
+          stage: q.get('stage') ?? '',
+          page: Number(q.get('page') ?? 1),
+        });
+      } else if (route === 'winners') {
+        // Public: the committee's published announcement, or `published:false`.
+        const announcement = await new CompetitionService(await getDb()).publicWinners(
           req.nextUrl.searchParams.get('competitionId') ?? undefined,
-          req.nextUrl.searchParams.get('stage') as Stage,
+        );
+        result = announcement ? { published: true, announcement } : { published: false };
+      } else if (route === 'admin/winners') {
+        result = await new CompetitionService(await getDb()).winners(role(session, ['admin']));
+      } else if (route === 'leaderboard') {
+        const q = req.nextUrl.searchParams;
+        result = await new CompetitionService(await getDb()).leaderboard(
+          q.get('competitionId') ?? undefined,
+          q.get('stage') as Stage,
+          { page: Number(q.get('page') ?? 1), me: q.get('me') ?? undefined },
         );
       } else if (route === 'admin/test-run/leaderboard') {
         result = await new CompetitionService(await getDb()).testLeaderboard(
@@ -114,6 +146,12 @@ async function respond(req: NextRequest) {
       } else if (route === 'export') {
         role(session, ['admin']);
         const state = await adminState();
+        const campaignId = req.nextUrl.searchParams.get('competitionId');
+        if (campaignId)
+          state.participants = await new CampaignHistory(await getDb()).participants(
+            role(session, ['admin']),
+            campaignId,
+          );
         const filters = Object.fromEntries(
           Object.keys(emptyFilters).map((key) => [key, req.nextUrl.searchParams.get(key) || '']),
         );
@@ -225,7 +263,29 @@ async function respond(req: NextRequest) {
           role(session, ['admin']),
           body,
         );
-      else if (route === 'admin/question-credit') {
+      else if (route === 'admin/participants') {
+        const service = new ParticipantAdmin(await getDb());
+        const staff = role(session, ['admin']);
+        if (body.action === 'update') result = await service.update(staff, body);
+        else if (body.action === 'erase') result = await service.erase(staff, body);
+        else throw new AppError('إجراء غير صالح.');
+      } else if (route === 'admin/site-content') {
+        result = await updateSiteContent(body, role(session, ['admin']).actor ?? 'admin');
+      } else if (route === 'admin/book') {
+        const store = new BookStore(await getDb());
+        const staff = role(session, ['admin']);
+        if (body.action === 'start') result = await store.start(staff, body);
+        else if (body.action === 'finish') result = await store.finish(staff, body.uploadId);
+        else throw new AppError('إجراء غير صالح.');
+      } else if (route === 'admin/winners') {
+        const service = new CompetitionService(await getDb());
+        const staff = role(session, ['admin']);
+        if (body.action === 'save-stage') result = await service.saveWinners(staff, body);
+        else if (body.action === 'save-media') result = await service.saveMediaWinner(staff, body);
+        else if (body.action === 'publish') result = await service.publishWinners(staff, body);
+        else if (body.action === 'withdraw') result = await service.withdrawWinners(staff);
+        else throw new AppError('إجراء غير صالح.');
+      } else if (route === 'admin/question-credit') {
         await new CompetitionService(await getDb()).creditInvalidQuestion(
           role(session, ['admin']),
           body,

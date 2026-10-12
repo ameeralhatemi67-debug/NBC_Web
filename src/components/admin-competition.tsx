@@ -22,6 +22,9 @@ import {
 } from '@/lib/admin-launch';
 import { riyadhDateTime } from '@/lib/format';
 import { HoldButton } from './hold-button';
+import { AdminEligibility, eligibilityIssue } from './admin-eligibility';
+import { resolveEligibility } from '@/lib/eligibility';
+import { DEFAULT_MAX_PER_PHONE } from '@/lib/competition-domain';
 import { Icon } from './ui';
 
 type Mutation = (path: string, body: unknown, message: string) => Promise<unknown>;
@@ -119,6 +122,7 @@ export function AdminCompetition({
   const now = useNow();
   const [form, setForm] = useState(c);
   const [toast, setToast] = useState('');
+  const [resetKey, setResetKey] = useState(0);
   useEffect(() => setForm(c), [c.id, c.version]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!toast) return;
@@ -127,7 +131,7 @@ export function AdminCompetition({
   }, [toast]);
   const step = launchStep(c, now);
   const next = nextAction(step, counts);
-  const pre = preconditions(book, questions);
+  const pre = preconditions(book, questions, c);
   const dirty = changedSettings(c, form);
   const locked = c.state === 'RESULTS_PUBLISHED';
   const descriptionId = useId();
@@ -228,13 +232,13 @@ export function AdminCompetition({
                           className="check-bar"
                           role="progressbar"
                           aria-valuemin={0}
-                          aria-valuemax={20}
+                          aria-valuemax={pre.stages.find((s) => s.stage === item.stage)!.expected}
                           aria-valuenow={pre.stages.find((s) => s.stage === item.stage)!.approved}
                           aria-label={item.label}
                         >
                           <b
                             style={{
-                              width: `${Math.min(100, (pre.stages.find((s) => s.stage === item.stage)!.approved / 20) * 100)}%`,
+                              width: `${Math.min(100, (pre.stages.find((s) => s.stage === item.stage)!.approved / pre.stages.find((s) => s.stage === item.stage)!.expected) * 100)}%`,
                             }}
                           />
                         </div>
@@ -340,6 +344,49 @@ export function AdminCompetition({
                 onChange={(event) => setForm({ ...form, title: event.target.value })}
               />
             </section>
+            <AdminEligibility
+              key={`${c.id}-${c.version}-${resetKey}`}
+              value={resolveEligibility(form)}
+              disabled={locked}
+              onChange={(eligibility) => setForm({ ...form, eligibility })}
+            />
+            <section className="launch-card registration-card">
+              <h3>التسجيل</h3>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={form.registrationPaused === true}
+                  disabled={locked}
+                  onChange={(e) => setForm({ ...form, registrationPaused: e.target.checked })}
+                />
+                <span>إيقاف التسجيل مؤقتًا (يستطيع المسجلون سابقًا الدخول)</span>
+              </label>
+              <p className="field-hint">
+                يُغلق التسجيل تلقائيًا عند انتهاء المسابقة، ويظهر ذلك للزوار في الصفحة الرئيسية.
+              </p>
+              <label>
+                الحد الأقصى للمسجلين برقم جوال واحد
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={form.maxPerPhone ?? DEFAULT_MAX_PER_PHONE}
+                  disabled={locked}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      maxPerPhone: Math.min(
+                        20,
+                        Math.max(1, Math.trunc(Number(e.target.value)) || 1),
+                      ),
+                    })
+                  }
+                />
+              </label>
+              <span className="field-hint">
+                يسمح الافتراضي (3) بتسجيل الإخوة بجوال ولي الأمر دون فتح الباب لتسجيلات مكررة.
+              </span>
+            </section>
             <section className="launch-card">
               <h3 id="results-heading">النتائج والترتيب</h3>
               <div className="radio-cards" role="radiogroup" aria-labelledby="results-heading">
@@ -414,12 +461,29 @@ export function AdminCompetition({
             <p className="policy-note">
               <Icon name="info" size={18} />
               <span>
-                تظهر الإجابة الصحيحة والتوضيح بعد تثبيت الإجابة، ولا يمكن تغيير الإجابة المثبتة. هذه
-                سياسة ثابتة وليست خيارًا.
+                {c.answerMode === 'final_submission'
+                  ? 'يمكن تعديل الإجابات حتى الإرسال النهائي. تظهر الإجابات الصحيحة والتوضيحات بعد استلام المشاركة فقط.'
+                  : 'هذه حملة سابقة تعتمد تثبيت كل إجابة. تبقى محاولاتها وفق قواعدها الأصلية.'}
               </span>
             </p>
             <details className="launch-more">
               <summary>خيارات أخرى</summary>
+              {c.state === 'DRAFT' && c.answerMode !== 'final_submission' && (
+                <button
+                  type="button"
+                  className="button outline"
+                  disabled={busy}
+                  onClick={() =>
+                    void mutate(
+                      'admin/competition',
+                      { action: 'adopt-meeting-rules', version: c.version },
+                      'تم تطبيق أعداد 20 و25 و30 والإرسال النهائي، وألغيت النسخة المجمدة السابقة.',
+                    )
+                  }
+                >
+                  تطبيق قواعد الاجتماع على المسودة الخالية من المحاولات
+                </button>
+              )}
               <p className="muted">
                 إنشاء حملة جديدة يبقي المحاولات السابقة محفوظة. يلزم إغلاق المسابقة الحالية أولًا.
               </p>
@@ -447,13 +511,20 @@ export function AdminCompetition({
             {dirty.length} {dirty.length === 1 ? 'تغيير غير محفوظ' : 'تغييرات غير محفوظة'}
             {locked && ' · اسحب النشر قبل تغيير السياسة'}
           </span>
-          <button type="button" className="button outline" onClick={() => setForm(c)}>
+          <button
+            type="button"
+            className="button outline"
+            onClick={() => {
+              setForm(c);
+              setResetKey((k) => k + 1);
+            }}
+          >
             تجاهل
           </button>
           <button
             type="button"
             className="button primary"
-            disabled={busy || locked}
+            disabled={busy || locked || Boolean(eligibilityIssue(resolveEligibility(form)))}
             onClick={async () => {
               if ((await saveSettings(false, '')) !== false) setToast('تم حفظ الإعدادات');
             }}

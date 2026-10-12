@@ -8,7 +8,6 @@ import { questionStatus, questionStatusLabels } from '@/lib/exam-presentation';
 import {
   copyWithFallback,
   leaderboardModeLines,
-  missedQuestions,
   resultHiddenLine,
   resultReceivedTitle,
   revisitPages,
@@ -37,8 +36,7 @@ export function CompetitionResult({
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [allPages, setAllPages] = useState(false);
-  const missed = missedQuestions(attempt),
-    pages = revisitPages(attempt);
+  const pages = revisitPages(attempt);
   const mode = data.competition.leaderboardMode;
   const hidden = attempt.score === null;
   useEffect(() => {
@@ -174,67 +172,83 @@ export function CompetitionResult({
             واصل القراءة <Icon name="book" size={18} />
           </Link>
         </div>
-        {missed.length > 0 && (
+        {Object.keys(attempt.feedback).length > 0 && (
           <aside className="result-review">
-            <div className="result-revisit">
-              <h2>اقرأ مرة أخرى:</h2>
-              <div className="result-page-chips">
-                {(allPages ? pages : pages.slice(0, 6)).map((n) => (
-                  <button
-                    key={n}
-                    className="source-page-chip"
-                    onClick={(event) => openPage(n, event.currentTarget)}
-                  >
-                    <Icon name="book" size={16} />
-                    صفحة <bdi dir="ltr">{n}</bdi>
-                  </button>
-                ))}
-                {pages.length > 6 && (
-                  <button
-                    className="text-link result-page-toggle"
-                    aria-expanded={allPages}
-                    onClick={() => setAllPages((value) => !value)}
-                  >
-                    {allPages ? (
-                      'عرض أقل'
-                    ) : (
-                      <>
-                        عرض كل الصفحات (<bdi dir="ltr">{pages.length}</bdi>)
-                      </>
-                    )}
-                  </button>
-                )}
+            {pages.length > 0 && (
+              <div className="result-revisit">
+                <h2>اقرأ مرة أخرى:</h2>
+                <div className="result-page-chips">
+                  {(allPages ? pages : pages.slice(0, 6)).map((n) => (
+                    <button
+                      key={n}
+                      className="source-page-chip"
+                      onClick={(event) => openPage(n, event.currentTarget)}
+                    >
+                      <Icon name="book" size={16} />
+                      صفحة <bdi dir="ltr">{n}</bdi>
+                    </button>
+                  ))}
+                  {pages.length > 6 && (
+                    <button
+                      className="text-link result-page-toggle"
+                      aria-expanded={allPages}
+                      onClick={() => setAllPages((value) => !value)}
+                    >
+                      {allPages ? (
+                        'عرض أقل'
+                      ) : (
+                        <>
+                          عرض كل الصفحات (<bdi dir="ltr">{pages.length}</bdi>)
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-            <h2>الأسئلة التي تحتاج مراجعة</h2>
+            )}
+            <h2>إجاباتك والتوضيحات بعد الإرسال</h2>
             <div className="result-review-list">
-              {missed.map((question) => (
-                <details key={question.id}>
-                  <summary>{question.title}</summary>
-                  <div className="result-review-answer incorrect">
-                    <Icon name="close" size={16} />
-                    <p>
-                      <strong>إجابتك:</strong>{' '}
-                      {selectedAnswerText(question, attempt.answers[question.id]?.selected ?? [])}
+              {attempt.questions
+                .filter((q) => attempt.feedback[q.id])
+                .map((question) => (
+                  <details key={question.id}>
+                    <summary>{question.title}</summary>
+                    <div
+                      className={`result-review-answer ${attempt.feedback[question.id].isCorrect ? 'correct' : 'incorrect'}`}
+                    >
+                      <Icon
+                        name={attempt.feedback[question.id].isCorrect ? 'check' : 'close'}
+                        size={16}
+                      />
+                      <p>
+                        <strong>إجابتك:</strong>{' '}
+                        {selectedAnswerText(question, attempt.answers[question.id]?.selected ?? [])}
+                      </p>
+                    </div>
+                    <div className="result-review-answer correct">
+                      <Icon name="check" size={16} />
+                      <p>
+                        <strong>الصحيحة:</strong>{' '}
+                        {selectedAnswerText(question, attempt.feedback[question.id].correctAnswers)}
+                      </p>
+                    </div>
+                    <p className="result-explanation">
+                      {attempt.feedback[question.id].explanation}
                     </p>
-                  </div>
-                  <div className="result-review-answer correct">
-                    <Icon name="check" size={16} />
-                    <p>
-                      <strong>الصحيحة:</strong>{' '}
-                      {selectedAnswerText(question, attempt.feedback[question.id].correctAnswers)}
-                    </p>
-                  </div>
-                  <p className="result-explanation">{attempt.feedback[question.id].explanation}</p>
-                  <button
-                    className="source-page-chip"
-                    onClick={(event) => openPage(question.pdfPage, event.currentTarget)}
-                  >
-                    <Icon name="book" size={16} />
-                    افتح الصفحة <bdi dir="ltr">{question.pdfPage}</bdi>
-                  </button>
-                </details>
-              ))}
+                    {question.pdfPage !== null && (
+                      <button
+                        className="source-page-chip"
+                        onClick={(event) =>
+                          question.pdfPage !== null &&
+                          openPage(question.pdfPage, event.currentTarget)
+                        }
+                      >
+                        <Icon name="book" size={16} />
+                        افتح الصفحة <bdi dir="ltr">{question.pdfPage}</bdi>
+                      </button>
+                    )}
+                  </details>
+                ))}
             </div>
           </aside>
         )}

@@ -28,6 +28,15 @@ const pg = new EmbeddedPostgres({
 });
 let exitCode = 1;
 let completed = false;
+async function createDatabase(name) {
+  const client = pg.getPgClient('postgres', '127.0.0.1');
+  try {
+    await client.connect();
+    await client.query(`CREATE DATABASE ${client.escapeIdentifier(name)}`);
+  } finally {
+    await client.end();
+  }
+}
 process.on('exit', () => {
   if (!completed) process.exitCode = 1;
 });
@@ -35,7 +44,7 @@ try {
   console.log('Starting disposable PostgreSQL cluster.');
   await pg.initialise();
   await pg.start();
-  await pg.createDatabase('nbc_security_test');
+  await createDatabase('nbc_security_test');
   const child = spawn(process.execPath, ['--import', 'tsx', '--test', 'tests/otp.test.ts'], {
     windowsHide: true,
     stdio: 'inherit',
@@ -49,10 +58,17 @@ try {
     child.on('exit', (code) => resolve(code ?? 1));
   });
   if (exitCode === 0) {
-    await pg.createDatabase('nbc_engine_test');
+    await createDatabase('nbc_engine_test');
     const engine = spawn(
       process.execPath,
-      ['--import', 'tsx', '--test', 'tests/competition.test.ts', 'tests/migrations.test.ts'],
+      [
+        '--import',
+        'tsx',
+        '--test',
+        'tests/competition.test.ts',
+        'tests/migrations.test.ts',
+        'tests/meeting-updates.test.ts',
+      ],
       {
         windowsHide: true,
         stdio: 'inherit',
@@ -68,7 +84,7 @@ try {
     });
   }
   if (exitCode === 0) {
-    await pg.createDatabase('nbc_storage_test');
+    await createDatabase('nbc_storage_test');
     const storage = spawn(process.execPath, ['--import', 'tsx', 'tests/private-storage.mjs'], {
       windowsHide: true,
       stdio: 'inherit',
@@ -101,9 +117,10 @@ try {
     console.log(
       'PostgreSQL verification completed: OTP, competition/migrations, private grants and production HTTP phases passed.',
     );
-} catch {
+} catch (error) {
   exitCode = 1;
   console.error('PostgreSQL verification failed before all phases completed.');
+  console.error(String(error).replaceAll(password, '[redacted]'));
   // Cluster logs contain only local database startup diagnostics, never connection URLs.
   console.error(clusterLog.replaceAll(password, '[redacted]').slice(-2500));
 } finally {

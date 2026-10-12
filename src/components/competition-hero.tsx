@@ -8,13 +8,13 @@ import { DemoNote, Icon } from './ui';
 const highlights = [
   {
     label: 'المعرفة في متناولك',
-    title: 'كتاب يفتح باب الانتماء.',
+    title: 'كتاب يفتح آفاق الانتماء.',
     text: 'اقرأ كتاب المسابقة، وارجع إليه في أي وقت أثناء الإجابة.',
     icon: 'book',
   },
   {
     label: 'مساحة للفهم والتأمل',
-    title: 'خذ وقتك. المعرفة تستحق.',
+    title: 'تمهّل في القراءة؛ فالمعرفة تستحق التأمل.',
     text: 'لا مؤقت للإجابة، ويمكنك مراجعة الأسئلة قبل الإرسال.',
     icon: 'clock',
   },
@@ -26,7 +26,13 @@ const highlights = [
   },
 ];
 
-export function CompetitionHero() {
+export function CompetitionHero({
+  intro,
+  registrationOpen = true,
+}: {
+  intro: string;
+  registrationOpen?: boolean;
+}) {
   const prefersReducedMotion = useReducedMotion();
   const [mounted, setMounted] = useState(false);
   const reducedMotion = mounted && prefersReducedMotion;
@@ -72,7 +78,7 @@ export function CompetitionHero() {
       <div className="container competition-hero-grid">
         <div className="competition-hero-copy">
           <p className="eyebrow light">
-            <span /> معرفة تُلهمنا. وانتماء يجمعنا.
+            <span /> معرفة تُلهمنا، وانتماء يجمعنا.
           </p>
           <h1>
             <span className="sr-only">مسابقة الانتماء واللحمة الوطنية</span>
@@ -98,20 +104,23 @@ export function CompetitionHero() {
               <span>واللحمة الوطنية</span>
             </span>
           </h1>
-          <p className="competition-hero-intro">
-            نقرأ لنفهم معنى الانتماء، ونشارك في تعزيز
-            <br className="desktop-only" /> اللحمة الوطنية. رحلة معرفية تبدأ بصفحة.
-          </p>
+          <p className="competition-hero-intro">{intro}</p>
           <div className="button-row">
-            <Link href="/register" className="button hero-gold">
-              سجّل في المسابقة <Icon />
-            </Link>
+            {registrationOpen ? (
+              <Link href="/register" className="button hero-gold">
+                سجّل في المسابقة <Icon />
+              </Link>
+            ) : (
+              <Link href="/register?mode=login" className="button hero-gold">
+                ادخل إلى مساحتك <Icon />
+              </Link>
+            )}
             <Link href="/book" className="button hero-outline">
               <Icon name="book" /> اقرأ كتاب المسابقة
             </Link>
           </div>
           <p className="competition-hero-audience">
-            لطلاب وطالبات المتوسطة والثانوية والجامعات والكليات المعتمدة
+            لطلاب وطالبات المرحلتين المتوسطة والثانوية والجامعات والكليات المعتمدة
           </p>
           <div
             className="hero-highlights"

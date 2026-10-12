@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
 import Image from 'next/image';
+import { organizer, successPartners, educationalPartners } from '@/lib/organizations';
 import { motion, MotionConfig } from 'motion/react';
 export function Icon({ name = 'arrow', size = 22 }: { name?: string; size?: number }) {
   const paths: Record<string, ReactNode> = {
@@ -174,7 +175,7 @@ export function BrandMark({ size = 44 }: { size?: number }) {
       </svg>
       <Image
         className="official-brand-mark"
-        src="/images/organizations/general-presidency.png"
+        src="/images/identity/authority-logo.png"
         alt=""
         loading="eager"
         width={size}
@@ -289,43 +290,54 @@ export function OrganizationsBar({
     <section
       id={prominent ? 'organizations' : undefined}
       className={`organizations-bar${compact ? ' compact' : ''}${prominent ? ' prominent' : ''}`}
-      aria-label="الجهات المشاركة"
+      aria-label="الجهة المنظمة وشركاء النجاح"
     >
       <div className={compact ? 'organizations-container' : 'container organizations-container'}>
         <div className="organizations-heading">
-          <h2 className="organizations-title">الجهات المشاركة</h2>
+          <h2 className="organizations-title">الجهة المنظمة وشركاء النجاح</h2>
         </div>
-        <div className="organizations-grid">
-          <div className="org-logo-item org-logo-hedayah">
-            <span className="org-role">الجهة المساندة</span>
+        <div className="organizations-grid meeting-organizations">
+          <div className="org-logo-item org-authority">
+            <span className="org-role">{organizer.role}</span>
             <Image
-              src="/images/organizations/hedayah.png"
-              alt="شعار جمعية هداية للدعوة والإرشاد وتوعية الجاليات بالمنطقة الشرقية"
-              width={755}
-              height={915}
+              src={organizer.src}
+              alt={`شعار ${organizer.name}`}
+              width={organizer.width}
+              height={organizer.height}
               className="org-logo-img"
             />
           </div>
-          <div className="org-logo-item org-logo-presidency">
-            <span className="org-role">الجهة المنفذة</span>
-            <Image
-              src="/images/organizations/general-presidency.png"
-              alt="شعار الرئاسة العامة لهيئة الأمر بالمعروف والنهي عن المنكر"
-              width={760}
-              height={760}
-              className="org-logo-img"
-            />
+          <div className="org-partners">
+            {successPartners.map((p) => (
+              <div className="org-logo-item" key={p.src}>
+                <span className="org-role">{p.role}</span>
+                <Image
+                  src={p.src}
+                  alt={`شعار ${p.name}`}
+                  width={p.width}
+                  height={p.height}
+                  unoptimized
+                  className="org-logo-img"
+                />
+              </div>
+            ))}
           </div>
-          <div className="org-logo-item org-logo-saad">
-            <span className="org-role">الجهة الراعية</span>
-            <Image
-              src="/images/organizations/saad-bin-soliab-foundation.svg"
-              alt="شعار مؤسسة سعد بن صليب العتيبي الأهلية"
-              width={495}
-              height={207}
-              unoptimized
-              className="org-logo-img"
-            />
+          <div className="org-education">
+            <h3 className="org-role">الشركاء التعليميون</h3>
+            <div className="org-education-grid">
+              {educationalPartners.map((p) => (
+                <div className="org-logo-item" key={p.src}>
+                  <Image
+                    src={p.src}
+                    alt={`شعار ${p.name}`}
+                    width={p.width}
+                    height={p.height}
+                    unoptimized
+                    className="org-logo-img"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -342,6 +354,7 @@ export function Footer({ showOrganizations = true }: { showOrganizations?: boole
           <p>معرفة تُلهمنا، وانتماء يجمعنا.</p>
           <div>
             <Link href="/terms">شروط المشاركة</Link>
+            <Link href="/privacy">سياسة الخصوصية</Link>
             <Link href="/admin">مساحة اللجنة</Link>
             <span className="footer-note">تصوّر تجريبي · ليس الموقع الرسمي</span>
           </div>

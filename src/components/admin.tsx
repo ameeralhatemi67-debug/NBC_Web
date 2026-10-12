@@ -29,6 +29,11 @@ import { tieGroups } from '@/lib/domain';
 import { AdminAnalytics } from './admin-analytics';
 import { AdminSecurity } from './admin-security';
 import { AdminPrizes } from './admin-prizes';
+import { AdminWinners } from './admin-winners';
+import { AdminParticipants } from './admin-participants';
+import { AdminCampaigns } from './admin-campaigns';
+import { AdminBook } from './admin-book';
+import { AdminContent } from './admin-content';
 import { defaultPrizes, type PrizeSettings } from '@/lib/prizes';
 type Participant = {
   id: string;
@@ -50,6 +55,7 @@ type AdminData = {
   questions: CompetitionQuestion[];
   competition?: Competition;
   book?: BookVersion;
+  books?: BookVersion[];
   history?: Record<string, unknown>[];
   audit: { id: string; action: string; detail: string; actor: string; created_at: string }[];
   published: boolean;
@@ -66,6 +72,10 @@ const tabs = [
   { id: 'prizes', name: 'الجوائز والتصميم', icon: 'trophy' },
   { id: 'questions', name: 'بنك الأسئلة', icon: 'book' },
   { id: 'results', name: 'النتائج والاعتماد', icon: 'shield' },
+  { id: 'winners', name: 'الفائزون والجوائز', icon: 'trophy' },
+  { id: 'campaigns', name: 'سجل المسابقات', icon: 'clock' },
+  { id: 'book', name: 'كتاب المسابقة', icon: 'book' },
+  { id: 'content', name: 'محتوى الموقع', icon: 'pages' },
   { id: 'reports', name: 'التقارير', icon: 'download' },
   { id: 'audit', name: 'سجل العمليات', icon: 'clock' },
 ];
@@ -316,7 +326,7 @@ export function Admin({
                 </td>
                 <td>
                   {p.stage.replace('المرحلة ', '')}
-                  <small>{p.institution || 'أسم المدرسة/الجامعة غير مسجل'}</small>
+                  <small>{p.institution || 'اسم المدرسة/الجامعة غير مسجل'}</small>
                 </td>
                 <td>{p.gender || 'غير مسجل'}</td>
                 <td>
@@ -552,6 +562,9 @@ export function Admin({
                   <button className="text-link" onClick={() => setTab('results')}>
                     مراجعة النتائج <Icon size={18} />
                   </button>
+                  <button className="text-link" onClick={() => setTab('winners')}>
+                    اختيار الفائزين <Icon size={18} />
+                  </button>
                 </section>
               </div>
               <section className="panel">
@@ -668,6 +681,7 @@ export function Admin({
           )}
           {tab === 'questions' && data.book && (
             <AdminQuestionBank
+              campaign={data.competition}
               questions={data.questions}
               canApprove={role === 'admin'}
               book={data.book}
@@ -681,6 +695,20 @@ export function Admin({
             <QuestionCoverage questions={data.questions} book={data.book} />
           )}
           {tab === 'test-run' && role === 'admin' && <AdminTestRun />}
+          {tab === 'winners' && role === 'admin' && <AdminWinners />}
+          {tab === 'campaigns' && role === 'admin' && <AdminCampaigns />}
+          {tab === 'content' && role === 'admin' && <AdminContent />}
+          {tab === 'book' && role === 'admin' && data.competition && data.book && (
+            <AdminBook
+              competition={data.competition}
+              book={data.book}
+              books={data.books ?? [data.book]}
+              busy={busy}
+              mutate={mutate}
+              onChanged={load}
+            />
+          )}
+          {tab === 'participants' && role === 'admin' && <AdminParticipants />}
           {tab === 'participants' && role === 'admin' && (
             <AdminRecovery participants={data.participants} busy={busy} mutate={mutate} />
           )}
@@ -723,10 +751,16 @@ export function Admin({
                     : 'لا توجد درجات متساوية حاليًا.'}{' '}
                   لا يتم ترجيح أي مشارك بناءً على وقت الإرسال، ولا اختيار فائز تلقائيًا.
                 </span>
+                <button className="text-link" onClick={() => setTab('winners')}>
+                  حسم التعادل واختيار الفائزين <Icon size={18} />
+                </button>
               </div>
               {ties.map((t) => (
                 <div className="tie-card" key={t.ids.join('-')}>
-                  <strong>درجة متساوية: {t.score} / 20</strong>
+                  <strong>
+                    درجة متساوية: {t.score} /{' '}
+                    {data.participants.find((p) => t.ids.includes(p.id))?.max_score}
+                  </strong>
                   <span>
                     {data.participants
                       .filter((p) => t.ids.includes(p.id))

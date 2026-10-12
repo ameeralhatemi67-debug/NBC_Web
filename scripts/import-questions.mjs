@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { connectDatabase } from '../src/lib/database.ts';
 import { migrationsCurrent } from '../src/lib/migrations.ts';
 import { CompetitionService } from '../src/lib/competition-service.ts';
-import { validateQuestion } from '../src/lib/competition-domain.ts';
+import { validateQuestion, MAX_QUESTION_IMPORT } from '../src/lib/competition-domain.ts';
 import { isLocalMode } from '../src/lib/runtime.ts';
 const [file, ...flags] = process.argv.slice(2);
 if (!file)
@@ -16,10 +16,10 @@ if (apply && (!flags.includes('--actor') || !actor || actor.startsWith('--')))
 const input = JSON.parse(await readFile(file, 'utf8'));
 if (
   !Array.isArray(input) ||
-  input.length > 60 ||
+  input.length > MAX_QUESTION_IMPORT ||
   new Set(input.map((q) => q.id)).size !== input.length
 )
-  throw new Error('Expected up to 60 distinct question records.');
+  throw new Error('Expected up to 75 distinct question records.');
 const db = await connectDatabase();
 try {
   if (!(await migrationsCurrent(db)))

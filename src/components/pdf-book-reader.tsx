@@ -13,6 +13,15 @@ import type { PDFDocumentProxy, RenderTask } from 'pdfjs-dist';
 import type { BookVersion } from '@/lib/competition-domain';
 import { Icon } from './ui';
 import { useVerifiedBook } from './use-verified-book';
+import { fetchBookResponse } from '@/lib/verified-book';
+
+// Stored books have no single URL: join the parts and open the PDF from memory.
+export async function openStoredBook(book: BookVersion) {
+  try {
+    const blob = await (await fetchBookResponse(book)).blob();
+    window.open(URL.createObjectURL(new Blob([blob], { type: 'application/pdf' })), '_blank');
+  } catch {}
+}
 
 const defaultBook: BookVersion = {
   id: 'national-belonging-ec07ef57',
@@ -684,18 +693,32 @@ export function BookReader({
             <Icon name="pages" size={18} />
             {phone && <span>صفحة بصفحة</span>}
           </button>
-          <a
-            className="icon-button"
-            role={phone ? 'menuitem' : undefined}
-            href={book.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="فتح الكتاب الكامل في نافذة جديدة"
-            title="فتح الكتاب الكامل في نافذة جديدة"
-          >
-            <Icon name="download" size={18} />
-            {phone && <span>فتح الكتاب الكامل في نافذة جديدة</span>}
-          </a>
+          {book.parts ? (
+            <button
+              type="button"
+              className="icon-button"
+              role={phone ? 'menuitem' : undefined}
+              aria-label="فتح الكتاب الكامل في نافذة جديدة"
+              title="فتح الكتاب الكامل في نافذة جديدة"
+              onClick={() => void openStoredBook(book)}
+            >
+              <Icon name="download" size={18} />
+              {phone && <span>فتح الكتاب الكامل في نافذة جديدة</span>}
+            </button>
+          ) : (
+            <a
+              className="icon-button"
+              role={phone ? 'menuitem' : undefined}
+              href={book.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="فتح الكتاب الكامل في نافذة جديدة"
+              title="فتح الكتاب الكامل في نافذة جديدة"
+            >
+              <Icon name="download" size={18} />
+              {phone && <span>فتح الكتاب الكامل في نافذة جديدة</span>}
+            </a>
+          )}
         </div>
       </header>
       {contentsOpen && (

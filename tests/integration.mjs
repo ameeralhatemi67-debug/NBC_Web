@@ -99,7 +99,7 @@ try {
     assert.equal(rulesFile.status, 200);
     assert.equal(new TextDecoder().decode(rulesBytes.slice(0, 5)), '%PDF-');
     assert.ok(termsText.includes('لا يعتمد الوقت معيارًا للمفاضلة'));
-    assert.ok(termsText.includes('تظهر الإجابة الصحيحة والتوضيح بعد تثبيت'));
+    assert.ok(termsText.includes('بعد الإرسال النهائي'));
   });
   const anon = client(),
     student = client(),
@@ -159,7 +159,7 @@ try {
   check('seed report reconciles', () => {
     assert.equal(seed.data.participants.length, 6);
     assert.equal(seed.data.participants.filter((p) => p.submitted_at).length, 0);
-    assert.equal(seed.data.questions.length, 60);
+    assert.equal(seed.data.questions.length, 75);
   });
   const payload = {
     name: 'مشارك اختبار أحمد صالح',
@@ -254,7 +254,7 @@ try {
       selected,
     });
   }
-  const invalid = await write(student, attempts[0].data, 'CHECK', 'forged', [0]);
+  const invalid = await write(student, attempts[0].data, 'SELECT', 'forged', [0]);
   assert.equal(invalid.status, 400);
   const racing = await Promise.all([
     write(student, attempts[0].data, 'SELECT', form.questions[0].id, [0]),
@@ -296,18 +296,23 @@ try {
     const original = seed.data.questions.find((q) => q.id === item.id);
     const selected = [item.options.indexOf(original.options[original.correctAnswers[0]])];
     const id = randomUUID();
-    const checked = await write(student, state, 'CHECK', item.id, selected, id);
+    const checked = await write(student, state, 'SELECT', item.id, selected, id);
     assert.equal(checked.status, 200, checked.text);
     state = checked.data;
-    const repeat = await write(student, state, 'CHECK', item.id, selected, id);
+    const repeat = await write(student, state, 'SELECT', item.id, selected, id);
     assert.equal(repeat.status, 200);
     assert.equal(repeat.data.attempt.revision, state.attempt.revision);
-    assert.equal(
-      (await write(student, state, 'CHECK', item.id, [(selected[0] + 1) % 4])).status,
-      409,
-    );
+    assert.deepEqual(state.attempt.feedback, {});
+    const edited = await write(student, state, 'SELECT', item.id, [
+      (selected[0] + 1) % item.options.length,
+    ]);
+    assert.equal(edited.status, 200);
+    state = (await write(student, edited.data, 'SELECT', item.id, selected)).data;
   }
-  check('check answer locks permanently and duplicate events are idempotent', () => {});
+  check(
+    'saved choices remain editable, feedback stays hidden and duplicate events are idempotent',
+    () => {},
+  );
   const final = await Promise.all([
     write(student, state, 'SUBMIT'),
     write(student, state, 'SUBMIT'),
@@ -387,7 +392,7 @@ try {
       clientEventId: randomUUID(),
       attemptId: run.attempt.id,
       revision: run.attempt.revision,
-      kind: 'CHECK',
+      kind: 'SELECT',
       questionId: item.id,
       selected,
     });

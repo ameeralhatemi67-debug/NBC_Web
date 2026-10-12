@@ -2,7 +2,7 @@ import { isIP } from 'node:net';
 import { AppError } from './domain';
 import { isLocalMode, isProduction, productionOrigin } from './runtime';
 
-export function assertRequest(request: Request) {
+export function assertRequest(request: Request, options: { binary?: boolean } = {}) {
   const url = new URL(request.url);
   // Next may use its internal loopback hostname in Request.url. Validate the public Host separately.
   let localOrigin: URL;
@@ -26,7 +26,8 @@ export function assertRequest(request: Request) {
       request.headers.get('sec-fetch-site') === 'cross-site'
     )
       throw new AppError('مصدر الطلب غير مسموح.', 403);
-    if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json'))
+    const type = options.binary ? 'application/octet-stream' : 'application/json';
+    if (!request.headers.get('content-type')?.toLowerCase().startsWith(type))
       throw new AppError('نوع الطلب غير صالح.', 415);
   }
 }

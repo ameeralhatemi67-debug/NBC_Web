@@ -33,6 +33,8 @@ Use secure server environment storage. Do not set any of these as `NEXT_PUBLIC_*
 
 ## Verification
 
+Live verification completed on 2026-10-04 after registering `NBC Admin` in team `amir-3843`, restricting sign-in to team members, saving the exact production callback, and configuring only `openid` and public-client authentication `none`. Production deployment `dpl_7JYvrUzhcgVDjUwt48eTaM23kvdv` is READY. The owner's real Vercel sign-in opened Admin; refresh retained the session and logout returned to the sign-in page. Public homepage/about content loads while PostgreSQL is unconfigured. The readiness dashboard correctly reports the missing database and SMS configuration and keeps OTP activation disabled.
+
 `npm test` includes four new OAuth security tests. `npm run test:admin-access` runs the production HTTP app without a database and mocks only the official Vercel identity endpoints. It checks public-page availability, the initial sign-in link, end-to-end callback/session/role checks, editor isolation, invalid callbacks, revocation, CSRF protection and absence of tokens in application logs. Existing OTP/PostgreSQL and competition tests remain in place.
 
 Official sources: [Vercel authorization API](https://vercel.com/docs/sign-in-with-vercel/authorization-server-api), [Vercel app configuration](https://vercel.com/docs/sign-in-with-vercel/manage-from-dashboard), and [OpenID Client](https://github.com/panva/openid-client). Current documentation was checked through official sources and Context7 before implementation.

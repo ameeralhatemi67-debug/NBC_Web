@@ -1,7 +1,12 @@
 'use client';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { CompetitionState } from '@/lib/competition-domain';
-import { registeredStage, stageNames } from '@/lib/competition-domain';
+import {
+  registeredStage,
+  stageNames,
+  questionCount,
+  finalSubmission,
+} from '@/lib/competition-domain';
 import { competitionStateLabels, riyadhDateTime } from '@/lib/format';
 import type { BookReadiness } from './book-cover';
 import { BookStage, type BookStageHandle } from './book-stage';
@@ -47,9 +52,17 @@ export function CompetitionIntro({
           <span className="intro-stage">{stageNames[registeredStage(data.participant.stage)]}</span>
           <ul className="intro-facts">
             {[
-              ['book', '20 سؤالًا من الكتاب'],
+              [
+                'book',
+                `${questionCount(data.competition, registeredStage(data.participant.stage))} سؤالًا`,
+              ],
               ['clock', 'بلا مؤقّت لكل سؤال، خذ وقتك'],
-              ['lock', 'الإجابة نهائية بعد تثبيتها'],
+              [
+                'lock',
+                finalSubmission(data.competition)
+                  ? 'يمكنك تعديل الإجابات حتى الإرسال النهائي'
+                  : 'الإجابة نهائية بعد تثبيتها',
+              ],
               ['pages', 'الكتاب مفتوح بجانب السؤال'],
             ].map(([icon, text]) => (
               <li key={icon}>

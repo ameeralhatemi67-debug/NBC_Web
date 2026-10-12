@@ -1,4 +1,4 @@
-import type { CompetitionState, WriteEvent } from './competition-domain';
+import { finalSubmission, type CompetitionState, type WriteEvent } from './competition-domain';
 import { openingReaderPage } from './reader-presentation';
 export type LocalCompetition = {
   state: CompetitionState;
@@ -14,7 +14,7 @@ function openStore(): Promise<IDBDatabase> {
     r.onupgradeneeded = () => r.result.createObjectStore('sessions');
     r.onsuccess = () => resolve(r.result);
     r.onerror = () =>
-      reject(new Error('تعذّر فتح التخزين المحلي. لا تُثبت إجابة قبل استعادة التخزين.'));
+      reject(new Error('تعذّر فتح التخزين المحلي. استعد التخزين قبل حفظ الإجابات.'));
   });
 }
 export async function localRead<T>(key: string): Promise<T | undefined> {
@@ -122,6 +122,16 @@ export class DurableCompetitionSession {
   async enqueue(event: WriteEvent) {
     return this.exclusive(async () => {
       this.record = (await localRead<LocalCompetition>(this.key)) ?? this.record;
+      if (
+        this.record.state.attempt?.submittedAt ||
+        this.record.events.some((e) => e.kind === 'SUBMIT')
+      )
+        throw new Error('الإرسال النهائي قيد التنفيذ أو اكتمل. انتظر تأكيد الخادم.');
+      if (finalSubmission(this.record.state.competition))
+        event = {
+          ...event,
+          revision: this.record.state.attempt!.revision + this.record.events.length,
+        };
       this.record.events.push(event);
       await this.persist();
       this.changed(this.record, 'local');
@@ -143,7 +153,9 @@ export class DurableCompetitionSession {
           try {
             this.record.state = await this.transport.write({
               ...e,
-              revision: this.record.state.attempt!.revision,
+              revision: finalSubmission(this.record.state.competition)
+                ? e.revision
+                : this.record.state.attempt!.revision,
             });
             this.record.events.shift();
             await this.persist();
@@ -158,19 +170,32 @@ export class DurableCompetitionSession {
             }
             if (error.code === 'REVISION_CONFLICT') {
               this.record.state = await this.transport.state();
+              if (finalSubmission(this.record.state.competition)) {
+                this.record.conflicts.push(
+                  ...this.record.events.map((event) => ({ event, message: error.message })),
+                );
+                this.record.events = [];
+              }
               await this.persist();
               throw new Error(
-                'تغيرت الإجابات من نافذة أخرى. أعد المزامنة لاعتماد الاختيارات غير المثبتة.',
+                'تغيرت الإجابات من نافذة أخرى. راجع النسخة المحفوظة وأعد اختيار الإجابات قبل الإرسال.',
               );
+            }
+            if (e.kind === 'SUBMIT' && error.code === 'INCOMPLETE') {
+              this.record.events.shift();
+              this.record.state = await this.transport.state();
+              await this.persist();
             }
             throw err;
           }
         }
+        const legacyConflict =
+          !finalSubmission(this.record.state.competition) && this.record.conflicts.length > 0;
         this.changed(
           this.record,
-          this.record.conflicts.length ? 'error' : 'saved',
-          this.record.conflicts.length
-            ? 'اعتمدنا الإجابات المثبتة على الخادم. التعارضات محفوظة محليًا.'
+          legacyConflict ? 'error' : 'saved',
+          legacyConflict
+            ? 'اعتمدنا الإجابات المحفوظة على الخادم. التعارضات محفوظة محليًا.'
             : undefined,
         );
       } catch (e) {

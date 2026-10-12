@@ -1,0 +1,330 @@
+/* Eligibility editor, winner selection and the public winners announcement. */
+.region-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 0;
+  border: 0;
+}
+.region-picker label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--white);
+  cursor: pointer;
+}
+.region-picker label.on {
+  border-color: var(--olive);
+  background: color-mix(in srgb, var(--olive) 10%, var(--white));
+}
+.city-editors {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin-bottom: 8px;
+}
+.city-editor {
+  display: grid;
+  gap: 4px;
+  font-weight: 500;
+}
+.city-editor textarea {
+  width: 100%;
+  resize: vertical;
+}
+.winners-admin {
+  display: grid;
+  gap: 16px;
+}
+.winners-stage header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.award-list {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 0;
+  list-style: none;
+}
+.award-list li {
+  display: grid;
+  align-items: center;
+  gap: 4px 12px;
+  grid-template-columns: 90px minmax(0, 1fr) auto;
+}
+.award-list li small {
+  grid-column: 2 / -1;
+}
+.award-list select {
+  width: 100%;
+  min-width: 0;
+}
+.award-place {
+  font-weight: 600;
+}
+.award-amount {
+  color: var(--copper);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.winners-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.winners-stage .tie-card {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+.winners-stage .tie-card textarea {
+  width: 100%;
+}
+.winners-stage .tie-card ul {
+  margin: 0;
+  padding-inline-start: 20px;
+}
+@media (max-width: 560px) {
+  .award-list li {
+    grid-template-columns: 1fr auto;
+  }
+  .award-place {
+    grid-column: 1 / -1;
+  }
+  .award-list li small {
+    grid-column: 1 / -1;
+  }
+}
+
+.winners-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-block: 24px;
+  padding: 24px 28px;
+  border: 1px solid var(--olive);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--olive) 8%, var(--white));
+}
+.winners-banner h2 {
+  margin: 4px 0;
+}
+.winners-banner p {
+  margin: 0;
+  color: var(--muted);
+}
+.winners-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  margin-block: 16px;
+}
+.winners-stage-card {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+}
+.winners-stage-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 1.15rem;
+}
+.winners-stage-card ol {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.winners-stage-card li {
+  display: grid;
+  align-items: center;
+  gap: 12px;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+}
+.winners-stage-card li div {
+  display: grid;
+  min-width: 0;
+}
+.winners-stage-card small {
+  color: var(--muted);
+}
+.winner-place {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--olive);
+  color: var(--white);
+  font-weight: 600;
+}
+.winner-prize {
+  color: var(--copper);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.winners-media p {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+}
+
+/* Competition status strip on the home page */
+.competition-status {
+  display: grid;
+  gap: 4px;
+  margin-block: 20px 8px;
+  padding: 16px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+}
+.competition-status p {
+  margin: 0;
+}
+.status-pill {
+  justify-self: start;
+  padding: 2px 12px;
+  border-radius: 999px;
+  background: var(--sand);
+  font-weight: 600;
+}
+.status-pill.state-open {
+  background: var(--olive);
+  color: var(--white);
+}
+.status-pill.state-results_published {
+  background: var(--copper);
+  color: var(--white);
+}
+
+/* Shared pager, danger zone and admin lists */
+.leaderboard-pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+.danger-zone {
+  display: grid;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--danger);
+}
+.danger-zone h4 {
+  margin: 0;
+  color: var(--danger);
+}
+.participant-editor {
+  margin-top: 16px;
+}
+.campaign-list,
+.book-versions {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+.campaign-list li,
+.book-versions li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+}
+.campaign-list li.on {
+  border-color: var(--olive);
+}
+.campaign-list li div,
+.book-versions li div {
+  display: grid;
+}
+.campaign-details header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.stage-summary {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin-block: 12px;
+}
+.stage-summary button {
+  display: grid;
+  gap: 2px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+  text-align: start;
+  cursor: pointer;
+}
+.stage-summary button.on {
+  border-color: var(--olive);
+  background: color-mix(in srgb, var(--olive) 8%, var(--white));
+}
+.campaign-awards ul {
+  margin: 0 0 12px;
+  padding-inline-start: 20px;
+}
+.editable-list {
+  display: grid;
+  gap: 14px;
+  margin: 0 0 12px;
+  padding-inline-start: 20px;
+}
+.editable-list li {
+  display: grid;
+  gap: 6px;
+}
+.editable-list input,
+.editable-list textarea,
+.content-admin textarea {
+  width: 100%;
+}
+.reorder {
+  display: flex;
+  gap: 14px;
+}
+.content-admin,
+.book-admin,
+.campaigns-admin {
+  display: grid;
+  gap: 16px;
+}
+.content-admin label,
+.book-admin label {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 8px;
+}

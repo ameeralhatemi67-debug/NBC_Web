@@ -8,6 +8,21 @@ export async function verifyBookBytes(bytes: ArrayBuffer, expectedSha: string) {
   return digest === expectedSha;
 }
 
+// A book uploaded from the admin screen is stored in parts; the bundled book is one static file.
+export async function fetchBookResponse(book: BookVersion, signal?: AbortSignal) {
+  if (!book.parts) {
+    const response = await fetch(book.url, { signal });
+    if (!response.ok) throw new Error('تعذّر تحميل الكتاب.');
+    return response;
+  }
+  const parts: Uint8Array<ArrayBuffer>[] = [];
+  for (let part = 0; part < book.parts; part++) {
+    const response = await fetch(`/api/book-file/${book.sha256}/${part}`, { signal });
+    if (!response.ok) throw new Error('تعذّر تحميل الكتاب.');
+    parts.push(new Uint8Array(await response.arrayBuffer()));
+  }
+  return new Response(new Blob(parts), { headers: { 'Content-Type': 'application/pdf' } });
+}
 // Shared by the reader and flat cover. No text extraction or search layer.
 export async function loadVerifiedBook(book: BookVersion, signal: AbortSignal) {
   const lib = await import('pdfjs-dist');
@@ -19,8 +34,7 @@ export async function loadVerifiedBook(book: BookVersion, signal: AbortSignal) {
   let response = await cache?.match(book.url).catch(() => undefined);
   const fromCache = Boolean(response);
   if (!response) {
-    response = await fetch(book.url, { signal });
-    if (!response.ok) throw new Error('تعذّر تحميل الكتاب.');
+    response = await fetchBookResponse(book, signal);
   }
   const bytes = await response.clone().arrayBuffer();
   if (!(await verifyBookBytes(bytes, book.sha256))) {

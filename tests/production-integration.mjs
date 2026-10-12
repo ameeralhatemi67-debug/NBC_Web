@@ -233,7 +233,7 @@ try {
   assert.equal((await student('attempt/start', {})).status, 409);
   const initialCompetition = (await admin('admin')).data.competition;
   for (const stage of ['middle', 'highschool', 'university'])
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < initialCompetition.questionCounts[stage]; i++) {
       const q = {
         id: `prod-test-${stage}-${i}`,
         version: 0,
@@ -274,7 +274,7 @@ try {
   const saved = await student('attempt/event', {
     clientEventId: 'production-save-0001',
     attemptId: attempt.data.attempt.id,
-    kind: 'CHECK',
+    kind: 'SELECT',
     questionId,
     selected: [0],
     revision: 0,

@@ -19,9 +19,13 @@ export function missedQuestions(attempt: ExamAttempt) {
   );
 }
 export function revisitPages(attempt: ExamAttempt) {
-  return [...new Set(missedQuestions(attempt).map((question) => question.pdfPage))].sort(
-    (a, b) => a - b,
-  );
+  return [
+    ...new Set(
+      missedQuestions(attempt)
+        .map((question) => question.pdfPage)
+        .filter((p): p is number => p !== null),
+    ),
+  ].sort((a, b) => a - b);
 }
 export function selectedAnswerText(
   question: NonNullable<CompetitionState['attempt']>['questions'][number],

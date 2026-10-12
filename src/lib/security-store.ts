@@ -51,5 +51,7 @@ export async function cleanupSecurity(db: Database) {
     await tx.query("DELETE FROM security_locks WHERE touched_at < now() - interval '48 hours'");
     await tx.query('DELETE FROM sessions WHERE expires_at < now()');
     await tx.query("DELETE FROM security_events WHERE created_at < now() - interval '90 days'");
+    // Unfinished book uploads never become books; their chunks are removed with them.
+    await tx.query("DELETE FROM book_uploads WHERE created_at < now() - interval '24 hours'");
   });
 }

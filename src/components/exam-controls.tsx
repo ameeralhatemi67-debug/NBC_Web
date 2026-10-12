@@ -42,7 +42,13 @@ export function QuestionStrip({
         i + 1
       ) : (
         <Icon
-          name={status === 'pending' ? 'lock' : status === 'correct' ? 'check' : 'close'}
+          name={
+            status === 'pending'
+              ? 'lock'
+              : status === 'correct' || status === 'answered'
+                ? 'check'
+                : 'close'
+          }
           size={14}
         />
       );
@@ -160,6 +166,7 @@ export function ExamReview({
   index,
   busy,
   pendingSubmit,
+  final = false,
   onJump,
   onSubmit,
   onClose,
@@ -168,11 +175,14 @@ export function ExamReview({
   index: number;
   busy: boolean;
   pendingSubmit: boolean;
+  final?: boolean;
   onJump: (index: number, keyboard: boolean) => void;
   onSubmit: () => void;
   onClose: () => void;
 }) {
-  const locked = attempt.questions.filter((q) => attempt.answers[q.id]?.locked).length;
+  const locked = attempt.questions.filter((q) =>
+    final ? attempt.answers[q.id]?.selected.length : attempt.answers[q.id]?.locked,
+  ).length;
   const correct = attempt.questions.filter(
     (q) => questionStatus(attempt, q.id) === 'correct',
   ).length;
@@ -183,16 +193,20 @@ export function ExamReview({
     <>
       <QuestionStrip attempt={attempt} index={index} onJump={onJump} grid />
       <div className="review-counts">
-        <span className="correct">
-          <Icon name="check" size={16} />
-          {correct} صحيحة
-        </span>
-        <span className="incorrect">
-          <Icon name="close" size={16} />
-          {incorrect} غير صحيحة
-        </span>
+        {!final && (
+          <>
+            <span className="correct">
+              <Icon name="check" size={16} />
+              {correct} صحيحة
+            </span>
+            <span className="incorrect">
+              <Icon name="close" size={16} />
+              {incorrect} غير صحيحة
+            </span>
+          </>
+        )}
         <span>
-          <NumPair a={locked} b={attempt.questions.length} /> مثبتة
+          <NumPair a={locked} b={attempt.questions.length} /> {final ? 'مجاب عنها' : 'مثبتة'}
         </span>
       </div>
       <p className="review-notice">

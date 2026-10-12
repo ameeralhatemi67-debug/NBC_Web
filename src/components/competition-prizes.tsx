@@ -22,11 +22,11 @@ export function CompetitionPrizes({
           <div>
             <span className="eyebrow">تقدير للمعرفة والمشاركة</span>
             <h2 id={preview ? 'preview-prizes-title' : 'prizes-title'}>
-              لمعرفتكم قيمة.
+              لمعرفتكم قيمة،
               <br />
               <em>ولتميّزكم تقدير.</em>
             </h2>
-            <p>6 مراكز في كل مرحلة تعليمية، وجوائز تحتفي بأثر المشاركة.</p>
+            <p>ستة مراكز للفائزين في كل مرحلة تعليمية، وجوائز تحتفي بأثر المشاركة.</p>
           </div>
           <div className="prizes-total">
             <span>إجمالي الجوائز المالية</span>

@@ -1,0 +1,42 @@
+{
+  "verifiedAt": "2026-10-11",
+  "mode": "isolated local admin test runs using supplied unapproved drafts",
+  "checks": [
+    {
+      "stage": "middle",
+      "reloadedEdit": true,
+      "bookPage": "12",
+      "earlyFeedback": 0
+    },
+    {
+      "stage": "middle",
+      "feedbackAfterSubmit": 20,
+      "result": "أجبت إجابة صحيحة عن 8 من 20 سؤالًا."
+    },
+    {
+      "stage": "highschool",
+      "feedbackAfterSubmit": 25,
+      "result": "أجبت إجابة صحيحة عن 9 من 25 سؤالًا."
+    },
+    {
+      "stage": "university",
+      "mobileBookOpened": true,
+      "keyboardAdvance": true,
+      "earlyFeedback": 0,
+      "overflow": false
+    },
+    {
+      "stage": "university",
+      "offlineQueuedSubmit": true,
+      "earlyFeedback": 0,
+      "receiptVisibleBeforeSync": 0
+    },
+    {
+      "stage": "university",
+      "reloadedOfflineSubmit": true,
+      "feedbackAfterSubmit": 30,
+      "result": "أجبت إجابة صحيحة عن 13 من 30 سؤالًا.",
+      "overflow": false
+    }
+  ]
+}

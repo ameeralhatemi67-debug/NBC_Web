@@ -8,24 +8,37 @@ import {
 
 // The hint is always the source page and the one before it. The stored start/end fields stay
 // valid for validation and exports, so they are written on save instead of being edited by hand.
-export function derivedHint(pdfPage: number) {
-  const [start, end] = hintTarget({ pdfPage });
+export function derivedHint(pdfPage: number | null) {
+  const target = hintTarget({ pdfPage });
+  if (!target) return { hintPdfPageStart: null, hintPdfPageEnd: null };
+  const [start, end] = target;
   return { hintPdfPageStart: start, hintPdfPageEnd: end };
 }
-export function withDerivedHint<T extends Pick<CompetitionQuestion, 'pdfPage'>>(question: T) {
-  return { ...question, ...derivedHint(question.pdfPage) };
+export function withDerivedHint<T extends Pick<CompetitionQuestion, 'pdfPage' | 'pdfPageEnd'>>(
+  question: T,
+) {
+  const range = hintTarget(question);
+  return { ...question, hintPdfPageStart: range?.[0] ?? null, hintPdfPageEnd: range?.[1] ?? null };
 }
 
 export type QuestionCheck = { id: string; ok: boolean; label: string };
 export function questionChecks(
-  q: Pick<CompetitionQuestion, 'title' | 'options' | 'correctAnswers' | 'type' | 'pdfPage'>,
+  q: Pick<
+    CompetitionQuestion,
+    'title' | 'options' | 'correctAnswers' | 'type' | 'pdfPage' | 'sourceKind' | 'sourceVerified'
+  >,
   book: Pick<BookVersion, 'pageCount'>,
 ): QuestionCheck[] {
   const options = q.options.map((option) => option.trim());
   const distinct = options.every(Boolean) && new Set(options).size === options.length;
   const answers = q.correctAnswers.filter((n) => n >= 0 && n < q.options.length);
   const single = q.type === 'single_choice';
-  const inside = Number.isInteger(q.pdfPage) && q.pdfPage >= 1 && q.pdfPage <= book.pageCount;
+  const inside =
+    q.pdfPage !== null &&
+    Number.isInteger(q.pdfPage) &&
+    q.pdfPage >= 1 &&
+    q.pdfPage <= book.pageCount;
+  const pending = q.sourceVerified === false || q.sourceKind === 'official';
   const last = inside && q.pdfPage === book.pageCount;
   return [
     {
@@ -51,8 +64,12 @@ export function questionChecks(
     },
     {
       id: 'page',
-      ok: inside,
-      label: inside ? 'الصفحة داخل الكتاب' : 'الصفحة خارج الكتاب',
+      ok: inside || pending,
+      label: pending
+        ? 'مرجع المصدر مستقل أو بانتظار المراجعة'
+        : inside
+          ? 'الصفحة داخل الكتاب'
+          : 'الصفحة خارج الكتاب',
     },
     {
       id: 'last-page',
@@ -77,6 +94,12 @@ export const fieldLabels: Partial<Record<keyof CompetitionQuestion, string>> = {
   sourceExcerpt: 'شاهد المصدر',
   active: 'التفعيل',
   approved: 'الاعتماد',
+  sourceKind: 'نوع المصدر',
+  sourceUrl: 'رابط المصدر',
+  sourceVerified: 'مراجعة المصدر',
+  printedPageEnd: 'نهاية النطاق المطبوع',
+  pdfPageEnd: 'نهاية نطاق PDF',
+  preserveOptionOrder: 'ترتيب الخيارات',
 };
 export function changedFields(
   previous: Record<string, unknown> | null,
@@ -97,7 +120,7 @@ export function coverageDensity(
 ): CoverageCell[] {
   const counts = new Map<number, number>();
   for (const q of questions)
-    if (q.active && (!stage || q.stage === stage))
+    if (q.pdfPage !== null && q.active && (!stage || q.stage === stage))
       counts.set(q.pdfPage, (counts.get(q.pdfPage) ?? 0) + 1);
   return Array.from({ length: pageCount }, (_, i) => {
     const count = counts.get(i + 1) ?? 0;

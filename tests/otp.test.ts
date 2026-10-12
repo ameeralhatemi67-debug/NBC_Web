@@ -28,6 +28,7 @@ import { cleanupSecurity, rateLimit } from '../src/lib/security-store';
 import { AppError } from '../src/lib/domain';
 import { isProduction } from '../src/lib/runtime';
 import { newSession } from '../src/lib/service';
+import { initializeCompetition } from '../src/lib/competition-service';
 
 let db: Database, service: OtpService;
 const sent = new Map<string, string>();
@@ -400,4 +401,48 @@ test('retention removes expired sensitive payloads and counters; security events
   await cleanupSecurity(db);
   assert.equal((await db.query('SELECT * FROM otp_challenges')).rows.length, 0);
   assert.equal((await db.query('SELECT * FROM otp_rate_events')).rows.length, 0);
+});
+
+test('one phone may register only up to the committee limit, and registration stops when paused or closed', async () => {
+  await initializeCompetition(db);
+  const patch = (value: Record<string, unknown>) =>
+    db.query("UPDATE competitions SET body = body || $1::jsonb WHERE id='nbc-1448-2026'", [
+      JSON.stringify(value),
+    ]);
+  const shared = (n: number) => ({ ...body(n), phone: '0500000001' });
+  // The per-phone resend cooldown is a separate rule; skip past it between registrations.
+  const cool = () =>
+    db.query("UPDATE otp_challenges SET last_sent_at = now() - interval '5 minutes'");
+  try {
+    await patch({ maxPerPhone: 2 });
+    for (const n of [1, 2]) {
+      await cool();
+      const c = await service.challenge(shared(n), context(n));
+      await service.verify(verifyBody(c), context(n));
+    }
+    await rejectsCode(service.challenge(shared(3), context(3)), 'PHONE_LIMIT');
+    // Login with an existing identity and a different phone still works for the others.
+    await service.challenge(body(4), context(4));
+    // A code requested before the phone filled up cannot be used afterwards.
+    await patch({ maxPerPhone: 3 });
+    await cool();
+    const pending = await service.challenge(shared(5), context(5));
+    await patch({ maxPerPhone: 2 });
+    await rejectsCode(service.verify(verifyBody(pending), context(5)), 'PHONE_LIMIT');
+
+    await patch({ maxPerPhone: 5, registrationPaused: true });
+    await rejectsCode(service.challenge(body(6), context(6)), 'REGISTRATION_CLOSED');
+    await patch({ registrationPaused: false, state: 'CLOSED', closedAt: new Date().toISOString() });
+    await rejectsCode(service.challenge(body(7), context(7)), 'REGISTRATION_CLOSED');
+    // Returning participants can still sign in once registration is closed.
+    const login = await service.challenge(
+      { mode: 'login', identity: body(1).identity, phone: shared(1).phone },
+      context(8),
+    );
+    await service.verify(verifyBody(login), context(8));
+  } finally {
+    await db.query(
+      `UPDATE competitions SET body = (body - 'maxPerPhone' - 'registrationPaused') || '{"state":"DRAFT","closedAt":null}'::jsonb WHERE id='nbc-1448-2026'`,
+    );
+  }
 });

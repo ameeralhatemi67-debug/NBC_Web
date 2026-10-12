@@ -10,6 +10,8 @@ import { ExamDialog, ExamReview, QuestionStrip } from './exam-controls';
 import { arPlural, riyadhDateTime } from '@/lib/format';
 import {
   hintEligible,
+  completedAnswers,
+  finalSubmission,
   hintTarget,
   stageNames,
   type CompetitionState,
@@ -69,8 +71,10 @@ export function Participation({
   const mainAction = useRef<HTMLButtonElement>(null);
   const priorLocks = useRef({ attemptId: '', count: 0 });
   const hintDescription = useId();
-  const lockedCount =
-    data?.attempt?.questions.filter((q) => data.attempt?.answers[q.id]?.locked).length ?? 0;
+  const final = Boolean(data && finalSubmission(data.competition));
+  const lockedCount = data?.attempt
+    ? completedAnswers(data.attempt.questions, data.attempt.answers, final)
+    : 0;
   const currentQuestionId = data?.attempt?.questions[index]?.id;
   const currentLocked = !!(currentQuestionId && data?.attempt?.answers[currentQuestionId]?.locked);
   const currentFeedback = !!(currentQuestionId && data?.attempt?.feedback[currentQuestionId]);
@@ -252,9 +256,9 @@ export function Participation({
       } else if (event.key === 'Enter' && !target?.closest('button,a')) {
         event.preventDefault();
         setInputOrigin('keyboard');
-        if (!busy && !answer?.locked && answer?.selected.length)
+        if (!final && !busy && !pendingSubmit && !answer?.locked && answer?.selected.length)
           void write('CHECK', answer.selected);
-        else if (answer?.locked && !busy) advance(true);
+        else if ((answer?.locked || (final && answer?.selected.length)) && !busy) advance(true);
       } else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
         if (target?.closest('.answer-options')) return;
         event.preventDefault();
@@ -328,7 +332,7 @@ export function Participation({
     }
   }
   async function write(kind: WriteEvent['kind'], selected?: number[]) {
-    if (!data?.attempt || !controller.current) return;
+    if (!data?.attempt || !controller.current || pendingSubmit || data.attempt.submittedAt) return;
     setBusy(true);
     setError('');
     if (kind === 'CHECK') setHintPages(null);
@@ -364,6 +368,7 @@ export function Participation({
       !attempt ||
       !question ||
       busy ||
+      pendingSubmit ||
       attempt.answers[question.id]?.locked ||
       option >= question.options.length
     )
@@ -384,7 +389,9 @@ export function Participation({
     else if (lockedCount === attempt.questions.length) setReviewOpen(true);
     else
       go(
-        attempt.questions.findIndex((q) => !attempt.answers[q.id]?.locked),
+        attempt.questions.findIndex((q) =>
+          final ? !attempt.answers[q.id]?.selected.length : !attempt.answers[q.id]?.locked,
+        ),
         keyboard,
       );
   }
@@ -495,7 +502,7 @@ export function Participation({
         <p className="answer-instruction">
           {q.type === 'multi_select' ? 'حدد كل الإجابات الصحيحة' : 'اختر إجابة واحدة'}
         </p>
-        <fieldset className="answer-options" disabled={busy || answer?.locked}>
+        <fieldset className="answer-options" disabled={busy || pendingSubmit || answer?.locked}>
           <legend className="sr-only">
             {q.type === 'multi_select' ? 'حدد كل الإجابات الصحيحة' : 'اختر إجابة واحدة'}
           </legend>
@@ -530,11 +537,13 @@ export function Participation({
             status={feedback ? (feedback.isCorrect ? 'correct' : 'incorrect') : 'pending'}
             explanation={feedback?.explanation ?? ''}
           >
-            {feedback && (
+            {feedback && q.pdfPage !== null && (
               <button
                 id={`${openerId}-source`}
                 className="source-page-chip"
-                onClick={(event) => openSource(q.pdfPage, event.currentTarget)}
+                onClick={(event) =>
+                  q.pdfPage !== null && openSource(q.pdfPage, event.currentTarget)
+                }
               >
                 <Icon name="book" size={16} />
                 افتح الصفحة {q.pdfPage}
@@ -569,6 +578,7 @@ export function Participation({
                   id={`${openerId}-hint`}
                   aria-describedby={hintDescription}
                   onClick={(event) => {
+                    if (q.pdfPage === null) return;
                     setHintPages(hintTarget(q));
                     readPage(q.pdfPage);
                     showBook(event.currentTarget);
@@ -578,9 +588,11 @@ export function Participation({
                   {eligible ? 'اعرض التلميح' : 'التلميح'}
                 </button>
                 <span id={hintDescription}>
-                  {eligible
-                    ? 'يعرض صفحتين فقط من الكتاب'
-                    : 'يُفتح بعد أن تتصفّح الكتاب إلى ما بعد موضع الإجابة.'}
+                  {q.sourceKind === 'official'
+                    ? 'سؤال عن الجهة المنظمة؛ لا يرتبط بصفحات الكتاب.'
+                    : eligible
+                      ? 'يعرض صفحتين فقط من الكتاب'
+                      : 'يُفتح بعد أن تتصفّح الكتاب إلى ما بعد موضع الإجابة.'}
                 </span>
               </>
             )}
@@ -596,11 +608,11 @@ export function Participation({
         >
           السابق
         </button>
-        {!answer?.locked ? (
+        {!final && !answer?.locked ? (
           <button
             ref={mainAction}
             className="button primary"
-            disabled={busy || !answer?.selected.length}
+            disabled={busy || pendingSubmit || !answer?.selected.length}
             onClick={() => void write('CHECK', answer?.selected)}
           >
             ثبّت إجابتي<kbd>Enter</kbd>
@@ -616,7 +628,9 @@ export function Participation({
               ? 'السؤال التالي'
               : lockedCount === a.questions.length
                 ? 'راجع وأرسل'
-                : 'إلى أول سؤال لم يُثبَّت'}
+                : final
+                  ? 'إلى أول سؤال لم يُجب'
+                  : 'إلى أول سؤال لم يُثبَّت'}
             <Icon />
           </button>
         )}
@@ -783,6 +797,7 @@ export function Participation({
           index={index}
           busy={busy}
           pendingSubmit={pendingSubmit}
+          final={final}
           onJump={(i, keyboard) => {
             setReviewOpen(false);
             go(i, keyboard);

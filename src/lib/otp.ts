@@ -1,7 +1,9 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
-import type { Database } from './database';
+import type { Database, Queryable } from './database';
 import { AppError, normalizeDigits } from './domain';
-import { easternCities, genders, stages } from './content';
+import { genders, stages } from './content';
+import { assertEligible } from './eligibility';
+import { CompetitionService } from './competition-service';
 import {
   generateOtp,
   identityLookup,
@@ -44,6 +46,12 @@ const mismatch = () =>
     400,
     'LOGIN_MISMATCH',
   );
+const phoneLimit = () =>
+  new AppError(
+    'تعذّر التسجيل بهذا الرقم. استخدم رقم جوال آخر أو تواصل مع اللجنة المنظمة.',
+    400,
+    'PHONE_LIMIT',
+  );
 export function textField(body: Record<string, unknown>, key: string, max = 120) {
   if (typeof body[key] !== 'string' || !body[key].trim() || body[key].length > max)
     throw new AppError('تحقق من الحقول المطلوبة.');
@@ -68,6 +76,15 @@ export class OtpService {
       context.actor,
     );
   }
+  // One phone may be shared by a few family members, but not by an unlimited number of identities.
+  private async phoneFull(phone: string, max: number, db: Queryable = this.db) {
+    const row = (
+      await db.query<{ n: string }>('SELECT count(*) AS n FROM participants WHERE phone=$1', [
+        phone,
+      ])
+    ).rows[0];
+    return Number(row.n) >= max;
+  }
   async challenge(body: Record<string, unknown>, context: OtpContext, adminTest = false) {
     if (!adminTest) await assertOtpActive(this.db);
     if (adminTest && !context.actor) throw new AppError('سجّل الدخول للمتابعة.', 401);
@@ -83,6 +100,7 @@ export class OtpService {
             'stage',
             'institution',
             'gender',
+            'region',
             'locality',
             'terms',
           ],
@@ -123,13 +141,23 @@ export class OtpService {
         const stage = textField(body, 'stage'),
           gender = textField(body, 'gender'),
           locality = textField(body, 'locality');
-        if (
-          !stages.includes(stage) ||
-          !genders.includes(gender) ||
-          !easternCities.includes(locality) ||
-          body.terms !== true
-        )
+        if (!stages.includes(stage) || !genders.includes(gender) || body.terms !== true)
           throw new AppError('تحقق من بيانات المشاركة ووافق على الشروط.');
+        // Regions, cities and the open/closed state are committee settings per competition.
+        const policy = await new CompetitionService(this.db).registrationInfo();
+        if (!policy.open)
+          throw new AppError(
+            policy.reason === 'closed'
+              ? 'أُغلق التسجيل لأن المسابقة انتهت. يمكن لمن سجّل سابقًا تسجيل الدخول.'
+              : 'التسجيل متوقف مؤقتًا بقرار اللجنة المنظمة. يمكن لمن سجّل سابقًا تسجيل الدخول.',
+            403,
+            'REGISTRATION_CLOSED',
+          );
+        const place = assertEligible(policy.eligibility, body.region, locality);
+        if (await this.phoneFull(phone, policy.maxPerPhone)) {
+          await this.requestLimit(context);
+          throw phoneLimit();
+        }
         payload = {
           identity,
           name,
@@ -137,7 +165,7 @@ export class OtpService {
           gender,
           locality,
           institution: textField(body, 'institution', 160),
-          region: 'الشرقية',
+          region: place.region,
         };
       }
     }
@@ -301,6 +329,7 @@ export class OtpService {
     const id = textField(body, 'challengeId', 80),
       code = normalizeDigits(textField(body, 'code', 12));
     if (!/^\d{6}$/.test(code)) throw new AppError('أدخل رمزًا من ستة أرقام.', 400, 'INVALID_CODE');
+    const policy = await new CompetitionService(this.db).registrationInfo();
     const result = await this.db.transaction(async (tx) => {
       const row = (
         await tx.query<Challenge>('SELECT * FROM otp_challenges WHERE id=$1 FOR UPDATE', [id])
@@ -344,6 +373,12 @@ export class OtpService {
       } else {
         let participant = row.participant_id;
         if (row.purpose === 'REGISTER') {
+          // Registration may have closed, or the phone filled up, since the code was sent.
+          if (!policy.open)
+            return { error: new AppError('أُغلق التسجيل.', 403, 'REGISTRATION_CLOSED') };
+          await lock(tx, 'phone-register:' + row.phone_hash);
+          if (await this.phoneFull(row.phone_e164, policy.maxPerPhone, tx))
+            return { error: phoneLimit() };
           participant = randomUUID();
           const p = row.payload_json;
           const inserted = await tx.query(

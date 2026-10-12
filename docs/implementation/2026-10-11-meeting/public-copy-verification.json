@@ -1,0 +1,29 @@
+{
+  "verifiedAt": "2026-10-11",
+  "results": [
+    {
+      "route": "/terms",
+      "redFragmentsChecked": 23,
+      "correspondenceExcluded": true,
+      "obsoleteAuthorityAssetAbsent": true
+    },
+    {
+      "route": "/privacy",
+      "redFragmentsChecked": 23,
+      "correspondenceExcluded": true,
+      "obsoleteAuthorityAssetAbsent": true
+    },
+    {
+      "route": "/register",
+      "redFragmentsChecked": 23,
+      "correspondenceExcluded": true,
+      "obsoleteAuthorityAssetAbsent": true
+    },
+    {
+      "route": "/",
+      "redFragmentsChecked": 23,
+      "correspondenceExcluded": true,
+      "obsoleteAuthorityAssetAbsent": true
+    }
+  ]
+}

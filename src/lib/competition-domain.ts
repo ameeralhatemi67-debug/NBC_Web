@@ -1,4 +1,5 @@
 import { AppError, type Question } from './domain';
+import type { Eligibility } from './eligibility';
 
 export const stageKeys = ['middle', 'highschool', 'university'] as const;
 export type Stage = (typeof stageKeys)[number];
@@ -19,15 +20,26 @@ export type BookVersion = {
   sha256: string;
   pageCount: number;
   approved: boolean;
+  // Books uploaded from the admin screen live in the database and are fetched in `parts`
+  // chunks (each small enough for a serverless response). Absent for the bundled book.
+  parts?: number;
+  sizeBytes?: number;
 };
 export type CompetitionQuestion = Question & {
   stage: Stage;
   type: 'single_choice' | 'multi_select';
   correctAnswers: number[];
-  pdfPage: number;
-  printedPage: number;
-  hintPdfPageStart: number;
-  hintPdfPageEnd: number;
+  pdfPage: number | null;
+  pdfPageEnd?: number;
+  printedPage: number | null;
+  printedPageEnd?: number;
+  hintPdfPageStart: number | null;
+  hintPdfPageEnd: number | null;
+  sourceKind?: 'book' | 'official';
+  sourceUrl?: string;
+  sourceRow?: string;
+  sourceVerified?: boolean;
+  preserveOptionOrder?: boolean;
   answerExplanation: string;
   topic: string;
   difficulty: 'easy' | 'medium' | 'hard';
@@ -51,7 +63,46 @@ export type Competition = {
   frozenAt: string | null;
   version: number;
   fixture?: boolean;
+  // Absent on campaigns created before this setting existed: default is الشرقية and its cities.
+  eligibility?: Eligibility;
+  // Registration controls (committee settings). Defaults: not paused, 3 participants per phone.
+  registrationPaused?: boolean;
+  maxPerPhone?: number;
+  questionCounts?: Record<Stage, number>;
+  answerMode?: 'per_question' | 'final_submission';
 };
+export const meetingQuestionCounts: Record<Stage, number> = {
+  middle: 20,
+  highschool: 25,
+  university: 30,
+};
+export const MAX_QUESTION_IMPORT = 75;
+export function questionCount(c: Pick<Competition, 'questionCounts'> | undefined, stage: Stage) {
+  return c?.questionCounts?.[stage] ?? 20;
+}
+export function finalSubmission(c: Pick<Competition, 'answerMode'>) {
+  return c.answerMode === 'final_submission';
+}
+export function completedAnswers(questions: SafeQuestion[], answers: AnswerMap, final: boolean) {
+  return questions.filter((q) =>
+    final ? Boolean(answers[q.id]?.selected.length) : answers[q.id]?.locked,
+  ).length;
+}
+export const DEFAULT_MAX_PER_PHONE = 3;
+export type RegistrationState = {
+  open: boolean;
+  reason: 'paused' | 'closed' | null;
+  maxPerPhone: number;
+};
+// Registration closes by itself once the competition closes; the committee can also pause it.
+export function registrationState(c: Competition, now = Date.now()): RegistrationState {
+  const state = effectiveState(c, now);
+  const maxPerPhone = c.maxPerPhone ?? DEFAULT_MAX_PER_PHONE;
+  if (state === 'CLOSED' || state === 'RESULTS_PUBLISHED')
+    return { open: false, reason: 'closed', maxPerPhone };
+  if (c.registrationPaused) return { open: false, reason: 'paused', maxPerPhone };
+  return { open: true, reason: null, maxPerPhone };
+}
 export type SafeQuestion = Pick<
   CompetitionQuestion,
   | 'id'
@@ -61,9 +112,11 @@ export type SafeQuestion = Pick<
   | 'stage'
   | 'type'
   | 'pdfPage'
+  | 'pdfPageEnd'
   | 'printedPage'
   | 'hintPdfPageStart'
   | 'hintPdfPageEnd'
+  | 'sourceKind'
 >;
 export type AnswerRecord = { selected: number[]; locked: boolean; checkedAt: string | null };
 export type AnswerMap = Record<string, AnswerRecord>;
@@ -107,9 +160,11 @@ export function safeQuestions(questions: CompetitionQuestion[]): SafeQuestion[] 
       stage,
       type,
       pdfPage,
+      pdfPageEnd,
       printedPage,
       hintPdfPageStart,
       hintPdfPageEnd,
+      sourceKind,
     }) => ({
       id,
       title,
@@ -118,9 +173,11 @@ export function safeQuestions(questions: CompetitionQuestion[]): SafeQuestion[] 
       stage,
       type,
       pdfPage,
+      pdfPageEnd,
       printedPage,
       hintPdfPageStart,
       hintPdfPageEnd,
+      sourceKind,
     }),
   );
 }
@@ -158,18 +215,22 @@ export function assertWindow(
 }
 export function hintEligible(
   maxPageRead: number,
-  question: Pick<SafeQuestion, 'pdfPage'>,
+  question: Pick<SafeQuestion, 'pdfPage' | 'pdfPageEnd'>,
   pageCount?: number,
 ) {
-  return (
-    maxPageRead > question.pdfPage ||
-    (question.pdfPage === pageCount && maxPageRead >= question.pdfPage)
-  );
+  const end = question.pdfPageEnd ?? question.pdfPage;
+  return end !== null && (maxPageRead > end || (end === pageCount && maxPageRead >= end));
 }
-export function hintTarget(question: Pick<SafeQuestion, 'pdfPage'>) {
-  return [Math.max(1, question.pdfPage - 1), question.pdfPage];
+export function hintTarget(
+  question: Pick<SafeQuestion, 'pdfPage' | 'pdfPageEnd'>,
+): [number, number] | null {
+  return question.pdfPage === null
+    ? null
+    : question.pdfPageEnd !== undefined
+      ? [question.pdfPage, question.pdfPageEnd]
+      : [Math.max(1, question.pdfPage - 1), question.pdfPage];
 }
-export function validateQuestion(q: CompetitionQuestion, book: BookVersion) {
+export function validateQuestion(q: CompetitionQuestion, book: BookVersion, approving = false) {
   const fail = (message: string): never => {
     throw new AppError(`${q.id || 'سؤال'}: ${message}`);
   };
@@ -194,39 +255,88 @@ export function validateQuestion(q: CompetitionQuestion, book: BookVersion) {
     (q.type === 'single_choice' && q.correctAnswers.length !== 1)
   )
     fail('الإجابات الصحيحة غير صالحة.');
-  if (
-    ![q.pdfPage, q.hintPdfPageStart, q.hintPdfPageEnd].every(
-      (p) => Number.isInteger(p) && p >= 1 && p <= book.pageCount,
+  if (q.sourceKind && !['book', 'official'].includes(q.sourceKind)) fail('نوع المصدر غير صالح.');
+  if (q.sourceVerified !== undefined && typeof q.sourceVerified !== 'boolean')
+    fail('حالة مراجعة المصدر غير صالحة.');
+  if (q.preserveOptionOrder !== undefined && typeof q.preserveOptionOrder !== 'boolean')
+    fail('ترتيب الخيارات غير صالح.');
+  if (q.sourceRow !== undefined && (typeof q.sourceRow !== 'string' || q.sourceRow.length > 300))
+    fail('مرجع الملف غير صالح.');
+  if (approving && q.sourceRow && q.sourceVerified !== true)
+    fail('راجع مصدر السؤال وصفحاته قبل الاعتماد.');
+  const pending = q.sourceVerified === false && !approving;
+  if (q.sourceKind === 'official') {
+    if (
+      [q.pdfPage, q.printedPage, q.hintPdfPageStart, q.hintPdfPageEnd].some((p) => p !== null) ||
+      q.pdfPageEnd !== undefined ||
+      q.printedPageEnd !== undefined
     )
-  )
-    fail('صفحة خارج نطاق الكتاب.');
-  if (q.pdfPage === book.pageCount)
-    fail('اختر صفحة مصدر قبل الصفحة الأخيرة من الكتاب حتى يمكن فتح التلميح بعد تصفّحها.');
-  if (!Number.isInteger(q.printedPage) || q.printedPage < 1 || q.printedPage > book.pageCount)
-    fail('الصفحة المطبوعة مفقودة.');
-  if (q.hintPdfPageEnd < q.hintPdfPageStart || q.hintPdfPageEnd - q.hintPdfPageStart > 1)
-    fail('التلميح يجب أن يشمل صفحة أو صفحتين.');
+      fail('المصدر الرسمي لا يستخدم صفحات الكتاب.');
+    if (!pending && (!q.sourceUrl || !/^https:\/\//.test(q.sourceUrl)))
+      fail('أضف رابط المصدر الرسمي.');
+  } else if (!pending) {
+    if (
+      ![q.pdfPage, q.hintPdfPageStart, q.hintPdfPageEnd].every(
+        (p) => p !== null && Number.isInteger(p) && p >= 1 && p <= book.pageCount,
+      )
+    )
+      fail('صفحة خارج نطاق الكتاب.');
+    if (q.pdfPage === book.pageCount)
+      fail('اختر صفحة مصدر قبل الصفحة الأخيرة من الكتاب حتى يمكن فتح التلميح بعد تصفّحها.');
+    if (
+      q.pdfPageEnd !== undefined &&
+      (q.pdfPage === null ||
+        !Number.isInteger(q.pdfPageEnd) ||
+        q.pdfPageEnd < q.pdfPage ||
+        q.pdfPageEnd >= book.pageCount ||
+        q.pdfPageEnd - q.pdfPage > 1)
+    )
+      fail('نطاق صفحات PDF غير صالح.');
+    if (
+      q.printedPage === null
+        ? q.pdfPage !== 1
+        : !Number.isInteger(q.printedPage) || q.printedPage < 1 || q.printedPage > book.pageCount
+    )
+      fail('الصفحة المطبوعة مفقودة.');
+    if (
+      q.printedPageEnd !== undefined &&
+      (!Number.isInteger(q.printedPageEnd) ||
+        q.printedPage === null ||
+        q.printedPageEnd < q.printedPage ||
+        q.printedPageEnd > book.pageCount)
+    )
+      fail('نطاق الصفحات المطبوعة غير صالح.');
+    if (
+      q.hintPdfPageEnd === null ||
+      q.hintPdfPageStart === null ||
+      q.hintPdfPageEnd < q.hintPdfPageStart ||
+      q.hintPdfPageEnd - q.hintPdfPageStart > 1
+    )
+      fail('التلميح يجب أن يشمل صفحة أو صفحتين.');
+  }
   if (q.bookVersionId !== book.id) fail('نسخة الكتاب مختلفة.');
   if (!['easy', 'medium', 'hard'].includes(q.difficulty)) fail('الصعوبة غير صالحة.');
   for (const key of ['answerExplanation', 'topic', 'sourceExcerpt', 'source'] as const)
     if (typeof q[key] !== 'string' || q[key].length > 2000) fail('بيانات المصدر غير صالحة.');
-  if (!q.sourceExcerpt.trim() && !q.fixture) fail('أضف شاهدًا من المصدر للمراجعة.');
+  if (!pending && !q.sourceExcerpt.trim() && !q.fixture) fail('أضف شاهدًا من المصدر للمراجعة.');
   if (typeof q.active !== 'boolean') fail('حالة التفعيل غير صالحة.');
 }
 export function validateBank(
   questions: CompetitionQuestion[],
   book: BookVersion,
   allowFixtures = false,
+  campaign?: Pick<Competition, 'questionCounts'>,
 ) {
   if (!book.approved || !/^[a-f0-9]{64}$/.test(book.sha256))
     throw new AppError('اعتمد نسخة الكتاب أولًا.', 409);
   for (const stage of stageKeys) {
     const bank = questions.filter((q) => q.stage === stage && q.active);
-    if (bank.length !== 20 || bank.some((q) => !q.approved))
-      throw new AppError(`${stageNames[stage]}: يلزم 20 سؤالًا معتمدًا بالضبط.`, 409);
+    const count = questionCount(campaign, stage);
+    if (bank.length !== count || bank.some((q) => !q.approved))
+      throw new AppError(`${stageNames[stage]}: يلزم ${count} سؤالًا معتمدًا بالضبط.`, 409);
     const titles = new Set<string>();
     for (const q of bank) {
-      validateQuestion(q, book);
+      validateQuestion(q, book, true);
       if (q.fixture && !allowFixtures)
         throw new AppError('الأسئلة التجريبية محظورة في النسخة الرسمية.', 409);
       const title = q.title.replace(/[\s\u064B-\u065Fـ.,،؟?!]/g, '');
@@ -260,11 +370,25 @@ export function applyEvent(
   event: WriteEvent,
   now: string,
   creditedQuestions: string[] = [],
+  campaign?: Pick<Competition, 'answerMode'>,
 ) {
   if (!['SELECT', 'CHECK', 'SUBMIT'].includes(event.kind)) throw new AppError('حدث غير صالح.');
+  const final = campaign?.answerMode === 'final_submission';
+  if (final && revision !== event.revision)
+    throw new AppError('توجد نسخة أحدث على الخادم.', 409, 'REVISION_CONFLICT');
+  if (final && event.kind === 'CHECK')
+    throw new AppError('تُعتمد الإجابات عند الإرسال النهائي.', 409, 'FINAL_SUBMISSION_REQUIRED');
   if (event.kind === 'SUBMIT') {
-    if (questions.some((q) => !answers[q.id]?.locked))
+    if (questions.some((q) => (final ? !answers[q.id]?.selected.length : !answers[q.id]?.locked)))
       throw new AppError('تحقق من كل الإجابات قبل الإرسال.', 409, 'INCOMPLETE');
+    if (final) {
+      answers = Object.fromEntries(
+        questions.map((q) => [
+          q.id,
+          { selected: validateSelection(q, answers[q.id].selected), locked: true, checkedAt: now },
+        ]),
+      );
+    }
     const score = questions.reduce(
       (n, q) =>
         n + Number(creditedQuestions.includes(q.id) || answerCorrect(q, answers[q.id].selected)),
@@ -295,10 +419,12 @@ export function applyEvent(
   };
 }
 export function feedbackFor(
-  _c: Competition,
+  c: Competition,
   questions: CompetitionQuestion[],
   answers: AnswerMap,
+  submitted = false,
 ): Record<string, Feedback> {
+  if (finalSubmission(c) && !submitted) return {};
   // Legacy formal campaigns follow the same post-lock feedback policy.
   return Object.fromEntries(
     questions

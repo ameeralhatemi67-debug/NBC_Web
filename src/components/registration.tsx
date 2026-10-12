@@ -1,11 +1,16 @@
 'use client';
-import { Suspense, useState, type FormEvent } from 'react';
+import { Suspense, useEffect, useState, type FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { api, BrandMark, DemoNote, ErrorMessage, Icon, Loading } from './ui';
 import { OtpEntry, type OtpChallenge } from './otp-entry';
-import { easternCities, genders, stages } from '@/lib/content';
+import { genders, stages } from '@/lib/content';
+import type { Eligibility } from '@/lib/eligibility';
+
+type RegistrationOptions = Eligibility & {
+  registration: { open: boolean; reason: 'paused' | 'closed' | null };
+};
 function RegistrationForm({ mode, demo }: { mode: 'login' | 'register'; demo: boolean }) {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -18,9 +23,27 @@ function RegistrationForm({ mode, demo }: { mode: 'login' | 'register'; demo: bo
     stage: stages[0],
     institution: '',
     gender: '',
+    region: '',
     locality: '',
     terms: false,
   });
+  // Regions and cities come from the current competition's settings.
+  const [options, setOptions] = useState<RegistrationOptions | null>(null);
+  useEffect(() => {
+    if (mode !== 'register') return;
+    let alive = true;
+    api<RegistrationOptions>('registration-options')
+      .then((result) => {
+        if (!alive) return;
+        setOptions(result);
+        if (result.regions.length === 1) setValues((v) => ({ ...v, region: result.regions[0] }));
+      })
+      .catch((e) => alive && setError((e as Error).message));
+    return () => {
+      alive = false;
+    };
+  }, [mode]);
+  const cities = options?.cities[values.region] ?? [];
   const [challenge, setChallenge] = useState<OtpChallenge | null>(null);
   const change = (key: string, value: string | boolean) =>
     setValues((v) => ({ ...v, [key]: value }));
@@ -59,7 +82,7 @@ function RegistrationForm({ mode, demo }: { mode: 'login' | 'register'; demo: bo
         <div className="registration-emblem">
           <BrandMark size={64} />
         </div>
-        <span className="eyebrow light">معرفة تُلهمنا. وانتماء يجمعنا.</span>
+        <span className="eyebrow light">معرفة تُلهمنا، وانتماء يجمعنا.</span>
         <h1>
           مسابقة الانتماء
           <br /> واللحمة الوطنية
@@ -97,7 +120,7 @@ function RegistrationForm({ mode, demo }: { mode: 'login' | 'register'; demo: bo
           </span>
         </Link>
         <p className="registration-aside-note">
-          لطلاب وطالبات المتوسطة والثانوية والجامعات والكليات المعتمدة
+          لطلاب وطالبات المرحلتين المتوسطة والثانوية والجامعات والكليات المعتمدة
         </p>
       </aside>
       <section className="form-card" aria-labelledby="registration-title">
@@ -149,7 +172,18 @@ function RegistrationForm({ mode, demo }: { mode: 'login' | 'register'; demo: bo
           )}
         </p>
         <ErrorMessage message={error} />
-        {step === 1 ? (
+        {step === 1 && mode === 'register' && options && !options.registration.open ? (
+          <div className="notice" role="status">
+            <Icon name="clock" />
+            <p>
+              {options.registration.reason === 'closed'
+                ? 'أُغلق التسجيل لأن المسابقة انتهت.'
+                : 'التسجيل متوقف مؤقتًا بقرار اللجنة المنظمة.'}{' '}
+              إذا سجّلت سابقًا فاستخدم <Link href="/register?mode=login">تسجيل الدخول</Link> لمتابعة
+              مشاركتك.
+            </p>
+          </div>
+        ) : step === 1 ? (
           <form onSubmit={requestCode}>
             <fieldset disabled={busy}>
               <div className="form-grid">
@@ -232,7 +266,7 @@ function RegistrationForm({ mode, demo }: { mode: 'login' | 'register'; demo: bo
                       </select>
                     </label>
                     <label className="full-width">
-                      أسم المدرسة/الجامعة
+                      اسم المدرسة/الجامعة
                       <input
                         name="institution"
                         autoComplete="organization"
@@ -243,16 +277,42 @@ function RegistrationForm({ mode, demo }: { mode: 'login' | 'register'; demo: bo
                         onChange={(e) => change('institution', e.target.value)}
                       />
                     </label>
+                    {options && options.regions.length > 1 && (
+                      <label className="full-width">
+                        المنطقة
+                        <select
+                          name="region"
+                          required
+                          value={values.region}
+                          onChange={(e) => {
+                            change('region', e.target.value);
+                            change('locality', '');
+                          }}
+                        >
+                          <option value="">اختر المنطقة</option>
+                          {options.regions.map((region) => (
+                            <option key={region}>{region}</option>
+                          ))}
+                        </select>
+                      </label>
+                    )}
                     <label className="full-width">
                       المدينة / المحافظة
                       <select
                         name="locality"
                         required
+                        disabled={!options || !values.region}
                         value={values.locality}
                         onChange={(e) => change('locality', e.target.value)}
                       >
-                        <option value="">اختر المدينة / المحافظة</option>
-                        {easternCities.map((city) => (
+                        <option value="">
+                          {!options
+                            ? 'جارٍ تحميل المدن…'
+                            : values.region
+                              ? 'اختر المدينة / المحافظة'
+                              : 'اختر المنطقة أولًا'}
+                        </option>
+                        {cities.map((city) => (
                           <option key={city}>{city}</option>
                         ))}
                       </select>
@@ -270,11 +330,15 @@ function RegistrationForm({ mode, demo }: { mode: 'login' | 'register'; demo: bo
                     onChange={(e) => change('terms', e.target.checked)}
                   />
                   <span>
-                    أوافق على{' '}
+                    أقر بأنني اطلعت على{' '}
                     <Link href="/terms" target="_blank">
-                      شروط المشاركة الموضحة
+                      شروط وضوابط مسابقة «الانتماء واللحمة الوطنية»
+                    </Link>{' '}
+                    و
+                    <Link href="/privacy" target="_blank">
+                      سياسة الخصوصية وحماية البيانات الشخصية
                     </Link>
-                    ، وأوافق على استخدام الجوال للتحقق وتأمين حسابي.
+                    ، وفهمت ما ورد فيهما.
                   </span>
                 </label>
               )}

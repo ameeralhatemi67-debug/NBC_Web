@@ -3,12 +3,14 @@ import { useEffect, useRef, useState } from 'react';
 import {
   stageKeys,
   stageNames,
+  MAX_QUESTION_IMPORT,
+  type Competition,
   type BookVersion,
   type CompetitionQuestion,
   type Stage,
 } from '@/lib/competition-domain';
 import { approvable, changedFields, coverageDensity, coverageSummary } from '@/lib/admin-workshop';
-import { QUESTIONS_PER_STAGE, stageReadiness } from '@/lib/admin-launch';
+import { stageReadiness } from '@/lib/admin-launch';
 import { riyadhDateTime } from '@/lib/format';
 import { AdminQuestionEditor } from './admin-question-editor';
 import { Icon } from './ui';
@@ -68,6 +70,7 @@ export function AdminQuestionBank({
   mutate,
   canApprove,
   initialStage = '',
+  campaign,
 }: {
   questions: CompetitionQuestion[];
   book: BookVersion;
@@ -76,6 +79,7 @@ export function AdminQuestionBank({
   mutate: Mutation;
   canApprove: boolean;
   initialStage?: Stage | '';
+  campaign?: Competition;
 }) {
   const [stage, setStage] = useState<string>(initialStage);
   const [approval, setApproval] = useState('');
@@ -88,7 +92,7 @@ export function AdminQuestionBank({
   const [importText, setImportText] = useState('');
   const [importError, setImportError] = useState('');
   useEffect(() => setStage(initialStage), [initialStage]);
-  const readiness = stageReadiness(questions, book);
+  const readiness = stageReadiness(questions, book, campaign);
   const filtered = questions.filter(
     (q) =>
       (!stage || q.stage === stage) &&
@@ -144,8 +148,8 @@ export function AdminQuestionBank({
     setImportError('');
     try {
       const rows = JSON.parse(importText);
-      if (!Array.isArray(rows) || rows.length > 60)
-        throw new Error('أدخل مصفوفة لا تتجاوز 60 سؤالًا.');
+      if (!Array.isArray(rows) || rows.length > MAX_QUESTION_IMPORT)
+        throw new Error('أدخل مصفوفة لا تتجاوز 75 سؤالًا.');
       for (const row of rows) {
         const existing = questions.find((q) => q.id === row.id);
         const result = await mutate(
@@ -174,7 +178,7 @@ export function AdminQuestionBank({
               <span>{s.name}</span>
               <b>
                 <bdi dir="ltr">
-                  {s.approved} / {QUESTIONS_PER_STAGE}
+                  {s.approved} / {s.expected}
                 </bdi>
               </b>
             </div>
@@ -183,10 +187,10 @@ export function AdminQuestionBank({
               role="progressbar"
               aria-label={s.name}
               aria-valuemin={0}
-              aria-valuemax={QUESTIONS_PER_STAGE}
+              aria-valuemax={s.expected}
               aria-valuenow={s.approved}
             >
-              <b style={{ width: `${Math.min(100, (s.approved / QUESTIONS_PER_STAGE) * 100)}%` }} />
+              <b style={{ width: `${Math.min(100, (s.approved / s.expected) * 100)}%` }} />
             </div>
             <small>{s.ok ? 'جاهزة للاعتماد' : s.reason || `${s.drafts} مسودات نشطة`}</small>
           </div>
@@ -250,6 +254,7 @@ export function AdminQuestionBank({
       )}
       {editing && (
         <AdminQuestionEditor
+          campaign={campaign}
           key={editing.id}
           draft={editing}
           book={book}
@@ -389,10 +394,32 @@ function QuestionRow({
       <div className="q-meta">
         <span className="q-stage">{stageNames[q.stage].replace('المرحلة ', '')}</span>
         <span className="q-source">
-          PDF <bdi dir="ltr">{q.pdfPage}</bdi>
-          <small>
-            مطبوعة <bdi dir="ltr">{q.printedPage}</bdi>
-          </small>
+          {q.sourceKind === 'official' ? (
+            'مصدر رسمي'
+          ) : (
+            <>
+              PDF{' '}
+              <bdi dir="ltr">
+                {q.pdfPage}
+                {q.pdfPageEnd ? `–${q.pdfPageEnd}` : ''}
+              </bdi>
+            </>
+          )}
+          {q.sourceKind !== 'official' && (
+            <small>
+              {q.printedPage === null ? (
+                'الغلاف'
+              ) : (
+                <>
+                  مطبوعة{' '}
+                  <bdi dir="ltr">
+                    {q.printedPage}
+                    {q.printedPageEnd ? `–${q.printedPageEnd}` : ''}
+                  </bdi>
+                </>
+              )}
+            </small>
+          )}
         </span>
         <span className="q-version">
           <bdi dir="ltr">v{q.version}</bdi>

@@ -22,7 +22,7 @@ Open [registration](http://127.0.0.1:3000/register) or [admin](http://127.0.0.1:
 
 Local simulation requires explicit `NBC_RUNTIME_MODE=demo`, `OTP_PROVIDER=fake`, and a six-digit `NBC_DEMO_OTP` chosen in `.env.local`. Enter that local fixture manually. The UI labels simulation but never displays the code. The API never returns it. Fake mode and the role picker are blocked in production; demo HTTP access is restricted to loopback. Keep demo data synthetic. Remote demo sharing is no longer supported.
 
-Local PGlite storage defaults to `.data/nbc`. Run one process per PGlite directory. Production always requires `DATABASE_URL`; it never falls back to `/tmp` or PGlite. Local sample participants and 60 clearly marked synthetic questions are seeded only in explicit local mode with PGlite. Production seeds no competition questions. Every new competition starts in DRAFT with formal feedback and leaderboard publication after close. Local administrators can test immediately in تجربة الإدارة, or freeze the fixture bank and open a local competition.
+Local PGlite storage defaults to `.data/nbc`. Run one process per PGlite directory. Production always requires `DATABASE_URL`; it never falls back to `/tmp` or PGlite. Local sample participants and 60 clearly marked synthetic questions are seeded only in explicit local mode with PGlite. Production seeds no competition questions. Every new competition starts in DRAFT with answer feedback after locking and leaderboard publication after close. Local administrators can enter the participant exam view from تجربة الإدارة, or freeze the fixture bank and open a local competition.
 
 ## Production deployment
 

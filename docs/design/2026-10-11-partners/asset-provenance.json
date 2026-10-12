@@ -1,0 +1,102 @@
+[
+  {
+    "file": "public/images/identity/authority-logo.png",
+    "source": "user-supplied authority-logo.png",
+    "retrievedAt": "2026-10-11",
+    "sha256": "7f2f9fce8dba7564a51c1cd80132c75ee4feeadb5aef30100952131b56f0d730",
+    "width": 1000,
+    "height": 1000,
+    "format": "png",
+    "method": "Retained supplied/local asset; official naming checked",
+    "visualReview": "Verified 2026-10-11 against local decoded artwork and official/supplied source; see logo-review.png"
+  },
+  {
+    "file": "public/images/organizations/hedayah.png",
+    "source": "https://hedayh.org.sa/",
+    "retrievedAt": "2026-10-11",
+    "sha256": "b7a42de02f5837bede8417b11078fea96b46364700bdaca57c07e20437234581",
+    "width": 755,
+    "height": 915,
+    "format": "png",
+    "method": "Retained supplied/local asset; official naming checked",
+    "visualReview": "Verified 2026-10-11 against local decoded artwork and official/supplied source; see logo-review.png"
+  },
+  {
+    "file": "public/images/organizations/saad-bin-soliab-foundation.svg",
+    "source": "https://sbs-c.sa/الشعار/",
+    "retrievedAt": "2026-10-11",
+    "sha256": "a1e06730499c9e7d1ddd5809760b0063bc543031dda7e07f37e420a703ab0666",
+    "width": 495,
+    "height": 207,
+    "format": "svg",
+    "method": "Retained supplied/local asset; official naming checked",
+    "visualReview": "Verified 2026-10-11 against local decoded artwork and official/supplied source; see logo-review.png"
+  },
+  {
+    "file": "public/images/organizations/education-eastern.svg",
+    "source": "https://sites.moe.gov.sa/assets/images/moe-logo.svg",
+    "retrievedAt": "2026-10-11",
+    "sha256": "2ce066e80b1e41b895d1e04fc0f55f7a7ccfd3a4572bd043c2699b6bda6e41d5",
+    "width": 73,
+    "height": 23,
+    "format": "svg",
+    "method": "Official website download",
+    "visualReview": "Verified 2026-10-11 against local decoded artwork and official/supplied source; see logo-review.png"
+  },
+  {
+    "file": "public/images/organizations/iau.svg",
+    "source": "https://www.iau.edu.sa/sites/all/themes/uod_base/assets/images/dga_theme/logo.svg",
+    "retrievedAt": "2026-10-11",
+    "sha256": "77282afee1976e8dd0cd1aaaef2814961813d022896c4dbf258b92061257bce4",
+    "width": 1920,
+    "height": 367,
+    "format": "svg",
+    "method": "Official website download",
+    "visualReview": "Verified 2026-10-11 against local decoded artwork and official/supplied source; see logo-review.png"
+  },
+  {
+    "file": "public/images/organizations/kfu.webp",
+    "source": "https://www.kfu.edu.sa/Style%20Library/UD/ar-sa/images/kfu-logo-normal.webp",
+    "retrievedAt": "2026-10-11",
+    "sha256": "74d1d3a9c8b937c4fab425258a6026a679805ed4e94190c36f874f62daf69da1",
+    "width": 220,
+    "height": 80,
+    "format": "webp",
+    "method": "Official response decoded as WEBP despite text/html MIME",
+    "visualReview": "Verified 2026-10-11 against local decoded artwork and official/supplied source; see logo-review.png"
+  },
+  {
+    "file": "public/images/organizations/uhb.jpg",
+    "source": "https://www.uhb.edu.sa/themes/custom/uhb/images/uhb-header-logo.jpg",
+    "retrievedAt": "2026-10-11",
+    "sha256": "2f34230a04a0ca8b63fc24f863ee63dfc276884225528880f8a37ff25dfa144d",
+    "width": 259,
+    "height": 89,
+    "format": "jpeg",
+    "method": "Official website download",
+    "visualReview": "Verified 2026-10-11 against local decoded artwork and official/supplied source; see logo-review.png"
+  },
+  {
+    "file": "public/images/organizations/kfupm.svg",
+    "source": "https://www.kfupm.edu.sa/images/default-source/default-album/kfupm_logo_en.svg?sfvrsn=f12b570c_0",
+    "retrievedAt": "2026-10-11",
+    "sha256": "3a443bc0f841ef30b8580d1fd4d12ea04e1f0d9974b0eb4114718c0ab9661578",
+    "width": 184,
+    "height": 31,
+    "format": "svg",
+    "method": "Official SVG; incorrect UTF-16 XML declaration normalized to UTF-8 without changing artwork",
+    "visualReview": "Verified 2026-10-11 against local decoded artwork and official/supplied source; see logo-review.png",
+    "publicationNormalization": "Normalized line endings to LF before Git publication; SVG artwork unchanged."
+  },
+  {
+    "file": "public/images/organizations/pmu.png",
+    "source": "https://www.pmu.edu.sa/images/c-logo-new.png",
+    "retrievedAt": "2026-10-11",
+    "sha256": "c4278257bcae787498261a03e58107c6d9dfa7de218072c90a3662a8ab90bd44",
+    "width": 130,
+    "height": 116,
+    "format": "png",
+    "method": "Windows curl with certificate verification; Python CA path rejected expired chain",
+    "visualReview": "Verified 2026-10-11 against local decoded artwork and official/supplied source; see logo-review.png"
+  }
+]

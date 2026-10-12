@@ -21,7 +21,7 @@ The editor-settings change remains untouched and also has a local patch at `tmp/
 
 ## Review files
 
-- [Interactive review](index.html) switches the three colour directions, independently selects a logo, offers a narrow layout preview, and demonstrates rotating hero information.
+- [Interactive review](projects/ideas/NBC_web/docs/design/2026-09-29/index.html) switches the three colour directions, independently selects a logo, offers a narrow layout preview, and demonstrates rotating hero information.
 - [Side-by-side comparison](comparison.html) brings the three directions and marks together.
 - Desktop captures: [A](option-a.jpg), [B](option-b.jpg), [C](option-c.jpg), and [B on mobile](mobile-b.jpg). The interactive page contains the remaining sections.
 - The source is plain HTML, CSS and browser JavaScript. Open `index.html` directly, or serve this directory locally. It makes no external data requests and does not collect registrations.

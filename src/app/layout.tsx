@@ -10,6 +10,8 @@ import './exam-ux.css';
 import './reader-ux.css';
 import './result-intro-ux.css';
 import './admin-ux.css';
+import './winners-ux.css';
+import './meeting-ux.css';
 import { Providers } from '@/components/ui';
 export const metadata: Metadata = {
   title: {
@@ -17,7 +19,7 @@ export const metadata: Metadata = {
     template: '%s | الانتماء واللحمة الوطنية',
   },
   description:
-    'منصة مسابقة الانتماء واللحمة الوطنية. اقرأ الكتاب وشارك في 20 سؤالًا لمرحلتك التعليمية.',
+    'منصة مسابقة الانتماء واللحمة الوطنية. اقرأ الكتاب وشارك في 20 أو 25 أو 30 سؤالًا وفق مرحلتك التعليمية.',
   robots: { index: false, follow: false },
 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {

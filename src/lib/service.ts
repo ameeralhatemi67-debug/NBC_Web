@@ -5,6 +5,8 @@ import { getDb } from './db';
 import { isProduction, requireLocalMode } from './runtime';
 import { AppError, type Question } from './domain';
 import { validatePrizes, type PrizeSettings } from './prizes';
+import { defaultSiteContent, validateSiteContent, type SiteContent } from './site-content';
+import { updateMeetingCopy } from './meeting-copy';
 export type Session = {
   role: 'participant' | 'admin' | 'editor';
   participant_id: string | null;
@@ -94,6 +96,10 @@ export async function readPrizes() {
     await db.query<{ value: PrizeSettings }>('SELECT value FROM settings WHERE id=$1', ['prizes'])
   ).rows[0].value;
 }
+// Public announcement of the committee's winners, or null while none is published.
+export async function readWinners() {
+  return new CompetitionService(await getDb()).publicWinners();
+}
 export async function updatePrizes(body: Record<string, unknown>, actor = 'admin') {
   const next = validatePrizes(body);
   const db = await getDb();
@@ -118,4 +124,65 @@ export async function updatePrizes(body: Record<string, unknown>, actor = 'admin
 }
 export async function updateQuestion(session: Session, body: Record<string, unknown>) {
   return new CompetitionService(await getDb()).saveQuestion(session, body);
+}
+// Editable public wording. Falls back to the built-in text when nothing is saved or storage is down.
+export async function readSiteContent(): Promise<SiteContent> {
+  try {
+    const db = await getDb();
+    const row = (
+      await db.query<{ value: Partial<SiteContent> }>('SELECT value FROM settings WHERE id=$1', [
+        'site_content',
+      ])
+    ).rows[0];
+    return JSON.parse(
+      updateMeetingCopy(JSON.stringify({ ...defaultSiteContent, ...(row?.value ?? {}) })),
+    ) as SiteContent;
+  } catch {
+    return defaultSiteContent;
+  }
+}
+export async function updateSiteContent(body: Record<string, unknown>, actor = 'admin') {
+  const next = validateSiteContent(body);
+  const db = await getDb();
+  return db.transaction(async (tx) => {
+    await tx.query(
+      "INSERT INTO settings(id,value) VALUES('site_content','{\"version\":0}') ON CONFLICT DO NOTHING",
+    );
+    const current = (
+      await tx.query<{ value: Partial<SiteContent> }>(
+        'SELECT value FROM settings WHERE id=$1 FOR UPDATE',
+        ['site_content'],
+      )
+    ).rows[0].value;
+    if ((current.version ?? 0) !== next.version)
+      throw new AppError('توجد نسخة أحدث من المحتوى. حدّث الصفحة قبل الحفظ.', 409);
+    const saved = { ...next, version: next.version + 1 };
+    await tx.query('UPDATE settings SET value=$1 WHERE id=$2', [
+      JSON.stringify(saved),
+      'site_content',
+    ]);
+    await tx.query('INSERT INTO audit (actor,action,detail) VALUES ($1,$2,$3)', [
+      actor,
+      'تعديل محتوى الموقع',
+      JSON.stringify({ version: saved.version }),
+    ]);
+    return saved;
+  });
+}
+// The book of the current competition, or null while storage is unavailable.
+export async function readCurrentBook() {
+  try {
+    const service = new CompetitionService(await getDb());
+    return await service.book(await service.current());
+  } catch {
+    return null;
+  }
+}
+// Public competition status for the home page; null while storage is unavailable.
+export async function readPublicStatus() {
+  try {
+    return await new CompetitionService(await getDb()).publicStatus();
+  } catch {
+    return null;
+  }
 }

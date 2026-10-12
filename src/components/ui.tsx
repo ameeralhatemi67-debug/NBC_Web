@@ -299,26 +299,30 @@ export function OrganizationsBar({
         <div className="organizations-grid meeting-organizations">
           <div className="org-logo-item org-authority">
             <span className="org-role">{organizer.role}</span>
-            <Image
-              src={organizer.src}
-              alt={`شعار ${organizer.name}`}
-              width={organizer.width}
-              height={organizer.height}
-              className="org-logo-img"
-            />
+            <div className="org-logo-frame">
+              <Image
+                src={organizer.src}
+                alt={`شعار ${organizer.name}`}
+                width={organizer.width}
+                height={organizer.height}
+                className="org-logo-img"
+              />
+            </div>
           </div>
           <div className="org-partners">
             {successPartners.map((p) => (
               <div className="org-logo-item" key={p.src}>
                 <span className="org-role">{p.role}</span>
-                <Image
-                  src={p.src}
-                  alt={`شعار ${p.name}`}
-                  width={p.width}
-                  height={p.height}
-                  unoptimized
-                  className="org-logo-img"
-                />
+                <div className="org-logo-frame">
+                  <Image
+                    src={p.src}
+                    alt={`شعار ${p.name}`}
+                    width={p.width}
+                    height={p.height}
+                    unoptimized
+                    className="org-logo-img"
+                  />
+                </div>
               </div>
             ))}
           </div>

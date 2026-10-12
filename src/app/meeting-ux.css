@@ -6,60 +6,72 @@
 }
 .organizations-bar .organizations-heading,
 .organizations-bar.prominent .organizations-heading {
-  margin-bottom: 24px;
+  margin-bottom: 40px;
 }
 .organizations-bar .organizations-grid.meeting-organizations {
   display: grid;
-  grid-template-columns: minmax(200px, 1fr) minmax(320px, 2fr);
-  gap: 36px;
-  align-items: stretch;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 40px 48px;
+  align-items: start;
+  justify-items: stretch;
   padding-block: 12px;
 }
 .organizations-bar .meeting-organizations .org-logo-item {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
-  gap: 14px;
-  padding: 20px;
+  gap: 20px;
+  padding: 0;
   text-align: center;
   min-width: 0;
 }
 .meeting-organizations .org-partners {
+  grid-column: span 2;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 48px;
+  align-items: start;
+}
+.meeting-organizations .org-logo-frame {
+  display: flex;
   align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 240px;
+  min-width: 0;
 }
 .organizations-bar .meeting-organizations .org-authority .org-logo-img {
-  width: 210px;
-  height: 210px;
+  width: 240px;
+  height: 240px;
   max-width: 100%;
   object-fit: contain;
 }
 .organizations-bar .meeting-organizations .org-partners .org-logo-img {
-  width: 140px;
-  height: 120px;
-  max-width: 100%;
+  width: auto;
+  height: auto;
+  max-width: min(200px, 100%);
+  max-height: 160px;
   object-fit: contain;
 }
 .meeting-organizations .org-education {
   grid-column: 1 / -1;
   border-top: 1px solid var(--line);
-  padding-top: 26px;
+  padding-top: 32px;
   text-align: center;
 }
 .meeting-organizations .org-education-grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 10px;
+  gap: 32px;
+  margin-top: 24px;
 }
 .organizations-bar .meeting-organizations .org-education-grid .org-logo-item {
-  padding: 14px 4px;
+  padding: 0;
 }
 .organizations-bar .meeting-organizations .org-education-grid .org-logo-img {
-  width: 150px;
-  height: 85px;
+  width: 160px;
+  height: 96px;
   max-width: 100%;
   object-fit: contain;
 }
@@ -78,13 +90,24 @@
     gap: 18px;
   }
   .meeting-organizations .org-partners {
+    grid-column: 1 / -1;
     grid-row: 2;
+    column-gap: 24px;
+  }
+  .meeting-organizations .org-logo-frame {
+    height: 200px;
+  }
+  .meeting-organizations .org-partners .org-logo-frame {
+    height: 160px;
+  }
+  .organizations-bar .meeting-organizations .org-partners .org-logo-img {
+    max-height: 140px;
   }
   .meeting-organizations .org-education-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .organizations-bar .meeting-organizations .org-authority .org-logo-img {
-    width: 190px;
-    height: 190px;
+    width: 200px;
+    height: 200px;
   }
 }

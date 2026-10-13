@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Icon } from './ui';
-import { NumPair } from '@/lib/format';
+import { arDigits, NumPair } from '@/lib/format';
 import { questionStatus, questionStatusLabels, type ExamAttempt } from '@/lib/exam-presentation';
 
 export function QuestionStrip({
@@ -39,7 +39,7 @@ export function QuestionStrip({
     const status = questionStatus(attempt, question.id);
     const content =
       status === 'unvisited' ? (
-        i + 1
+        arDigits(i + 1)
       ) : (
         <Icon
           name={
@@ -62,7 +62,7 @@ export function QuestionStrip({
         key={question.id}
         type="button"
         className={className}
-        aria-label={`السؤال ${i + 1}، ${questionStatusLabels[status]}`}
+        aria-label={`السؤال ${arDigits(i + 1)}، ${questionStatusLabels[status]}`}
         aria-current={index === i ? 'step' : undefined}
         onClick={(event) => onJump(i, event.detail === 0)}
       >

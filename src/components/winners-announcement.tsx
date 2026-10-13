@@ -1,9 +1,8 @@
 import { stageNames } from '@/lib/competition-domain';
-import { riyadhDateTime } from '@/lib/format';
+import { arDigits, arMoney, riyadhDateTime } from '@/lib/format';
 import type { WinnersAnnouncement } from '@/lib/winners';
 import { Icon } from './ui';
 
-const money = new Intl.NumberFormat('en-US');
 // Server-rendered from the committee's frozen snapshot. Names appear only if the committee chose so.
 export function WinnersList({ announcement }: { announcement: WinnersAnnouncement }) {
   return (
@@ -21,24 +20,24 @@ export function WinnersList({ announcement }: { announcement: WinnersAnnouncemen
               <ol>
                 {awards.map((award) => (
                   <li key={award.place}>
-                    <span className="winner-place">{award.place}</span>
+                    <span className="winner-place">{arDigits(award.place)}</span>
                     <div>
                       <strong>
                         {award.name ?? (
                           <>
-                            مشارك رقم <bdi dir="ltr">{award.participantNumber}</bdi>
+                            مشارك رقم <bdi dir="ltr">{arDigits(award.participantNumber)}</bdi>
                           </>
                         )}
                       </strong>
                       {award.institution && <small>{award.institution}</small>}
                       {award.name && (
                         <small>
-                          رقم المشارك <bdi dir="ltr">{award.participantNumber}</bdi>
+                          رقم المشارك <bdi dir="ltr">{arDigits(award.participantNumber)}</bdi>
                         </small>
                       )}
                     </div>
                     <span className="winner-prize">
-                      <bdi>{money.format(award.amount)}</bdi> ريال
+                      <bdi>{arMoney(award.amount)}</bdi> ريال
                     </span>
                   </li>
                 ))}
@@ -57,7 +56,7 @@ export function WinnersList({ announcement }: { announcement: WinnersAnnouncemen
           <p>
             <strong>{announcement.media.label}</strong>
             <span className="winner-prize">
-              <bdi>{money.format(announcement.media.amount)}</bdi> ريال
+              <bdi>{arMoney(announcement.media.amount)}</bdi> ريال
             </span>
           </p>
         </section>

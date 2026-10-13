@@ -154,9 +154,9 @@ const policies = {
         await page.evaluate(() => document.fonts.ready);
         assert.equal(
           await page.locator('.result-sentence').innerText(),
-          'أجبت إجابة صحيحة عن 5 من 20 سؤالًا.',
+          'أجبت إجابة صحيحة عن ٥ من ٢٠ سؤالًا.',
         );
-        assert.equal(await page.locator('.result-sentence-line small').innerText(), '25%');
+        assert.equal(await page.locator('.result-sentence-line small').innerText(), '٢٥٪');
         assert.ok(
           await page
             .locator('.result-sentence-line small')
@@ -417,7 +417,7 @@ const policies = {
             await page.locator('.result-policy').waitFor();
             assert.equal(await page.locator('.result-policy').innerText(), line);
             if (mode === 'public_live')
-              await page.getByText('ترتيبك الحالي 3', { exact: true }).waitFor();
+              await page.getByText('ترتيبك الحالي ٣', { exact: true }).waitFor();
             assert.equal(
               await page.locator('.leaderboard').count(),
               ['public_live', 'publish_after_close'].includes(mode) ? 1 : 0,

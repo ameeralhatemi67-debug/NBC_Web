@@ -154,7 +154,7 @@ fs.mkdirSync(output, { recursive: true });
         await page
           .locator('.question-toolbar')
           .innerText()
-          .then((s) => s.includes('السؤال 2')),
+          .then((s) => s.includes('السؤال ٢')),
         true,
       );
       await page.getByRole('button', { name: 'خروج من الاختبار', exact: true }).click();

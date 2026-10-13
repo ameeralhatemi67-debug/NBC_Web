@@ -183,7 +183,6 @@
   .hero-highlight span,
   .hero-highlight p,
   .hero-pause,
-  .book-scene-author,
   .competition-hero-bottom .demo-note {
     color: #d4edf8;
   }
@@ -214,7 +213,6 @@
     font-size: 21px;
   }
   .hero-highlight > svg,
-  .book-scene-caption,
   .hero-slide-selectors button[aria-pressed='true'] span {
     color: white;
   }
@@ -654,14 +652,6 @@
     .competition-book-float {
       width: 59%;
       margin: 4px 0 18px;
-    }
-    .book-scene-caption {
-      align-self: center;
-      font-size: 12px;
-    }
-    .book-scene-author {
-      align-self: center;
-      font-size: 10px;
     }
     .competition-hero-bottom {
       min-height: 40px;

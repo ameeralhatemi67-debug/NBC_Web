@@ -7,7 +7,7 @@ import { CompetitionIntro } from './competition-intro';
 import { CompetitionResult } from './competition-result';
 import { AnswerFeedback, AnswerOption } from './question-card-parts';
 import { ExamDialog, ExamReview, QuestionStrip } from './exam-controls';
-import { arPlural, riyadhDateTime } from '@/lib/format';
+import { arDigits, arPlural, riyadhDateTime } from '@/lib/format';
 import {
   hintEligible,
   completedAnswers,
@@ -491,7 +491,7 @@ export function Participation({
     <section className="question-card">
       <header className="question-toolbar">
         <span>
-          السؤال {index + 1} من {a.questions.length}
+          السؤال {arDigits(index + 1)} من {arDigits(a.questions.length)}
         </span>
       </header>
       <div className="question-body" key={q.id}>
@@ -776,7 +776,8 @@ export function Participation({
                   }}
                 >
                   <span>
-                    سؤال {index + 1} من {a.questions.length}: {q.title.slice(0, 60)}
+                    سؤال {arDigits(index + 1)} من {arDigits(a.questions.length)}:{' '}
+                    {q.title.slice(0, 60)}
                     {q.title.length > 60 ? '…' : ''}
                   </span>
                   <Icon name="arrow" size={18} />

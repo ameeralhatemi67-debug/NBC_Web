@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api, ApiError, ErrorMessage } from './ui';
-import { NumPair } from '@/lib/format';
+import { arDigits, NumPair } from '@/lib/format';
 import { stageNames, type Stage, type LeaderboardEntry } from '@/lib/competition-domain';
 
 type Board = {
@@ -62,7 +62,7 @@ export function Leaderboard({
       <h2>ترتيب {stageNames[stage]}</h2>
       {mine && (
         <p className="result-current-rank">
-          ترتيبك الحالي <bdi dir="ltr">{mine.rank}</bdi>
+          ترتيبك الحالي <bdi dir="ltr">{arDigits(mine.rank)}</bdi>
         </p>
       )}
       {entries ? (
@@ -80,11 +80,11 @@ export function Leaderboard({
               <tbody>
                 {entries.map((row) => (
                   <tr key={row.participantNumber}>
-                    <td>{row.rank}</td>
+                    <td>{arDigits(row.rank)}</td>
                     <td>
-                      <bdi>{row.participantNumber}</bdi>
+                      <bdi>{arDigits(row.participantNumber)}</bdi>
                     </td>
-                    <td>{row.percentage}%</td>
+                    <td>{arDigits(row.percentage)}٪</td>
                     <td>
                       <NumPair a={row.score} b={row.maxScore} />
                     </td>

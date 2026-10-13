@@ -77,7 +77,7 @@ const sizes = [
         await page.locator('.answer-option input').first().focus();
         await page.keyboard.press('ArrowRight');
         await page.waitForFunction(() => !document.querySelector('.answer-option input').checked);
-        assert.ok((await page.locator('.question-toolbar').textContent()).includes('السؤال 1 من'));
+        assert.ok((await page.locator('.question-toolbar').textContent()).includes('السؤال ١ من'));
         await page.waitForFunction(
           () => !document.querySelector('.question-footer .primary').disabled,
         );
@@ -96,7 +96,7 @@ const sizes = [
         assert.ok(await page.locator('.answer-option input').first().isDisabled());
         await page.keyboard.press('ArrowLeft');
         await page.waitForFunction(() =>
-          document.querySelector('.question-toolbar').textContent.includes('السؤال 2'),
+          document.querySelector('.question-toolbar').textContent.includes('السؤال ٢'),
         );
         assert.equal(
           await page.locator('.question-body').evaluate((e) => getComputedStyle(e).animationName),
@@ -114,7 +114,7 @@ const sizes = [
         );
         await page.keyboard.press('ArrowRight');
         await page.waitForFunction(() =>
-          document.querySelector('.question-toolbar').textContent.includes('السؤال 1'),
+          document.querySelector('.question-toolbar').textContent.includes('السؤال ١'),
         );
         if (width <= 430) {
           await page.getByRole('button', { name: 'افتح خريطة الأسئلة', exact: true }).click();
@@ -154,7 +154,7 @@ const sizes = [
                 .evaluateAll((cells) => cells.map((cell) => cell.textContent))
             ).every((text) => text === ''),
           );
-          assert.equal(await page.locator('.strip-position bdi').textContent(), '1 / 20');
+          assert.equal(await page.locator('.strip-position bdi').textContent(), '١ / ٢٠');
         }
         console.log(
           `PASS ${design} ${width}x${height}: semantics, lock, strip, keyboard, hint gate, focus, sticky action, RTL`,
@@ -186,7 +186,7 @@ const sizes = [
       await primary.waitFor();
       await page.waitForFunction(() => document.activeElement?.textContent === 'أرسل مشاركتي');
       assert.equal(await review.locator('.review-counts bdi').getAttribute('dir'), 'ltr');
-      assert.equal(await review.locator('.review-counts bdi').textContent(), '20 / 20');
+      assert.equal(await review.locator('.review-counts bdi').textContent(), '٢٠ / ٢٠');
       if (!offline)
         await page.waitForFunction(
           () =>
@@ -211,21 +211,21 @@ const sizes = [
       await review.getByRole('button', { name: 'سأراجع أولًا', exact: true }).click();
       await review.waitFor({ state: 'hidden' });
       await page.getByRole('button', { name: 'راجع وأرسل', exact: true }).click();
-      await review.getByRole('button', { name: /السؤال 1،/, exact: false }).click();
+      await review.getByRole('button', { name: /السؤال ١،/, exact: false }).click();
       await review.waitFor({ state: 'hidden' });
       await page.waitForFunction(() =>
-        document.querySelector('.question-toolbar').textContent.includes('السؤال 1 من'),
+        document.querySelector('.question-toolbar').textContent.includes('السؤال ١ من'),
       );
       if (offline) {
         await page.getByRole('button', { name: 'افتح خريطة الأسئلة', exact: true }).click();
         await page
           .getByRole('dialog', { name: 'انتقل إلى سؤال', exact: true })
-          .getByRole('button', { name: /السؤال 20،/ })
+          .getByRole('button', { name: /السؤال ٢٠،/ })
           .click();
       } else
         await page
           .locator('.competition-heading')
-          .getByRole('button', { name: /السؤال 20،/ })
+          .getByRole('button', { name: /السؤال ٢٠،/ })
           .click();
       await page.getByRole('button', { name: 'راجع وأرسل', exact: true }).click();
       const action = await primary.boundingBox();
@@ -307,13 +307,13 @@ const sizes = [
     assert.equal(await long.locator('.answer-option input:checked').count(), 3);
     await long.locator('.answer-option input').nth(4).focus();
     await long.keyboard.press('ArrowLeft');
-    assert.ok((await long.locator('.question-toolbar').textContent()).includes('السؤال 1 من'));
+    assert.ok((await long.locator('.question-toolbar').textContent()).includes('السؤال ١ من'));
     await long.getByRole('button', { name: 'افتح الكتاب', exact: true }).click();
     const pageInput = long.getByLabel('رقم صفحة PDF', { exact: true });
     await pageInput.waitFor();
     await pageInput.fill(String(legacy.book.pageCount));
     await pageInput.press('ArrowLeft');
-    assert.ok((await long.locator('.question-toolbar').textContent()).includes('السؤال 1 من'));
+    assert.ok((await long.locator('.question-toolbar').textContent()).includes('السؤال ١ من'));
     await long.getByRole('button', { name: 'العودة إلى السؤال', exact: true }).click();
     await long.getByRole('button', { name: 'اعرض التلميح', exact: true }).click();
     await long.waitForFunction(() => document.querySelectorAll('.pdf-page').length === 2);

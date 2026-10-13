@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { CompetitionState } from '@/lib/competition-domain';
 import { registeredStage } from '@/lib/competition-domain';
-import { resultSentence } from '@/lib/format';
+import { arDigits, resultSentence } from '@/lib/format';
 import { questionStatus, questionStatusLabels } from '@/lib/exam-presentation';
 import {
   copyWithFallback,
@@ -93,7 +93,7 @@ export function CompetitionResult({
                   </p>
                   {attempt.percentage !== null && (
                     <small>
-                      <bdi dir="ltr">{attempt.percentage}%</bdi>
+                      <bdi dir="ltr">{arDigits(attempt.percentage)}٪</bdi>
                     </small>
                   )}
                 </div>
@@ -114,7 +114,7 @@ export function CompetitionResult({
                     key={question.id}
                     className={`result-segment ${status}`}
                     role="listitem"
-                    aria-label={`السؤال ${index + 1}، ${questionStatusLabels[status]}`}
+                    aria-label={`السؤال ${arDigits(index + 1)}، ${questionStatusLabels[status]}`}
                     style={{ '--segment-delay': `${index * 40}ms` } as React.CSSProperties}
                   >
                     <Icon
@@ -198,7 +198,7 @@ export function CompetitionResult({
                         'عرض أقل'
                       ) : (
                         <>
-                          عرض كل الصفحات (<bdi dir="ltr">{pages.length}</bdi>)
+                          عرض كل الصفحات (<bdi dir="ltr">{arDigits(pages.length)}</bdi>)
                         </>
                       )}
                     </button>

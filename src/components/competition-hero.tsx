@@ -198,10 +198,6 @@ export function CompetitionHero({
               />
             </Link>
           </div>
-          <p className="book-scene-caption">
-            <span /> كتاب المسابقة <span />
-          </p>
-          <p className="book-scene-author">عبدالرحمن بن عبدالله بن محمد السند</p>
         </div>
       </div>
       <div className="container competition-hero-bottom">

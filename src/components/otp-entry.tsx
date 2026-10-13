@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState, type FormEvent } from 'react';
+import { arDigits } from '@/lib/format';
 import { ApiError, ErrorMessage, Icon } from './ui';
 export type OtpChallenge = {
   challengeId: string;
@@ -73,7 +74,7 @@ export function OtpEntry({
       <p className="muted">التحقق يثبت الوصول إلى الجوال، ولا يثبت ملكية الهوية أو الإقامة.</p>
       <p role="timer" aria-label="الوقت المتبقي لصلاحية الرمز">
         {expires
-          ? `ينتهي الرمز خلال ${Math.floor(expires / 60)}:${String(expires % 60).padStart(2, '0')}`
+          ? `ينتهي الرمز خلال ${arDigits(`${Math.floor(expires / 60)}:${String(expires % 60).padStart(2, '0')}`)}`
           : 'انتهت صلاحية الرمز. اطلب رمزًا جديدًا.'}
       </p>
       <ErrorMessage message={error} />

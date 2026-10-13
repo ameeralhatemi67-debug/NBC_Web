@@ -142,21 +142,19 @@ test('registration creates no participant/session until verification, stores no 
   assert.notEqual(sessions[0].token, token);
   await rejectsCode(service.verify(verifyBody(c), context()), 'EXPIRED');
 });
-test('optional backup mobile and village are stored; a backup equal to the main phone is rejected', async () => {
-  await assert.rejects(
-    service.challenge({ ...body(), backup: body().phone }, context()),
-    /احتياطيًا مختلفًا/,
-  );
+test('retired backup mobile and village fields are accepted but never stored', async () => {
   const c = await service.challenge(
     { ...body(), backup: '0599999999', village: ' قرية اختبار ' },
     context(),
   );
   await service.verify(verifyBody(c), context());
   const p = (
-    await db.query<{ backup: string; village: string }>('SELECT backup,village FROM participants')
+    await db.query<{ backup: string | null; village: string | null }>(
+      'SELECT backup,village FROM participants',
+    )
   ).rows[0];
-  assert.equal(p.backup, '+966599999999');
-  assert.equal(p.village, 'قرية اختبار');
+  assert.equal(p.backup, null);
+  assert.equal(p.village, null);
 });
 test('simultaneous verification creates exactly one participant and one session', async () => {
   const c = await service.challenge(body(), context());

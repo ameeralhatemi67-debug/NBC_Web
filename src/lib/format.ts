@@ -1,8 +1,17 @@
 import { createElement } from 'react';
 import type { Competition } from './competition-domain';
 
+const arabicIndic = '٠١٢٣٤٥٦٧٨٩';
+// Public pages show Arabic-Indic digits. Form inputs and stored data keep Latin digits.
+export function arDigits(value: string | number): string {
+  return String(value)
+    .replace(/(?<=\d),(?=\d)/g, '٬')
+    .replace(/\d/g, (d) => arabicIndic[Number(d)]);
+}
+export const arMoney = (amount: number) => arDigits(amount.toLocaleString('en-US'));
+
 export function pairLtr(a: number, b: number) {
-  return createElement('bdi', { dir: 'ltr' }, `${a} / ${b}`);
+  return createElement('bdi', { dir: 'ltr' }, `${arDigits(a)} / ${arDigits(b)}`);
 }
 
 export function NumPair({ a, b }: { a: number; b: number }) {
@@ -13,7 +22,7 @@ export function arPlural(n: number, forms: readonly [string, string, string, str
   const [one, two, few, many] = forms;
   if (n === 1) return one;
   if (n === 2) return two;
-  return `${n} ${n >= 3 && n <= 10 ? few : many}`;
+  return `${arDigits(n)} ${n >= 3 && n <= 10 ? few : many}`;
 }
 
 export const competitionStateLabels: Record<Competition['state'], string> = {
@@ -35,7 +44,7 @@ export function closingPhrase(closesAt: string, now: number): string {
 }
 
 export function riyadhDateTime(value: string): string {
-  return new Intl.DateTimeFormat('ar-SA-u-ca-gregory-nu-latn', {
+  return new Intl.DateTimeFormat('ar-SA-u-ca-gregory-nu-arab', {
     dateStyle: 'full',
     timeStyle: 'short',
     timeZone: 'Asia/Riyadh',
@@ -44,5 +53,5 @@ export function riyadhDateTime(value: string): string {
 
 export function resultSentence(correct: number, total: number): string {
   const noun = total >= 3 && total <= 10 ? 'أسئلة' : 'سؤالًا';
-  return `أجبت إجابة صحيحة عن ${correct} من ${total} ${noun}.`;
+  return `أجبت إجابة صحيحة عن ${arDigits(correct)} من ${arDigits(total)} ${noun}.`;
 }

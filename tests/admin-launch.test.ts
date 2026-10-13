@@ -155,20 +155,20 @@ test('relative chips use Arabic plural forms', () => {
   const at = (ms: number) => new Date(now + ms).toISOString();
   assert.equal(relativePhrase(at(86400000), now), 'غدًا');
   assert.equal(relativePhrase(at(2 * 86400000), now), 'بعد يومين');
-  assert.equal(relativePhrase(at(8 * 86400000), now), 'بعد 8 أيام');
-  assert.equal(relativePhrase(at(22 * 86400000), now), 'بعد 22 يومًا');
+  assert.equal(relativePhrase(at(8 * 86400000), now), 'بعد ٨ أيام');
+  assert.equal(relativePhrase(at(22 * 86400000), now), 'بعد ٢٢ يومًا');
   assert.equal(relativePhrase(at(2 * 3600000), now), 'بعد ساعتين');
-  assert.equal(relativePhrase(at(30 * 60000), now), 'بعد 30 دقيقة');
+  assert.equal(relativePhrase(at(30 * 60000), now), 'بعد ٣٠ دقيقة');
   assert.equal(relativePhrase(at(-86400000), now), 'أمس');
-  assert.equal(relativePhrase(at(-3 * 86400000), now), 'منذ 3 أيام');
+  assert.equal(relativePhrase(at(-3 * 86400000), now), 'منذ ٣ أيام');
 });
 
 test('grace sentence uses Gregorian Riyadh time and the close time plus minutes', () => {
   const sentence = graceSentence('2026-10-14T06:00:00Z', 60);
   assert.match(sentence, /^تبقى المحاولات القائمة قابلة للمزامنة حتى /);
-  assert.match(sentence, /2026/, 'Gregorian year');
-  assert.match(sentence, /10:00/, '06:00Z + 60 minutes is 10:00 in Riyadh');
-  assert.ok(!/١|٢|٣|٤|٥|٦|٧|٨|٩|٠/.test(sentence), 'Latin digits');
+  assert.match(sentence, /٢٠٢٦/, 'Gregorian year');
+  assert.match(sentence, /١٠:٠٠/, '06:00Z + 60 minutes is 10:00 in Riyadh');
+  assert.ok(!/\d/.test(sentence), 'Arabic-Indic digits');
   assert.match(graceSentence(null, 60), /حدّد موعد الإغلاق/);
 });
 

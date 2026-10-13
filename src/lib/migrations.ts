@@ -230,6 +230,11 @@ UPDATE settings SET value=replace(value::text,'تعتمد جميع الأسئل�
         '["مفهوم الانتماء الوطني ومرتكزاته الشرعية.","اللحمة الوطنية وأثرها في مواجهة التحديات الفكرية.","دور الشباب في حماية المكتسبات الوطنية.","رؤية المملكة 2030 وتعزيز الهوية الوطنية.","صور واقعية للتماسك المجتمعي في المملكة."]'::jsonb;
     `,
   },
+  {
+    id: '013_hero_intro_copy',
+    // Frozen SQL: committee homepage notes, hero subtitle wording.
+    sql: `UPDATE settings SET value=replace(value::text,'نقرأ لنفهم معنى الانتماء، ونشارك في تعزيز اللحمة الوطنية. رحلة معرفية تبدأ بصفحة.', 'صفحاتٌ تُثري المعرفة، وقيمٌ تُرسّخ الانتماء، ووعيٌ يُعزّز اللُّحمة الوطنية.')::jsonb WHERE id='site_content';`,
+  },
 ];
 export const migrationChecksum = (sql: string) => createHash('sha256').update(sql).digest('hex');
 export async function migrate(db: Database) {

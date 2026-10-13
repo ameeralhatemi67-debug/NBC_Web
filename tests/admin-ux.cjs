@@ -479,7 +479,7 @@ const iso = (ms) => new Date(ms).toISOString();
       );
       await page.getByRole('radio', { name: /ترتيب عام مباشر/ }).check();
       shown = await preview.innerText();
-      assert.ok(shown.includes('أجبت إجابة صحيحة عن 14 من 20 سؤالًا.'));
+      assert.ok(shown.includes('أجبت إجابة صحيحة عن ١٤ من ٢٠ سؤالًا.'));
       assert.ok(shown.includes('الترتيب العام مباشر ويتغير مع كل مشاركة. اعتماد الفائزين للجنة.'));
       assert.equal(
         await page
@@ -614,7 +614,7 @@ const iso = (ms) => new Date(ms).toISOString();
       const counters = await page.locator('.stage-counters > div').allInnerTexts();
       assert.equal(counters.length, 3);
       assert.ok(
-        counters.some((t) => t.includes('15 / 20')),
+        counters.some((t) => t.includes('١٥ / ٢٠')),
         counters.join('|'),
       );
       assert.equal(

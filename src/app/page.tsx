@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { arDigits } from '@/lib/format';
 import { CompetitionPrizes } from '@/components/competition-prizes';
 import { CompetitionHero } from '@/components/competition-hero';
 import { Header, Footer, Icon, Reveal, OrganizationsBar } from '@/components/ui';
@@ -53,7 +54,7 @@ export default async function Home() {
         </section>
         <section id="about" className="section about-section container">
           <Reveal className="section-label">
-            <span className="eyebrow">01 / عن المسابقة</span>
+            <span className="eyebrow">٠١ / عن المسابقة</span>
             <span className="decorative-star">✳</span>
           </Reveal>
           <Reveal className="about-copy">
@@ -63,8 +64,8 @@ export default async function Home() {
               <em>صلةً بيننا.</em>
             </h2>
             <div>
-              <p>{content.aboutIntro}</p>
-              {content.aboutDetails && <p className="muted">{content.aboutDetails}</p>}
+              <p>{arDigits(content.aboutIntro)}</p>
+              {content.aboutDetails && <p className="muted">{arDigits(content.aboutDetails)}</p>}
               <Link href="/book" className="text-link">
                 ابدأ من الكتاب <Icon size={19} />
               </Link>
@@ -75,7 +76,7 @@ export default async function Home() {
           <div className="container">
             <Reveal className="section-heading">
               <div>
-                <span className="eyebrow">02 / رحلة المشاركة</span>
+                <span className="eyebrow">٠٢ / رحلة المشاركة</span>
                 <h2>
                   ثلاث خطوات،
                   <br className="mobile-only" /> وأثرٌ يبقى.
@@ -120,7 +121,7 @@ export default async function Home() {
         </section>
         <section className="section container audience-section">
           <Reveal>
-            <span className="eyebrow">03 / لمن هذه الرحلة؟</span>
+            <span className="eyebrow">٠٣ / لمن هذه الرحلة؟</span>
             <h2>
               لكل مرحلة
               <br />
@@ -135,12 +136,14 @@ export default async function Home() {
             {['المرحلة المتوسطة', 'المرحلة الثانوية', 'المرحلة الجامعية'].map((stage, i) => (
               <Reveal key={stage} delay={i * 0.06}>
                 <div className="audience-row">
-                  <span className="small-index">0{i + 1}</span>
+                  <span className="small-index">{arDigits(`0${i + 1}`)}</span>
                   <h3>{stage}</h3>
                   <span>
-                    {questionCount(
-                      status ?? { questionCounts: meetingQuestionCounts },
-                      stageKeys[i],
+                    {arDigits(
+                      questionCount(
+                        status ?? { questionCounts: meetingQuestionCounts },
+                        stageKeys[i],
+                      ),
                     )}{' '}
                     سؤالًا
                   </span>
@@ -176,7 +179,7 @@ export default async function Home() {
         {content.faqs.length > 0 && (
           <section id="faq" className="section container faq-section">
             <Reveal>
-              <span className="eyebrow">04 / قبل أن تبدأ</span>
+              <span className="eyebrow">٠٤ / قبل أن تبدأ</span>
               <h2>
                 كل ما تحتاج
                 <br />
@@ -188,11 +191,11 @@ export default async function Home() {
               {content.faqs.map((f, i) => (
                 <details key={f.q}>
                   <summary>
-                    <span className="small-index">0{i + 1}</span>
-                    {f.q}
+                    <span className="small-index">{arDigits(`0${i + 1}`)}</span>
+                    {arDigits(f.q)}
                     <span className="faq-plus">+</span>
                   </summary>
-                  <p>{f.a}</p>
+                  <p>{arDigits(f.a)}</p>
                 </details>
               ))}
             </div>

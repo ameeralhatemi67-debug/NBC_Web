@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Header, Footer, Icon } from '@/components/ui';
+import { arDigits } from '@/lib/format';
 import { isLocalMode } from '@/lib/runtime';
 import { readSiteContent, readPublicStatus } from '@/lib/service';
 import { meetingQuestionCounts, stageKeys, questionCount } from '@/lib/competition-domain';
@@ -29,14 +30,14 @@ export default async function Terms() {
         )}
         <ol className="competition-rules">
           {rules.map((rule) => (
-            <li key={rule}>{rule}</li>
+            <li key={rule}>{arDigits(rule)}</li>
           ))}
         </ol>
         <section className="admin-panel">
           <h2>آلية الإجابة وإرسال المشاركة</h2>
           <p>
-            يتكون نموذج المرحلة المتوسطة من {counts[0]} سؤالًا، والثانوية من {counts[1]} سؤالًا،
-            والجامعية من {counts[2]} سؤالًا.{' '}
+            يتكون نموذج المرحلة المتوسطة من {arDigits(counts[0])} سؤالًا، والثانوية من{' '}
+            {arDigits(counts[1])} سؤالًا، والجامعية من {arDigits(counts[2])} سؤالًا.{' '}
             {status?.answerMode === 'per_question'
               ? 'تطبق هذه الحملة السابقة تثبيت كل إجابة، ولا يمكن تغيير الإجابة بعد تثبيتها.'
               : 'يمكنك الرجوع إلى الأسئلة وتعديل جميع الإجابات حتى الإرسال النهائي، وتُعتمد إجاباتك بعد الإرسال النهائي ولا يمكن تغييرها.'}

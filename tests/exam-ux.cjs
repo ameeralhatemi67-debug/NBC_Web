@@ -148,7 +148,7 @@ const labels = {
         await page.evaluate(() => document.fonts.ready);
         assert.equal(
           await page.locator('.result-sentence').textContent(),
-          'أجبت إجابة صحيحة عن 5 من 20 سؤالًا.',
+          'أجبت إجابة صحيحة عن ٥ من ٢٠ سؤالًا.',
         );
         assert.equal(await page.locator('html').getAttribute('dir'), 'rtl');
         assert.ok(

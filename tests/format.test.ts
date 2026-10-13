@@ -37,9 +37,9 @@ test('Arabic pending copy covers singular, dual, few, many, zero and totals over
 
 test('arDigits and arMoney convert digits and thousands separators only', () => {
   assert.equal(arDigits('20 سؤالًا'), '٢٠ سؤالًا');
-  assert.equal(arDigits('1,234, ثم 5'), '١٬٢٣٤, ثم ٥');
-  assert.equal(arMoney(16500), '١٦٬٥٠٠');
-  assert.equal(arMoney(52000), '٥٢٬٠٠٠');
+  assert.equal(arDigits('1,234, ثم 5'), '١,٢٣٤, ثم ٥');
+  assert.equal(arMoney(16500), '١٦,٥٠٠');
+  assert.equal(arMoney(52000), '٥٢,٠٠٠');
 });
 
 test('NumPair and pairLtr render numeric pairs inside an explicit LTR isolate in RTL prose', () => {

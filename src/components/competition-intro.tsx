@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { CompetitionState } from '@/lib/competition-domain';
 import {
@@ -49,7 +50,21 @@ export function CompetitionIntro({
         <div className="intro-copy">
           <span className="eyebrow">{data.competition.title}</span>
           <h1>أهلًا {data.participant.name.trim().split(/\s+/)[0]}</h1>
-          <span className="intro-stage">{stageNames[registeredStage(data.participant.stage)]}</span>
+          <div className="intro-registration">
+            <span>
+              <Icon name="check" size={16} /> اكتمل تسجيلك
+            </span>
+            <span className="intro-stage">
+              {stageNames[registeredStage(data.participant.stage)]}
+            </span>
+          </div>
+          <p className="intro-message">
+            {data.competition.state === 'OPEN'
+              ? 'حان وقت المشاركة. اقرأ بتأنٍّ، واجعل معرفتك دليلك.'
+              : ['CLOSED', 'RESULTS_PUBLISHED'].includes(data.competition.state)
+                ? 'انتهت المسابقة. يبقى الكتاب متاحًا لتواصل القراءة.'
+                : 'لكل رحلة بداية، وبدايتك مع الكتاب. اغتنم وقت الانتظار في القراءة حتى يحين موعد المشاركة.'}
+          </p>
           <ul className="intro-facts">
             {[
               [
@@ -92,8 +107,22 @@ export function CompetitionIntro({
                 onStart(stage.current?.open());
               }}
             >
-              ابدأ المشاركة <Icon />
+              {busy
+                ? 'جارٍ فتح مساحة الأسئلة…'
+                : ['CLOSED', 'RESULTS_PUBLISHED'].includes(data.competition.state)
+                  ? 'انتهت المسابقة'
+                  : data.competition.state !== 'OPEN'
+                    ? 'بانتظار انطلاق المسابقة'
+                    : !verified
+                      ? 'جارٍ تجهيز الكتاب…'
+                      : 'انتقل إلى الأسئلة'}
+              <Icon name={data.competition.state === 'OPEN' ? 'arrow' : 'clock'} />
             </button>
+            {data.competition.state !== 'OPEN' && (
+              <Link href="/book" className="button outline">
+                <Icon name="book" /> استعدّ بقراءة الكتاب
+              </Link>
+            )}
             {data.competition.closesAt && (
               <CompetitionClosingTime closesAt={data.competition.closesAt} />
             )}

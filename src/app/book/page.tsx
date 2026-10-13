@@ -18,106 +18,87 @@ export default async function Book() {
   return (
     <>
       <Header />
-      <main id="main" className="container inner-page">
-        <div className="page-heading">
-          <div>
-            <span className="eyebrow">المعرفة بداية الأثر</span>
-            <h1>كتاب المسابقة.</h1>
-            <p>
-              {bundled
-                ? 'الانتماء واللحمة الوطنية، لعبدالرحمن بن عبدالله بن محمد السند'
-                : book.title}
-            </p>
-          </div>
-          <DemoNote compact />
-        </div>
-        <div className="book-access-actions">
-          {bundled ? (
-            <>
-              <a
-                className="button primary"
-                href="/documents/national-belonging.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Icon name="book" /> افتح الكتاب في نافذة جديدة
-              </a>
-              <a
-                className="button outline"
-                href="/documents/national-belonging.pdf"
-                download="الانتماء واللحمة الوطنية.pdf"
-              >
-                <Icon name="download" /> حمّل الكتاب
-              </a>
-            </>
-          ) : (
-            <BookOpenButton book={book} />
-          )}
-        </div>
+      <main id="main" className="container inner-page book-library">
         <div className="book-page-grid">
           <aside className="official-book-aside">
-            {bundled && (
+            {bundled ? (
               <Image
                 src="/images/competition/book-cover.png"
                 alt="غلاف كتاب الانتماء واللحمة الوطنية"
                 width={921}
                 height={1300}
-                sizes="(max-width: 760px) 220px, 280px"
+                sizes="(max-width: 640px) 160px, 280px"
+                priority
               />
+            ) : (
+              <div className="book-edition-placeholder">
+                <Icon name="book" size={64} />
+                <strong>{book.title}</strong>
+              </div>
             )}
-            <p className="muted">
-              {arabic.format(book?.pageCount ?? 66)} صفحة · PDF · {arabic.format(megabytes)}{' '}
-              ميغابايت تقريبًا
+            <p className="book-file-details">
+              <span>{arabic.format(book?.pageCount ?? 66)} صفحة</span>
+              <span>PDF</span>
+              <span>{arabic.format(megabytes)} ميغابايت تقريبًا</span>
             </p>
-            <p>
-              يمكنك الرجوع إلى الكتاب أثناء الإجابة وتعديل اختياراتك حتى إرسال المشاركة نهائيًا.
-            </p>
-            <Link className="text-link" href="/participate">
-              إلى مساحة المشاركة <Icon />
-            </Link>
           </aside>
-          <section className="official-book-reader" aria-label="قراءة كتاب المسابقة">
-            <span className="eyebrow">اقرأ، ثم شارك بمعرفتك</span>
-            <h2>محاور القراءة.</h2>
+          <section className="book-overview" aria-labelledby="book-title">
+            <DemoNote compact />
+            <h1 id="book-title">كتاب المسابقة</h1>
+            <p className="book-subtitle">{bundled ? 'الانتماء واللحمة الوطنية' : book.title}</p>
+            {bundled && <p className="muted">لعبدالرحمن بن عبدالله بن محمد السند</p>}
+            <p className="book-reading-note">
+              ابدأ القراءة، وعد إلى ما تحتاجه من الصفحات أثناء الإجابة عن أسئلة المسابقة.
+            </p>
+            <div className="book-access-actions">
+              <a className="button primary" href="#book-reader">
+                <Icon name="book" /> اقرأ الكتاب هنا
+              </a>
+              {bundled ? (
+                <>
+                  <a
+                    className="button outline"
+                    href="/documents/national-belonging.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Icon name="pages" /> افتح الملف
+                  </a>
+                  <a
+                    className="text-link"
+                    href="/documents/national-belonging.pdf"
+                    download="الانتماء واللحمة الوطنية.pdf"
+                  >
+                    <Icon name="download" /> حمّل الكتاب
+                  </a>
+                </>
+              ) : (
+                <BookOpenButton book={book} />
+              )}
+            </div>
             {content.bookTopics.length > 0 && (
-              <>
-                <p>وفق التعريف بالمسابقة، تدور الأسئلة حول هذه المحاور في الكتاب:</p>
+              <div className="book-reading-topics">
+                <h2>محاور القراءة</h2>
+                <p className="muted">تدور أسئلة المسابقة حول هذه المحاور في الكتاب:</p>
                 <ul className="book-topics">
                   {content.bookTopics.map((topic) => (
                     <li key={topic}>{topic}</li>
                   ))}
                 </ul>
-              </>
+              </div>
             )}
-            {bundled && (
-              <details className="inline-pdf">
-                <summary>عرض صفحات الكتاب هنا</summary>
-                <p className="fine-print">
-                  إذا لم يظهر الكتاب في متصفحك، استخدم زر الفتح أو التحميل أعلاه.
-                </p>
-                <object
-                  data="/documents/national-belonging.pdf"
-                  type="application/pdf"
-                  className="official-book-pdf"
-                  aria-label="ملف كتاب الانتماء واللحمة الوطنية"
-                >
-                  <p>
-                    لا يدعم متصفحك عرض الكتاب هنا.{' '}
-                    <a
-                      href="/documents/national-belonging.pdf"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      افتح ملف الكتاب
-                    </a>{' '}
-                    أو حمّله باستخدام الزر أعلاه.
-                  </p>
-                </object>
-              </details>
-            )}
+            <Link className="text-link book-participate-link" href="/participate">
+              إلى مساحة المشاركة <Icon />
+            </Link>
           </section>
         </div>
-        <BookReader book={book ?? undefined} />
+        <section id="book-reader" className="book-reading-desk" aria-labelledby="reader-heading">
+          <div className="book-reader-heading">
+            <h2 id="reader-heading">صفحات الكتاب</h2>
+            <p>تصفّح الصفحات، أو انتقل إلى الصفحة التي تريدها.</p>
+          </div>
+          <BookReader book={book ?? undefined} />
+        </section>
       </main>
       <Footer />
     </>

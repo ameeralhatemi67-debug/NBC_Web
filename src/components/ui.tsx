@@ -238,7 +238,17 @@ export function Header() {
       <header className="site-header">
         <div className="container header-inner">
           <Brand />
-          <nav className={open ? 'main-nav is-open' : 'main-nav'} aria-label="التنقل الرئيسي">
+          <nav
+            id="main-navigation"
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                setOpen(false);
+                document.getElementById('mobile-menu-toggle')?.focus();
+              }
+            }}
+            className={open ? 'main-nav is-open' : 'main-nav'}
+            aria-label="التنقل الرئيسي"
+          >
             <a href="/#about" onClick={() => setOpen(false)}>
               عن المسابقة
             </a>
@@ -266,6 +276,8 @@ export function Header() {
               <span>تسجيل الدخول</span>
             </Link>
             <button
+              id="mobile-menu-toggle"
+              aria-controls="main-navigation"
               className="icon-button mobile-menu"
               onClick={() => setOpen(!open)}
               aria-label={open ? 'إغلاق القائمة' : 'فتح القائمة'}
@@ -307,25 +319,27 @@ export function OrganizationsBar({
                   alt={`شعار ${organizer.name}`}
                   width={organizer.width}
                   height={organizer.height}
-                  sizes="(max-width: 640px) 168px, 210px"
+                  sizes="(max-width: 640px) 180px, 228px"
                 />
               </div>
             </figure>
-            <div className="partner-pair">
-              {successPartners.map((p) => (
-                <figure className="partner-card" key={p.src}>
-                  <figcaption className="partner-role">{p.role}</figcaption>
-                  <div className="partner-logo">
-                    <Image
-                      src={p.src}
-                      alt={`شعار ${p.name}`}
-                      width={p.width}
-                      height={p.height}
-                      unoptimized
-                    />
-                  </div>
-                </figure>
-              ))}
+            <div className="partner-strategic">
+              <h3 className="partner-role">الشركاء الاستراتيجيون</h3>
+              <div className="partner-pair">
+                {successPartners.map((p) => (
+                  <figure className="partner-card" key={p.src}>
+                    <div className="partner-logo">
+                      <Image
+                        src={p.src}
+                        alt={`شعار ${p.name}`}
+                        width={p.width}
+                        height={p.height}
+                        unoptimized
+                      />
+                    </div>
+                  </figure>
+                ))}
+              </div>
             </div>
           </div>
           <div className="partner-education">

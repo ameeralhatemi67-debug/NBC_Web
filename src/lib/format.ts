@@ -5,7 +5,7 @@ const arabicIndic = '٠١٢٣٤٥٦٧٨٩';
 // Public pages show Arabic-Indic digits. Form inputs and stored data keep Latin digits.
 export function arDigits(value: string | number): string {
   return String(value)
-    .replace(/(?<=\d),(?=\d)/g, '٬')
+    .replace(/٬/g, ',')
     .replace(/\d/g, (d) => arabicIndic[Number(d)]);
 }
 export const arMoney = (amount: number) => arDigits(amount.toLocaleString('en-US'));

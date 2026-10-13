@@ -3,6 +3,7 @@ import { Suspense, useEffect, useState, type FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { BookLinkFeedback } from './book-link-feedback';
 import { api, BrandMark, DemoNote, ErrorMessage, Icon, Loading } from './ui';
 import { OtpEntry, type OtpChallenge } from './otp-entry';
 import { genders, stages } from '@/lib/content';
@@ -134,9 +135,7 @@ function RegistrationForm({
           <span>
             <small>رفيقك في المسابقة</small>
             <strong>ابدأ من الكتاب.</strong>
-            <span>
-              افتح كتاب المسابقة <Icon size={16} />
-            </span>
+            <BookLinkFeedback />
           </span>
         </Link>
         <p className="registration-aside-note">

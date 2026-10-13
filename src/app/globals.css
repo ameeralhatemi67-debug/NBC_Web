@@ -1466,9 +1466,16 @@ textarea {
   padding: 30px 22px;
   position: sticky;
   top: 0;
-  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #aeb69e transparent;
   display: flex;
   flex-direction: column;
+}
+.admin-sidebar > * {
+  flex-shrink: 0;
 }
 .admin-sidebar .brand {
   font-size: 25px;

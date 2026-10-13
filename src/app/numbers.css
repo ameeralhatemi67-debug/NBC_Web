@@ -2,36 +2,48 @@
 @font-face {
   font-family: 'NBC Numerals';
   font-style: normal;
-  font-weight: 400;
+  font-weight: 100 500;
   font-display: swap;
-  src: url('../../node_modules/@fontsource/noto-sans-arabic/files/noto-sans-arabic-arabic-400-normal.woff2')
-    format('woff2');
-  unicode-range: U+0660-066C, U+06F0-06F9;
+  src:
+    local('Arial'),
+    local('Tahoma'),
+    url('../../node_modules/@fontsource/noto-sans-arabic/files/noto-sans-arabic-arabic-400-normal.woff2')
+      format('woff2');
+  unicode-range: U+0660-0669, U+066B-066C, U+06F0-06F9;
 }
 @font-face {
   font-family: 'NBC Numerals';
   font-style: normal;
-  font-weight: 400;
+  font-weight: 100 500;
   font-display: swap;
-  src: url('../../node_modules/@fontsource/noto-sans-arabic/files/noto-sans-arabic-latin-400-normal.woff2')
-    format('woff2');
+  src:
+    local('Arial'),
+    local('Tahoma'),
+    url('../../node_modules/@fontsource/noto-sans-arabic/files/noto-sans-arabic-latin-400-normal.woff2')
+      format('woff2');
   unicode-range: U+002C, U+002E, U+0030-0039;
 }
 @font-face {
   font-family: 'NBC Numerals';
   font-style: normal;
-  font-weight: 700;
+  font-weight: 600 900;
   font-display: swap;
-  src: url('../../node_modules/@fontsource/noto-sans-arabic/files/noto-sans-arabic-arabic-700-normal.woff2')
-    format('woff2');
-  unicode-range: U+0660-066C, U+06F0-06F9;
+  src:
+    local('Arial Bold'),
+    local('Tahoma Bold'),
+    url('../../node_modules/@fontsource/noto-sans-arabic/files/noto-sans-arabic-arabic-700-normal.woff2')
+      format('woff2');
+  unicode-range: U+0660-0669, U+066B-066C, U+06F0-06F9;
 }
 @font-face {
   font-family: 'NBC Numerals';
   font-style: normal;
-  font-weight: 700;
+  font-weight: 600 900;
   font-display: swap;
-  src: url('../../node_modules/@fontsource/noto-sans-arabic/files/noto-sans-arabic-latin-700-normal.woff2')
-    format('woff2');
+  src:
+    local('Arial Bold'),
+    local('Tahoma Bold'),
+    url('../../node_modules/@fontsource/noto-sans-arabic/files/noto-sans-arabic-latin-700-normal.woff2')
+      format('woff2');
   unicode-range: U+002C, U+002E, U+0030-0039;
 }

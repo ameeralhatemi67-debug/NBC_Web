@@ -27,6 +27,7 @@ import { requireRole, resolveSession, sessionCookieName } from '@/lib/api-sessio
 import { ParticipantAdmin } from '@/lib/participant-admin';
 import { CampaignHistory } from '@/lib/campaigns';
 import { BookStore } from '@/lib/book-store';
+import { defaultEligibility } from '@/lib/eligibility';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 const role = requireRole;
@@ -69,12 +70,15 @@ async function respond(req: NextRequest) {
             ? { ...state, participants: [], audit: [], published: false }
             : state;
       } else if (route === 'registration-options') {
-        // Public: the regions and cities the current competition accepts.
-        const info = await new CompetitionService(await getDb()).registrationInfo();
-        result = {
-          ...info.eligibility,
-          registration: { open: info.open, reason: info.reason },
-        };
+        // Public: the regions and cities the current competition accepts. The city list is static
+        // reference data, so it is still served when the database is unavailable; submitting the
+        // form reports the real backend error.
+        const info = await getDb()
+          .then((db) => new CompetitionService(db).registrationInfo())
+          .catch(() => null);
+        result = info
+          ? { ...info.eligibility, registration: { open: info.open, reason: info.reason } }
+          : { ...defaultEligibility, registration: { open: true, reason: null } };
       } else if (route === 'status') {
         // Public: competition state for the home and registration pages.
         result = await new CompetitionService(await getDb()).publicStatus();

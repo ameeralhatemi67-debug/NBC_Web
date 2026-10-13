@@ -29,20 +29,27 @@ function RegistrationForm({ mode, demo }: { mode: 'login' | 'register'; demo: bo
   });
   // Regions and cities come from the current competition's settings.
   const [options, setOptions] = useState<RegistrationOptions | null>(null);
+  const [optionsFailed, setOptionsFailed] = useState(false);
+  const [optionsAttempt, setOptionsAttempt] = useState(0);
   useEffect(() => {
     if (mode !== 'register') return;
     let alive = true;
+    setOptionsFailed(false);
     api<RegistrationOptions>('registration-options')
       .then((result) => {
         if (!alive) return;
         setOptions(result);
         if (result.regions.length === 1) setValues((v) => ({ ...v, region: result.regions[0] }));
       })
-      .catch((e) => alive && setError((e as Error).message));
+      .catch((e) => {
+        if (!alive) return;
+        setOptionsFailed(true);
+        setError((e as Error).message);
+      });
     return () => {
       alive = false;
     };
-  }, [mode]);
+  }, [mode, optionsAttempt]);
   const cities = options?.cities[values.region] ?? [];
   const [challenge, setChallenge] = useState<OtpChallenge | null>(null);
   const change = (key: string, value: string | boolean) =>
@@ -307,7 +314,9 @@ function RegistrationForm({ mode, demo }: { mode: 'login' | 'register'; demo: bo
                       >
                         <option value="">
                           {!options
-                            ? 'جارٍ تحميل المدن…'
+                            ? optionsFailed
+                              ? 'تعذّر تحميل المدن'
+                              : 'جارٍ تحميل المدن…'
                             : values.region
                               ? 'اختر المدينة / المحافظة'
                               : 'اختر المنطقة أولًا'}
@@ -316,6 +325,18 @@ function RegistrationForm({ mode, demo }: { mode: 'login' | 'register'; demo: bo
                           <option key={city}>{city}</option>
                         ))}
                       </select>
+                      {optionsFailed && (
+                        <button
+                          type="button"
+                          className="text-link"
+                          onClick={() => {
+                            setError('');
+                            setOptionsAttempt((n) => n + 1);
+                          }}
+                        >
+                          إعادة تحميل المدن
+                        </button>
+                      )}
                     </label>
                   </>
                 )}

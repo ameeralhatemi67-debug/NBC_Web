@@ -77,6 +77,30 @@ try {
     await new Promise((r) => setTimeout(r, 250));
   }
   assert.ok(ready, logs + '\n' + readyError);
+  for (const route of [
+    '/',
+    '/register',
+    '/register?mode=login',
+    '/book',
+    '/terms',
+    '/privacy',
+    '/winners',
+    '/participate',
+    '/admin',
+  ]) {
+    const response = await fetch(base + route);
+    const html = await response.text();
+    check(`page ${route} renders with an initialized database`, () => {
+      assert.equal(response.status, 200);
+      assert.ok(!html.includes('تعذّر تحميل هذه المساحة.'), route);
+      if (route === '/') assert.ok(html.includes('سيُعلن موعد فتح المسابقة قريبًا.'));
+    });
+  }
+  const registrationOptions = await (await fetch(base + '/api/registration-options')).json();
+  check('registration city options load from the initialized database', () => {
+    assert.ok(registrationOptions.cities['الشرقية'].includes('الدمام'));
+    assert.equal(registrationOptions.cities['الشرقية'].length, 12);
+  });
   const publicBook = await fetch(base + '/documents/national-belonging.pdf');
   const bookBytes = new Uint8Array(await publicBook.arrayBuffer());
   check('public book is the complete supplied PDF, available without login', () => {
@@ -143,9 +167,9 @@ try {
       assert.equal(stalePrizes.status, 409);
       assert.deepEqual(prizesState.data.prizes.stages[0].awards, changedPrizes.stages[0].awards);
       assert.ok(homePrizes.includes('prize-layout-ledger'));
-      assert.ok(homePrizes.includes('4,500'));
+      assert.ok(homePrizes.includes('٤٬٥٠٠'));
       assert.ok(
-        homePrizes.includes('950') && homePrizes.includes('850') && homePrizes.includes('750'),
+        homePrizes.includes('٩٥٠') && homePrizes.includes('٨٥٠') && homePrizes.includes('٧٥٠'),
       );
       assert.ok(prizesState.data.audit.some((entry) => entry.action === 'تعديل الجوائز'));
     },

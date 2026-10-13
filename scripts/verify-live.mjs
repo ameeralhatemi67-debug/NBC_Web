@@ -14,7 +14,39 @@ async function check(path, status, options) {
   return response;
 }
 const home = await (await check('/', 200)).text();
-assert.match(home, /52,000/);
+assert.match(home, /٥٢٬٠٠٠/);
+assert.ok(
+  !home.includes('تعذّر تحميل هذه المساحة.'),
+  'Homepage must render, not its error boundary',
+);
+const status = await (await check('/api/status', 200)).json();
+assert.ok(status.state, 'Live competition status must be available');
+assert.ok(
+  home.includes(`data-state="${status.state}"`),
+  'Homepage must render live competition status',
+);
+for (const path of [
+  '/register',
+  '/register?mode=login',
+  '/book',
+  '/terms',
+  '/privacy',
+  '/winners',
+  '/participate',
+  '/admin',
+]) {
+  const html = await (await check(path, 200)).text();
+  assert.ok(
+    !html.includes('تعذّر تحميل هذه المساحة.'),
+    `${path} must render, not its error boundary`,
+  );
+}
+const registration = await (await check('/api/registration-options', 200)).json();
+assert.equal(registration.cities['الشرقية'].length, 12);
+assert.ok(registration.cities['الشرقية'].includes('الدمام'));
+await check('/api/session', 200);
+await check('/api/site-content', 200);
+await check('/api/winners', 200);
 const pdf = await (await check('/documents/national-belonging.pdf', 200)).arrayBuffer();
 assert.equal(
   createHash('sha256').update(Buffer.from(pdf)).digest('hex'),
@@ -22,8 +54,6 @@ assert.equal(
 );
 await check('/books/ec07ef57e563ada8bba244317aeeef0e34c8caa0ea7e10bee228232615db79fd.pdf', 200);
 await check('/pdfjs/pdf.worker.min.mjs', 200);
-await check('/book', 200);
-await check('/terms', 200);
 await check('/api/admin', 401);
 await check('/api/admin/backend', 401);
 await check('/api/admin/prizes', 404);

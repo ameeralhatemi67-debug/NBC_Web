@@ -130,6 +130,33 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 200));
   }
   assert.ok(ready, 'Production test server must start');
+  const publicStatus = await (await fetch(base + '/api/status')).json();
+  assert.ok(publicStatus.state, 'Production competition status must come from PostgreSQL');
+  for (const route of [
+    '/',
+    '/register',
+    '/register?mode=login',
+    '/book',
+    '/terms',
+    '/privacy',
+    '/winners',
+    '/participate',
+    '/admin',
+  ]) {
+    const response = await fetch(base + route);
+    const page = await response.text();
+    assert.equal(response.status, 200, route);
+    assert.ok(!page.includes('تعذّر تحميل هذه المساحة.'), route);
+    if (route === '/') {
+      assert.ok(page.includes(`data-state="${publicStatus.state}"`));
+      assert.ok(page.includes('سيُعلن موعد فتح المسابقة قريبًا.'));
+    }
+    check(`production page ${route} renders with live competition data`);
+  }
+  const registrationOptions = await (await fetch(base + '/api/registration-options')).json();
+  assert.equal(registrationOptions.cities['الشرقية'].length, 12);
+  assert.ok(registrationOptions.cities['الشرقية'].includes('الدمام'));
+  check('production registration options include all 12 Eastern Province cities');
   const anon = client(),
     admin = client(adminJwt),
     editor = client(editorJwt),

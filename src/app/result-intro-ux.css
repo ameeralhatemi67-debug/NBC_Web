@@ -217,7 +217,7 @@
   color: var(--muted);
 }
 .result-ticket bdi {
-  font-family: ui-monospace, monospace;
+  font-family: 'NBC Numerals', ui-monospace, monospace;
   font-size: 22px;
   letter-spacing: 1px;
   overflow-wrap: anywhere;

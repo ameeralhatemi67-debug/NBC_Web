@@ -11,8 +11,8 @@
   --line: #d9dacd;
   --white: #fffefa;
   --danger: #9a3328;
-  --body: 'Noto Sans Arabic', sans-serif;
-  --display: 'Noto Naskh Arabic', serif;
+  --body: 'NBC Numerals', 'Noto Sans Arabic', sans-serif;
+  --display: 'NBC Numerals', 'Noto Naskh Arabic', serif;
   --radius: 8px;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -483,7 +483,7 @@ a {
   color: var(--copper);
 }
 .small-index {
-  font-family: Georgia, serif;
+  font-family: 'NBC Numerals', Georgia, serif;
   font-size: 12px;
   color: #958267;
 }
@@ -967,7 +967,7 @@ textarea {
   background: white;
   padding: 0 8px;
   border: 1px dashed #9f8965;
-  font-family: monospace;
+  font-family: 'NBC Numerals', monospace;
   font-size: 17px;
   letter-spacing: 2px;
 }
@@ -1389,7 +1389,7 @@ textarea {
   color: var(--muted);
 }
 .receipt-number bdi {
-  font-family: monospace;
+  font-family: 'NBC Numerals', monospace;
   font-size: 23px;
   letter-spacing: 2px;
 }
@@ -1414,7 +1414,7 @@ textarea {
 }
 .result-box strong {
   font-size: 45px;
-  font-family: Georgia, serif;
+  font-family: 'NBC Numerals', Georgia, serif;
 }
 .result-box strong small {
   font-size: 20px;
@@ -1625,7 +1625,8 @@ textarea {
 }
 .stat-card > strong {
   font:
-    400 36px/1.5 Georgia,
+    400 36px/1.5 'NBC Numerals',
+    Georgia,
     serif;
   display: block;
   margin-top: 11px;
@@ -1687,7 +1688,7 @@ textarea {
 }
 .stage-chart bdi {
   color: var(--muted);
-  font-family: Georgia, serif;
+  font-family: 'NBC Numerals', Georgia, serif;
 }
 .chart-track {
   height: 9px;
@@ -1779,7 +1780,7 @@ td small {
   margin-top: 3px;
 }
 td bdi {
-  font-family: Georgia, serif;
+  font-family: 'NBC Numerals', Georgia, serif;
   font-size: 13px;
 }
 .empty-inline {
@@ -1820,7 +1821,8 @@ td bdi {
 }
 .report-summary strong {
   font:
-    400 34px/1.5 Georgia,
+    400 34px/1.5 'NBC Numerals',
+    Georgia,
     serif;
 }
 .report-summary span {

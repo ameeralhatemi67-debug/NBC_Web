@@ -37,54 +37,59 @@ await pool.query('UPDATE settings SET value=$1 WHERE id=$2', [
 const codes = new Map();
 let logs = '';
 let count = 0;
-const server = spawn(
-  process.execPath,
-  [
-    '--import',
-    './tests/mock-provider-network.mjs',
-    'node_modules/next/dist/bin/next',
-    'start',
-    '-H',
-    '127.0.0.1',
-    '-p',
-    '43188',
-  ],
-  {
-    windowsHide: true,
-    stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
-    env: {
-      ...process.env,
-      NODE_ENV: 'production',
-      NBC_RUNTIME_MODE: 'production',
-      DATABASE_URL: databaseUrl,
-      NBC_DEMO_MODE: 'false',
-      NBC_ALLOW_REMOTE_DEMO: 'false',
-      NBC_DEMO_OTP: '',
-      OTP_PROVIDER: 'unifonic',
-      UNIFONIC_APP_SID: randomBytes(24).toString('hex'),
-      OTP_SENDER_ID: 'NBC',
-      OTP_HMAC_SECRET: randomBytes(32).toString('hex'),
-      IDENTITY_LOOKUP_SECRET: identitySecret,
-      NBC_PUBLIC_ORIGIN: 'https://nbc.example',
-      NBC_TRUSTED_IP_HEADER: 'cf-connecting-ip',
-      CF_ACCESS_ISSUER: issuer,
-      CF_ACCESS_AUD: 'nbc-staff-test',
-      NBC_ADMIN_SUBJECTS: 'admin-test',
-      NBC_EDITOR_SUBJECTS: 'editor-test',
-      NBC_STAFF_MFA_CONFIRMED: 'true',
-      NBC_TEST_PUBLIC_JWKS: JSON.stringify({ keys: [publicJwk] }),
+function startServer(otp = true) {
+  const server = spawn(
+    process.execPath,
+    [
+      '--import',
+      './tests/mock-provider-network.mjs',
+      'node_modules/next/dist/bin/next',
+      'start',
+      '-H',
+      '127.0.0.1',
+      '-p',
+      '43188',
+    ],
+    {
+      windowsHide: true,
+      stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
+      env: {
+        ...process.env,
+        NODE_ENV: 'production',
+        NBC_RUNTIME_MODE: 'production',
+        NBC_OTP_ENABLED: String(otp),
+        DATABASE_URL: databaseUrl,
+        NBC_DEMO_MODE: 'false',
+        NBC_ALLOW_REMOTE_DEMO: 'false',
+        NBC_DEMO_OTP: '',
+        OTP_PROVIDER: otp ? 'unifonic' : '',
+        UNIFONIC_APP_SID: otp ? randomBytes(24).toString('hex') : '',
+        OTP_SENDER_ID: 'NBC',
+        OTP_HMAC_SECRET: otp ? randomBytes(32).toString('hex') : '',
+        IDENTITY_LOOKUP_SECRET: identitySecret,
+        NBC_PUBLIC_ORIGIN: 'https://nbc.example',
+        NBC_TRUSTED_IP_HEADER: 'cf-connecting-ip',
+        CF_ACCESS_ISSUER: issuer,
+        CF_ACCESS_AUD: 'nbc-staff-test',
+        NBC_ADMIN_SUBJECTS: 'admin-test',
+        NBC_EDITOR_SUBJECTS: 'editor-test',
+        NBC_STAFF_MFA_CONFIRMED: 'true',
+        NBC_TEST_PUBLIC_JWKS: JSON.stringify({ keys: [publicJwk] }),
+      },
     },
-  },
-);
-server.on('message', (message) => {
-  if (message.type === 'sms') codes.set(message.id, message.code);
-});
-server.stdout.on('data', (data) => {
-  logs += data;
-});
-server.stderr.on('data', (data) => {
-  logs += data;
-});
+  );
+  server.on('message', (message) => {
+    if (message.type === 'sms') codes.set(message.id, message.code);
+  });
+  server.stdout.on('data', (data) => {
+    logs += data;
+  });
+  server.stderr.on('data', (data) => {
+    logs += data;
+  });
+  return server;
+}
+let server = startServer();
 const base = 'http://127.0.0.1:43188';
 function client(assertion) {
   let cookie = '';
@@ -348,6 +353,69 @@ try {
   for (const code of codes.values())
     assert.ok(!logs.includes(code), 'Server logs must not contain issued OTPs');
   check('captured server logs contain no issued OTP');
+  await new Promise((resolve) => {
+    server.once('exit', resolve);
+    server.kill();
+  });
+  server = startServer(false);
+  let directReady = false;
+  for (let i = 0; i < 80; i++) {
+    try {
+      if ((await fetch(base + '/api/session')).ok) {
+        directReady = true;
+        break;
+      }
+    } catch {}
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+  assert.ok(directReady, 'Direct-entry production server must start');
+  assert.equal((await anon('session')).data.otpEnabled, false);
+  for (const route of ['auth/challenge', 'auth/resend', 'auth/verify']) {
+    const blocked = await anon(route, {});
+    assert.equal(blocked.status, 503);
+    assert.equal(blocked.data.code, 'OTP_DISABLED');
+  }
+  assert.equal(
+    (await admin('admin/security/test', { phone: '0577777777' })).data.code,
+    'OTP_DISABLED',
+  );
+  check('disabled OTP endpoints and admin SMS tests cannot send or verify codes');
+  const directHtml = await (await fetch(base + '/register')).text();
+  assert.ok(directHtml.includes('سجّل وابدأ المشاركة'));
+  assert.ok(!directHtml.includes('متابعة إلى التحقق'));
+  check('direct-entry form has no OTP step or verification action');
+  const direct = client();
+  const directBody = { ...body, identity: '1777777777', phone: '0577777788' };
+  const beforeSms = codes.size;
+  const entered = await direct('auth/direct', directBody);
+  assert.equal(entered.status, 200);
+  assert.match(entered.set, /^__Host-nbc-session=/);
+  assert.match(entered.set, /HttpOnly/i);
+  assert.match(entered.set, /Secure/i);
+  const directId = (await direct('participant')).data.participant.id;
+  assert.equal((await direct('admin')).status, 403);
+  assert.equal((await anon('auth/direct', { ...directBody, role: 'admin' })).status, 400);
+  assert.equal((await anon('auth/direct', directBody)).status, 400);
+  check(
+    'direct registration establishes only a secure participant session and rejects duplicate identity or role injection',
+  );
+  await direct('auth/logout', {});
+  assert.equal((await direct('participant')).status, 401);
+  assert.equal(
+    (await direct('auth/direct', { ...directBody, mode: 'login', phone: '0577777799' })).status,
+    400,
+  );
+  assert.equal((await direct('auth/direct', { ...directBody, mode: 'login' })).status, 200);
+  assert.equal((await direct('participant')).data.participant.id, directId);
+  assert.equal(codes.size, beforeSms);
+  await pool.query(
+    "UPDATE sessions SET expires_at=now()-interval '1 second' WHERE participant_id=$1",
+    [directId],
+  );
+  assert.equal((await direct('participant')).status, 401);
+  check(
+    'direct returning login, logout and session expiry work without any SMS provider configuration',
+  );
   console.log(`${count} production HTTP checks passed.`);
 } finally {
   server.kill();

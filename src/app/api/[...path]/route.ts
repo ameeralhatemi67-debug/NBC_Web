@@ -21,7 +21,8 @@ import {
 import { OtpService, strictKeys } from '@/lib/otp';
 import { readiness, healthCheck, updateSecurity } from '@/lib/otp-readiness';
 import { cleanupSecurity } from '@/lib/security-store';
-import { isLocalMode, isProduction } from '@/lib/runtime';
+import { isLocalMode, isProduction, otpEnabled } from '@/lib/runtime';
+import { authenticateParticipant } from '@/lib/participant-auth';
 import { assertRequest, jsonBody, requestIp } from '@/lib/request-security';
 import { requireRole, resolveSession, sessionCookieName } from '@/lib/api-session';
 import { ParticipantAdmin } from '@/lib/participant-admin';
@@ -42,11 +43,27 @@ async function respond(req: NextRequest) {
     let result: unknown;
     let setToken: string | undefined;
     const body = req.method === 'POST' ? await jsonBody(req) : {};
+    if (
+      req.method === 'POST' &&
+      !otpEnabled() &&
+      [
+        'auth/challenge',
+        'auth/resend',
+        'auth/verify',
+        'admin/security/health',
+        'admin/security/test',
+        'admin/security/test-verify',
+      ].includes(route)
+    ) {
+      if (route.startsWith('admin/')) role(session, ['admin']);
+      throw new AppError('التحقق برمز الجوال متوقف حاليًا.', 503, 'OTP_DISABLED');
+    }
     if (req.method === 'GET') {
       if (route === 'session' || route === 'admin/session')
         result = {
           session: session ? { role: session.role, participant_id: session.participant_id } : null,
           demo: isLocalMode(),
+          otpEnabled: otpEnabled(),
         };
       else if (route === 'admin/security') {
         role(session, ['admin']);
@@ -201,7 +218,11 @@ async function respond(req: NextRequest) {
         });
       } else throw new AppError('المسار غير موجود.', 404);
     } else {
-      if (route === 'auth/challenge')
+      if (route === 'auth/direct') {
+        setToken = await authenticateParticipant(await getDb(), body, requestIp(req));
+        if (token) await revokeSession(token);
+        result = { ok: true };
+      } else if (route === 'auth/challenge')
         result = await new OtpService(await getDb()).challenge(body, { ip: requestIp(req) });
       else if (route === 'auth/resend')
         result = await new OtpService(await getDb()).resend(body, { ip: requestIp(req) });

@@ -2,7 +2,7 @@ import { CompetitionService } from './competition-service';
 import type { WriteEvent } from './competition-domain';
 import { randomBytes, createHash } from 'node:crypto';
 import { getDb } from './db';
-import { isProduction, requireLocalMode } from './runtime';
+import { isProduction, otpEnabled, requireLocalMode } from './runtime';
 import { AppError, type Question } from './domain';
 import { validatePrizes, type PrizeSettings } from './prizes';
 import { defaultSiteContent, validateSiteContent, type SiteContent } from './site-content';
@@ -38,7 +38,16 @@ export async function sessionFor(token?: string): Promise<Session | null> {
     [hash(token)],
   );
   const session = rows[0];
-  if (isProduction() && session && session.auth_source !== 'otp') return null;
+  if (
+    isProduction() &&
+    session &&
+    session.auth_source !== 'otp' &&
+    (otpEnabled() ||
+      session.auth_source !== 'direct' ||
+      session.role !== 'participant' ||
+      !session.participant_id)
+  )
+    return null;
   return session ?? null;
 }
 export async function newSession(role: Session['role'], participant: string | null = null) {

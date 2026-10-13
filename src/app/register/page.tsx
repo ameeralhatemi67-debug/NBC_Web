@@ -1,4 +1,4 @@
-import { isLocalMode } from '@/lib/runtime';
+import { isLocalMode, otpEnabled } from '@/lib/runtime';
 export const dynamic = 'force-dynamic';
 import { Header, Footer } from '@/components/ui';
 import { Registration } from '@/components/registration';
@@ -8,7 +8,7 @@ export default function Register() {
     <>
       <Header />
       <main id="main" className="auth-page">
-        <Registration demo={isLocalMode()} />
+        <Registration demo={isLocalMode()} otpEnabled={otpEnabled()} />
       </main>
       <Footer />
     </>

@@ -379,7 +379,10 @@ export class OtpService {
           // Registration may have closed, or the phone filled up, since the code was sent.
           if (!policy.open)
             return { error: new AppError('أُغلق التسجيل.', 403, 'REGISTRATION_CLOSED') };
-          await lock(tx, 'phone-register:' + row.phone_hash);
+          await lock(
+            tx,
+            'phone-register:' + keyedHash('phone', row.phone_e164, 'IDENTITY_LOOKUP_SECRET'),
+          );
           if (await this.phoneFull(row.phone_e164, policy.maxPerPhone, tx))
             return { error: phoneLimit() };
           participant = randomUUID();

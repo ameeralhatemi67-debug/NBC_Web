@@ -8,6 +8,10 @@ export function isProduction() {
       !['demo', 'test'].includes(process.env.NBC_RUNTIME_MODE ?? ''))
   );
 }
+
+export function otpEnabled() {
+  return process.env.NBC_OTP_ENABLED !== 'false';
+}
 export function isLocalMode() {
   return !isProduction() && ['demo', 'test'].includes(process.env.NBC_RUNTIME_MODE ?? '');
 }

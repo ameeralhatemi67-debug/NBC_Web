@@ -45,14 +45,18 @@ try {
   await pg.initialise();
   await pg.start();
   await createDatabase('nbc_security_test');
-  const child = spawn(process.execPath, ['--import', 'tsx', '--test', 'tests/otp.test.ts'], {
-    windowsHide: true,
-    stdio: 'inherit',
-    env: {
-      ...process.env,
-      NBC_TEST_DATABASE_URL: `postgresql://postgres:${password}@127.0.0.1:${port}/nbc_security_test`,
+  const child = spawn(
+    process.execPath,
+    ['--import', 'tsx', '--test', 'tests/otp.test.ts', 'tests/participant-auth.test.ts'],
+    {
+      windowsHide: true,
+      stdio: 'inherit',
+      env: {
+        ...process.env,
+        NBC_TEST_DATABASE_URL: `postgresql://postgres:${password}@127.0.0.1:${port}/nbc_security_test`,
+      },
     },
-  });
+  );
   exitCode = await new Promise((resolve, reject) => {
     child.on('error', reject);
     child.on('exit', (code) => resolve(code ?? 1));

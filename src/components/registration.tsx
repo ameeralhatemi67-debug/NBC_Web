@@ -11,7 +11,15 @@ import type { Eligibility } from '@/lib/eligibility';
 type RegistrationOptions = Eligibility & {
   registration: { open: boolean; reason: 'paused' | 'closed' | null };
 };
-function RegistrationForm({ mode, demo }: { mode: 'login' | 'register'; demo: boolean }) {
+function RegistrationForm({
+  mode,
+  demo,
+  otpEnabled,
+}: {
+  mode: 'login' | 'register';
+  demo: boolean;
+  otpEnabled: boolean;
+}) {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [busy, setBusy] = useState(false);
@@ -59,6 +67,11 @@ function RegistrationForm({ mode, demo }: { mode: 'login' | 'register'; demo: bo
     setBusy(true);
     setError('');
     try {
+      if (!otpEnabled) {
+        await api('auth/direct', { ...values, mode });
+        router.push('/participate');
+        return;
+      }
       setChallenge(await api('auth/challenge', { ...values, mode }));
       setStep(2);
     } catch (e) {
@@ -147,15 +160,17 @@ function RegistrationForm({ mode, demo }: { mode: 'login' | 'register'; demo: bo
             تسجيل الدخول
           </Link>
         </nav>
-        <ol className="registration-progress" aria-label="خطوات الدخول والمشاركة">
-          <li aria-current={step === 1 ? 'step' : undefined} data-complete={step > 1}>
-            <span>{step > 1 ? <Icon name="check" size={16} /> : '١'}</span>
-            {mode === 'register' ? 'بيانات المشاركة' : 'بيانات الدخول'}
-          </li>
-          <li aria-current={step === 2 ? 'step' : undefined}>
-            <span>٢</span>التحقق من الجوال
-          </li>
-        </ol>
+        {otpEnabled && (
+          <ol className="registration-progress" aria-label="خطوات الدخول والمشاركة">
+            <li aria-current={step === 1 ? 'step' : undefined} data-complete={step > 1}>
+              <span>{step > 1 ? <Icon name="check" size={16} /> : '١'}</span>
+              {mode === 'register' ? 'بيانات المشاركة' : 'بيانات الدخول'}
+            </li>
+            <li aria-current={step === 2 ? 'step' : undefined}>
+              <span>٢</span>التحقق من الجوال
+            </li>
+          </ol>
+        )}
         <div className="form-heading">
           <span className="eyebrow">
             {step === 2 ? 'تأكيد الدخول' : mode === 'login' ? 'تابع رحلتك' : 'ابدأ المشاركة'}
@@ -171,11 +186,17 @@ function RegistrationForm({ mode, demo }: { mode: 'login' | 'register'; demo: bo
               رمز التحقق للرقم <bdi>{challenge?.maskedPhone}</bdi>
             </>
           ) : mode === 'login' ? (
-            'أدخل الهوية ورقم الجوال المسجلين في حسابك لتلقي رمز تحقق جديد.'
+            otpEnabled ? (
+              'أدخل الهوية ورقم الجوال المسجلين في حسابك لتلقي رمز تحقق جديد.'
+            ) : (
+              'أدخل الهوية ورقم الجوال المسجلين في حسابك للدخول إلى مساحة المشاركة.'
+            )
           ) : demo ? (
             'استخدم بيانات افتراضية فقط في هذا العرض المحلي.'
-          ) : (
+          ) : otpEnabled ? (
             'أدخل بيانات المشاركة ورقم جوالك لتلقي رمز التحقق.'
+          ) : (
+            'أدخل بياناتك لبدء المشاركة في المسابقة.'
           )}
         </p>
         <ErrorMessage message={error} />
@@ -364,7 +385,13 @@ function RegistrationForm({ mode, demo }: { mode: 'login' | 'register'; demo: bo
                 </label>
               )}
               <button className="button primary full-width" type="submit">
-                {busy ? 'جارٍ المتابعة…' : 'متابعة إلى التحقق'}
+                {busy
+                  ? 'جارٍ المتابعة…'
+                  : otpEnabled
+                    ? 'متابعة إلى التحقق'
+                    : mode === 'login'
+                      ? 'تسجيل الدخول'
+                      : 'سجّل وابدأ المشاركة'}
                 <Icon />
               </button>
             </fieldset>
@@ -390,15 +417,15 @@ function RegistrationForm({ mode, demo }: { mode: 'login' | 'register'; demo: bo
     </div>
   );
 }
-function RegistrationMode({ demo }: { demo: boolean }) {
+function RegistrationMode({ demo, otpEnabled }: { demo: boolean; otpEnabled: boolean }) {
   const params = useSearchParams();
   const mode = params.get('mode') === 'login' ? 'login' : 'register';
-  return <RegistrationForm key={mode} mode={mode} demo={demo} />;
+  return <RegistrationForm key={mode} mode={mode} demo={demo} otpEnabled={otpEnabled} />;
 }
-export function Registration({ demo }: { demo: boolean }) {
+export function Registration({ demo, otpEnabled = true }: { demo: boolean; otpEnabled?: boolean }) {
   return (
     <Suspense fallback={<Loading />}>
-      <RegistrationMode demo={demo} />
+      <RegistrationMode demo={demo} otpEnabled={otpEnabled} />
     </Suspense>
   );
 }

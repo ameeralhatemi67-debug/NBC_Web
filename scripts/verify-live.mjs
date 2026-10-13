@@ -19,6 +19,7 @@ assert.ok(
   !home.includes('تعذّر تحميل هذه المساحة.'),
   'Homepage must render, not its error boundary',
 );
+const auth = await (await check('/api/session', 200)).json();
 const status = await (await check('/api/status', 200)).json();
 assert.ok(status.state, 'Live competition status must be available');
 assert.ok(
@@ -36,6 +37,10 @@ for (const path of [
   '/admin',
 ]) {
   const html = await (await check(path, 200)).text();
+  if (path === '/register' && auth.otpEnabled === false) {
+    assert.match(html, /سجّل وابدأ المشاركة/);
+    assert.doesNotMatch(html, /متابعة إلى التحقق|خدمة التحقق قيد الإعداد/);
+  }
   assert.ok(
     !html.includes('تعذّر تحميل هذه المساحة.'),
     `${path} must render, not its error boundary`,
@@ -44,9 +49,24 @@ for (const path of [
 const registration = await (await check('/api/registration-options', 200)).json();
 assert.equal(registration.cities['الشرقية'].length, 12);
 assert.ok(registration.cities['الشرقية'].includes('الدمام'));
-await check('/api/session', 200);
 await check('/api/site-content', 200);
 await check('/api/winners', 200);
+if (auth.otpEnabled === false) {
+  for (const path of ['/api/auth/challenge', '/api/auth/resend', '/api/auth/verify']) {
+    const blocked = await check(path, 503, {
+      method: 'POST',
+      headers: { Origin: origin, 'Content-Type': 'application/json' },
+      body: '{}',
+    });
+    assert.equal((await blocked.json()).code, 'OTP_DISABLED');
+  }
+  const invalidRegistration = await check('/api/auth/direct', 400, {
+    method: 'POST',
+    headers: { Origin: origin, 'Content-Type': 'application/json' },
+    body: '{"mode":"register"}',
+  });
+  assert.doesNotMatch((await invalidRegistration.json()).error, /خدمة التحقق قيد الإعداد/);
+}
 const pdf = await (await check('/documents/national-belonging.pdf', 200)).arrayBuffer();
 assert.equal(
   createHash('sha256').update(Buffer.from(pdf)).digest('hex'),

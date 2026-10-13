@@ -1,5 +1,6 @@
 'use client';
 import { AdminCompetition } from './admin-competition';
+import { AdminQuickCompetition } from './admin-quick-competition';
 import { AdminQuestionBank, QuestionCoverage } from './admin-question-bank';
 import { AdminTestRun } from './admin-test-run';
 import { AdminQuestionCredit } from './admin-question-credit';
@@ -417,6 +418,14 @@ export function Admin({
           </div>
         </header>
         <main id="main" className="admin-main">
+          {role === 'admin' && dataReady && data.competition && (
+            <AdminQuickCompetition
+              competition={data.competition}
+              busy={busy}
+              mutate={mutate}
+              onSettings={() => setTab('competition')}
+            />
+          )}
           <div className="admin-page-heading">
             <div>
               {!['competition', 'questions', 'coverage'].includes(tab) && (

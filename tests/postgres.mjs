@@ -72,6 +72,7 @@ try {
         'tests/competition.test.ts',
         'tests/migrations.test.ts',
         'tests/meeting-updates.test.ts',
+        'tests/start-readiness.test.ts',
       ],
       {
         windowsHide: true,

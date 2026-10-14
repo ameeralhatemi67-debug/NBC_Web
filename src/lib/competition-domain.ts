@@ -135,6 +135,7 @@ export type CompetitionState = {
   book: BookVersion;
   published: boolean;
   testRun?: boolean;
+  testQuestionSource?: 'bank' | 'synthetic';
   attempt: null | {
     id: string;
     questions: SafeQuestion[];

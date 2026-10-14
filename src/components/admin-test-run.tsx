@@ -16,7 +16,10 @@ export function AdminTestRun() {
     if (id)
       api<CompetitionState>(`admin/test-run?id=${id}`)
         .then(setRun)
-        .catch(() => {});
+        .catch((e) => {
+          sessionStorage.removeItem('nbc-admin-test-run');
+          setError(e.message);
+        });
   }, []);
   async function start(reset = false) {
     setBusy(true);
@@ -24,7 +27,7 @@ export function AdminTestRun() {
     try {
       const state = await api<CompetitionState>(
         reset ? 'admin/test-run/reset' : 'admin/test-run/start',
-        reset ? { id: run?.attempt?.id } : { stage, reveal: true, closed, synthetic: true },
+        reset ? { id: run?.attempt?.id } : { stage, reveal: true, closed },
       );
       setRun(state);
       sessionStorage.setItem('nbc-admin-test-run', state.attempt!.id);
@@ -56,8 +59,8 @@ export function AdminTestRun() {
         محاولة إنتاجية.
       </p>
       <p>
-        عند عدم اكتمال بنك المرحلة، تستخدم التجربة أسئلة اصطناعية لاختبار النظام فقط. لا تُضاف إلى
-        بنك المسابقة ولا تمثل محتوى الكتاب المعتمد.
+        تستخدم هذه التجربة أسئلة بنك المسابقة للكتاب الحالي، ويمكن تجربة المسودات قبل اعتمادها. إذا
+        لم يكتمل بنك المرحلة، يتوقف الاختبار حتى استيراد الأسئلة. لا تُستخدم أسئلة اصطناعية.
       </p>
       <div className="test-controls">
         <label>

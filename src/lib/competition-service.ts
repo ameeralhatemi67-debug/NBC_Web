@@ -217,6 +217,13 @@ export class CompetitionService {
       book,
       published: effectiveState(c, this.now()) === 'RESULTS_PUBLISHED',
       testRun,
+      ...(testRun
+        ? {
+            testQuestionSource: a?.questions.some((q) => q.fixture)
+              ? ('synthetic' as const)
+              : ('bank' as const),
+          }
+        : {}),
       attempt: a
         ? {
             id: a.id,
@@ -346,6 +353,12 @@ export class CompetitionService {
         if (!run) throw new AppError('التجربة غير موجودة.', 404);
         if ((run as AttemptRow & { invalidated_at?: string }).invalidated_at)
           throw new AppError('أُعيدت هذه التجربة. افتح الجلسة الجديدة.', 409, 'TEST_RESET');
+        if (!isLocalMode() && run.questions.some((q) => q.fixture))
+          throw new AppError(
+            'هذه تجربة سابقة بأسئلة اصطناعية. ابدأ تجربة جديدة لاستخدام أسئلة بنك المسابقة.',
+            409,
+            'TEST_BANK_REPLACED',
+          );
         a = run;
         c = run.config!;
       } else {
@@ -526,6 +539,12 @@ export class CompetitionService {
       )
     ).rows[0];
     if (!a) throw new AppError('التجربة غير موجودة.', 404);
+    if (!isLocalMode() && a.questions.some((q) => q.fixture))
+      throw new AppError(
+        'هذه تجربة سابقة بأسئلة اصطناعية. ابدأ تجربة جديدة لاستخدام أسئلة بنك المسابقة.',
+        409,
+        'TEST_BANK_REPLACED',
+      );
     return this.project(
       a.config!,
       await this.book(a.config!, tx),
@@ -549,14 +568,14 @@ export class CompetitionService {
     if (!questions)
       questions = (
         await tx.query<{ body: CompetitionQuestion }>(
-          "SELECT body FROM questions WHERE body->>'stage'=$1 AND body->>'active'='true' ORDER BY id",
-          [stage],
+          "SELECT body FROM questions WHERE body->>'stage'=$1 AND body->>'active'='true' AND body->>'bookVersionId'=$2 ORDER BY id",
+          [stage, c.bookVersionId],
         )
       ).rows.map((q) => q.body);
     // Synthetic content exists only inside owned test snapshots, never in the
     // question bank, participant attempts, or a frozen production competition.
     const count = questionCount(c, stage);
-    if (questions.length !== count && body.synthetic === true) {
+    if (questions.length !== count && body.synthetic === true && isLocalMode()) {
       const { fixturesForCampaign } = await import('./competition-fixtures');
       questions = fixturesForCampaign(c)
         .filter((q) => q.stage === stage)
@@ -567,7 +586,13 @@ export class CompetitionService {
         `أضف ${count} سؤالًا للمرحلة قبل التجربة. يمكن تجربة المسودات دون اعتمادها.`,
         409,
       );
+    if (!isLocalMode() && questions.some((q) => q.fixture))
+      throw new AppError(
+        'التجربة تتطلب أسئلة بنك المسابقة. استورد أسئلة المرحلة ثم ابدأ تجربة جديدة.',
+        409,
+      );
     const book = await this.book(c, tx);
+    await this.verifyBook(book);
     questions.forEach((q) => validateQuestion(q, book));
     const config = {
       ...c,
@@ -608,7 +633,7 @@ export class CompetitionService {
           stage: old.participant.stage,
           reveal: old.competition.feedbackMode === 'educational',
           closed: old.competition.state === 'CLOSED',
-          synthetic: true,
+          synthetic: old.testQuestionSource === 'synthetic',
         },
         tx,
       );

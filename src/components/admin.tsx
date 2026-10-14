@@ -418,12 +418,18 @@ export function Admin({
           </div>
         </header>
         <main id="main" className="admin-main">
-          {role === 'admin' && dataReady && data.competition && (
+          {role === 'admin' && dataReady && data.competition && data.book && (
             <AdminQuickCompetition
               competition={data.competition}
+              book={data.book}
+              questions={data.questions}
               busy={busy}
               mutate={mutate}
               onSettings={() => setTab('competition')}
+              onQuestions={(stage) => {
+                setQuestionStage(stage);
+                setTab('questions');
+              }}
             />
           )}
           <div className="admin-page-heading">

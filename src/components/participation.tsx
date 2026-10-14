@@ -437,7 +437,10 @@ export function Participation({
   }
   const banner = testRunId ? (
     <div className="test-run-banner">
-      <span>وضع تجربة الإدارة — لا يؤثر على نتائج المسابقة</span>
+      <span>
+        وضع تجربة الإدارة — لا يؤثر على نتائج المسابقة
+        {data?.testQuestionSource === 'bank' ? ' · أسئلة بنك المسابقة' : ' · أسئلة اصطناعية محلية'}
+      </span>
       {onExit && (
         <button className="button outline" onClick={onExit} disabled={busy}>
           خروج من الاختبار
@@ -565,7 +568,11 @@ export function Participation({
           <div className="hint-control">
             {hintPages ? (
               <>
-                <span>التلميح مفتوح: صفحتان فقط</span>
+                <span>
+                  {hintPages[0] === hintPages[1]
+                    ? 'التلميح مفتوح: صفحة واحدة فقط'
+                    : 'التلميح مفتوح: صفحتان فقط'}
+                </span>
                 <button className="text-link" onClick={() => setHintPages(null)}>
                   الكتاب كاملًا
                 </button>
@@ -591,7 +598,9 @@ export function Participation({
                   {q.sourceKind === 'official'
                     ? 'سؤال عن الجهة المنظمة؛ لا يرتبط بصفحات الكتاب.'
                     : eligible
-                      ? 'يعرض صفحتين فقط من الكتاب'
+                      ? q.pdfPage === 1 && q.pdfPageEnd === undefined
+                        ? 'يعرض صفحة واحدة فقط من الكتاب'
+                        : 'يعرض صفحتين فقط من الكتاب'
                       : 'يُفتح بعد أن تتصفّح الكتاب إلى ما بعد موضع الإجابة.'}
                 </span>
               </>

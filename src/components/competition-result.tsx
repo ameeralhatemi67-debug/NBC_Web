@@ -104,8 +104,13 @@ export function CompetitionResult({
             </div>
           )}
         </div>
-        <p className="result-policy">{leaderboardModeLines[mode]}</p>
-        {!hidden &&
+        <p className="result-policy">
+          {data.practice
+            ? 'نتيجة التجربة خاصة بك ولا تدخل في ترتيب المسابقة أو جوائزها.'
+            : leaderboardModeLines[mode]}
+        </p>
+        {!data.practice &&
+          !hidden &&
           (mode === 'public_live' || (mode === 'publish_after_close' && data.published)) && (
             <Leaderboard
               competitionId={data.competition.id}

@@ -1,4 +1,7 @@
 'use client';
+import { AdminSimulation } from './admin-simulation';
+import type { ParticipantReport } from '@/lib/service';
+import type { SimulationSource } from '@/lib/simulation-domain';
 import { AdminCompetition } from './admin-competition';
 import { AdminQuickCompetition } from './admin-quick-competition';
 import { AdminQuestionBank, QuestionCoverage } from './admin-question-bank';
@@ -94,6 +97,10 @@ export function Admin({
   hasStaffCookie?: boolean;
 }) {
   const [data, setData] = useState<AdminData | null>(null);
+  const [simulationSource, setSimulationSource] = useState<SimulationSource>('actual');
+  const [simulationRows, setSimulationRows] = useState<ParticipantReport[]>([]);
+  const [practiceRows, setPracticeRows] = useState<ParticipantReport[]>([]);
+  const [refreshError, setRefreshError] = useState('');
   const [dataReady, setDataReady] = useState(false);
   const [role, setRole] = useState('');
   const [loading, setLoading] = useState(true);
@@ -154,6 +161,35 @@ export function Admin({
       .finally(() => setLoading(false));
     return () => window.removeEventListener('pageshow', resetSignIn);
   }, []);
+  useEffect(() => {
+    if (role !== 'admin' || !dataReady || simulationSource !== 'actual') return;
+    let alive = true,
+      inFlight = false;
+    const refresh = async () => {
+      if (inFlight || document.visibilityState !== 'visible') return;
+      inFlight = true;
+      try {
+        const state = await api<AdminData>('admin', undefined, AbortSignal.timeout(12000));
+        if (alive) {
+          setData(state);
+          setRefreshError('');
+        }
+      } catch {
+        if (alive) setRefreshError('تعذر تحديث البيانات الفعلية؛ آخر بيانات محفوظة معروضة.');
+      } finally {
+        inFlight = false;
+      }
+    };
+    const timer = setInterval(() => void refresh(), 5000);
+    document.addEventListener('visibilitychange', refresh);
+    window.addEventListener('focus', refresh);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', refresh);
+      window.removeEventListener('focus', refresh);
+    };
+  }, [role, dataReady, simulationSource]);
   async function login(selected: string) {
     setBusy(true);
     setError('');
@@ -285,7 +321,14 @@ export function Admin({
         <OrganizationsBar compact />
       </main>
     );
-  const rows = data.participants.filter(
+  const projected =
+    simulationSource !== 'actual' && ['overview', 'analytics', 'reports', 'results'].includes(tab);
+  const people = projected
+    ? simulationSource === 'generated'
+      ? simulationRows
+      : practiceRows
+    : data.participants;
+  const rows = people.filter(
     (p) =>
       (!stage || p.stage === stage) &&
       (!region || p.region === region) &&
@@ -295,11 +338,9 @@ export function Admin({
         p.locality.includes(search) ||
         p.institution?.includes(search)),
   );
-  const submitted = data.participants.filter((p) => p.submitted_at);
+  const submitted = people.filter((p) => p.submitted_at);
   const completed = rows.filter((p) => p.submitted_at).length;
-  const ties = stageKeys.flatMap((s) =>
-    tieGroups(data.participants.filter((p) => p.stage === stageNames[s])),
-  );
+  const ties = stageKeys.flatMap((s) => tieGroups(people.filter((p) => p.stage === stageNames[s])));
   const approved = data.questions.filter((q) => q.approved).length;
   const ranked = [...submitted].sort(
     (a, b) => (b.score ?? 0) - (a.score ?? 0) || a.name.localeCompare(b.name, 'ar'),
@@ -418,20 +459,24 @@ export function Admin({
           </div>
         </header>
         <main id="main" className="admin-main">
-          {role === 'admin' && dataReady && data.competition && data.book && (
-            <AdminQuickCompetition
-              competition={data.competition}
-              book={data.book}
-              questions={data.questions}
-              busy={busy}
-              mutate={mutate}
-              onSettings={() => setTab('competition')}
-              onQuestions={(stage) => {
-                setQuestionStage(stage);
-                setTab('questions');
-              }}
-            />
-          )}
+          {role === 'admin' &&
+            dataReady &&
+            simulationSource === 'actual' &&
+            data.competition &&
+            data.book && (
+              <AdminQuickCompetition
+                competition={data.competition}
+                book={data.book}
+                questions={data.questions}
+                busy={busy}
+                mutate={mutate}
+                onSettings={() => setTab('competition')}
+                onQuestions={(stage) => {
+                  setQuestionStage(stage);
+                  setTab('questions');
+                }}
+              />
+            )}
           <div className="admin-page-heading">
             <div>
               {!['competition', 'questions', 'coverage'].includes(tab) && (
@@ -447,12 +492,35 @@ export function Admin({
               </p>
             </div>
             {role === 'admin' && (
-              <button className="button outline" disabled={busy} onClick={preview}>
+              <button
+                className="button outline"
+                disabled={busy || simulationSource !== 'actual'}
+                onClick={preview}
+              >
                 <Icon name="bell" size={18} /> معاينة التذكير
               </button>
             )}
           </div>
-          <ErrorMessage message={error} />
+          {role === 'admin' && (
+            <AdminSimulation
+              competition={data.competition}
+              source={simulationSource}
+              onSource={setSimulationSource}
+              onRows={setSimulationRows}
+              onPracticeRows={setPracticeRows}
+              onEnd={load}
+            />
+          )}
+          {simulationSource !== 'actual' && (
+            <p className="notice simulation-data-notice">
+              {projected
+                ? simulationSource === 'generated'
+                  ? 'بيانات المحاكاة الافتراضية؛ لا تؤثر في المسابقة.'
+                  : 'نتائج التجربة العامة؛ لا تُحتسب ضمن المسابقة.'
+                : 'هذه الصفحة تعرض إعدادات وسجلات المسابقة الفعلية. اختر النظرة العامة أو التحليلات أو التقارير لعرض بيانات التجربة.'}
+            </p>
+          )}
+          <ErrorMessage message={error || refreshError} />
           {!dataReady && (
             <div className="notice" role="status">
               <p>
@@ -483,7 +551,13 @@ export function Admin({
               {notice}
             </div>
           )}
-          {tab === 'analytics' && <AdminAnalytics people={data.participants} />}
+          {tab === 'analytics' && (
+            <AdminAnalytics
+              key={simulationSource}
+              people={people}
+              exportEnabled={simulationSource === 'actual'}
+            />
+          )}
           {tab === 'prizes' && (
             <AdminPrizes settings={data.prizes} storageReady={dataReady} onSaved={load} />
           )}
@@ -494,7 +568,7 @@ export function Admin({
                 {[
                   {
                     label: 'إجمالي المشاركين',
-                    value: data.participants.length,
+                    value: people.length,
                     icon: 'user',
                     note: 'عبر المراحل التعليمية',
                   },
@@ -506,7 +580,7 @@ export function Admin({
                   },
                   {
                     label: 'بانتظار الإكمال',
-                    value: data.participants.length - submitted.length,
+                    value: people.length - submitted.length,
                     icon: 'clock',
                     note: 'يشمل من لم يبدأ',
                   },
@@ -535,10 +609,8 @@ export function Admin({
                   </div>
                   <div className="stage-chart">
                     {stages.map((s) => {
-                      const total = data.participants.filter((p) => p.stage === s).length;
-                      const done = data.participants.filter(
-                        (p) => p.stage === s && p.submitted_at,
-                      ).length;
+                      const total = people.filter((p) => p.stage === s).length;
+                      const done = people.filter((p) => p.stage === s && p.submitted_at).length;
                       return (
                         <div key={s}>
                           <div>
@@ -577,22 +649,39 @@ export function Admin({
                   <button className="text-link" onClick={() => setTab('results')}>
                     مراجعة النتائج <Icon size={18} />
                   </button>
-                  <button className="text-link" onClick={() => setTab('winners')}>
+                  <button
+                    className="text-link"
+                    disabled={projected}
+                    onClick={() => setTab('winners')}
+                  >
                     اختيار الفائزين <Icon size={18} />
                   </button>
                 </section>
               </div>
               <section className="panel">
                 <div className="panel-heading">
-                  <h2>{demo ? 'المشاركون في العرض' : 'المشاركون في المسابقة'}</h2>
-                  <a className="text-link" href="/api/admin/backup">
-                    نسخة احتياطية <Icon name="download" size={17} />
-                  </a>
-                  <button className="text-link" onClick={() => setTab('participants')}>
+                  <h2>
+                    {projected
+                      ? simulationSource === 'generated'
+                        ? 'المشاركون في المحاكاة'
+                        : 'المشاركون في التجربة'
+                      : demo
+                        ? 'المشاركون في العرض'
+                        : 'المشاركون في المسابقة'}
+                  </h2>
+                  {!projected && (
+                    <a className="text-link" href="/api/admin/backup">
+                      نسخة احتياطية <Icon name="download" size={17} />
+                    </a>
+                  )}
+                  <button
+                    className="text-link"
+                    onClick={() => setTab(projected ? 'reports' : 'participants')}
+                  >
                     عرض الجميع <Icon size={17} />
                   </button>
                 </div>
-                <Table people={data.participants.slice(0, 5)} />
+                <Table people={people.slice(0, 5)} />
               </section>
             </>
           )}
@@ -653,12 +742,16 @@ export function Admin({
                       <strong>{rows.length - completed}</strong>
                       <span>غير مكتملين</span>
                     </div>
-                    <a
-                      className="button primary"
-                      href={`/api/export?${new URLSearchParams({ stage, region })}`}
-                    >
-                      <Icon name="download" /> تصدير CSV
-                    </a>
+                    {!projected ? (
+                      <a
+                        className="button primary"
+                        href={`/api/export?${new URLSearchParams({ stage, region })}`}
+                      >
+                        <Icon name="download" /> تصدير CSV
+                      </a>
+                    ) : (
+                      <span className="fine-print">التصدير متاح للبيانات الفعلية فقط.</span>
+                    )}
                   </div>
                   <p className="notice">
                     التقرير يعرض الدرجات، وليس قائمة فائزين معتمدة. التصدير يطبّق مرشحات المرحلة
@@ -682,8 +775,8 @@ export function Admin({
               book={data.book}
               questions={data.questions}
               counts={{
-                registered: data.participants.length,
-                inProgress: data.participants.filter((p) => p.attempt_id && !p.submitted_at).length,
+                registered: people.length,
+                inProgress: people.filter((p) => p.attempt_id && !p.submitted_at).length,
               }}
               busy={busy}
               mutate={mutate}
@@ -726,9 +819,9 @@ export function Admin({
           )}
           {tab === 'participants' && role === 'admin' && <AdminParticipants />}
           {tab === 'participants' && role === 'admin' && (
-            <AdminRecovery participants={data.participants} busy={busy} mutate={mutate} />
+            <AdminRecovery participants={people} busy={busy} mutate={mutate} />
           )}
-          {tab === 'results' && role === 'admin' && (
+          {tab === 'results' && role === 'admin' && simulationSource === 'actual' && (
             <AdminQuestionCredit questions={data.questions} busy={busy} mutate={mutate} />
           )}
           {tab === 'results' && (
@@ -744,7 +837,7 @@ export function Admin({
                 </div>
                 <button
                   className={`button ${data.published ? 'outline' : 'primary'}`}
-                  disabled={busy}
+                  disabled={busy || projected}
                   onClick={() =>
                     mutate(
                       'admin/publish',
@@ -767,18 +860,21 @@ export function Admin({
                     : 'لا توجد درجات متساوية حاليًا.'}{' '}
                   لا يتم ترجيح أي مشارك بناءً على وقت الإرسال، ولا اختيار فائز تلقائيًا.
                 </span>
-                <button className="text-link" onClick={() => setTab('winners')}>
+                <button
+                  className="text-link"
+                  disabled={projected}
+                  onClick={() => setTab('winners')}
+                >
                   حسم التعادل واختيار الفائزين <Icon size={18} />
                 </button>
               </div>
               {ties.map((t) => (
                 <div className="tie-card" key={t.ids.join('-')}>
                   <strong>
-                    درجة متساوية: {t.score} /{' '}
-                    {data.participants.find((p) => t.ids.includes(p.id))?.max_score}
+                    درجة متساوية: {t.score} / {people.find((p) => t.ids.includes(p.id))?.max_score}
                   </strong>
                   <span>
-                    {data.participants
+                    {people
                       .filter((p) => t.ids.includes(p.id))
                       .map((p) => p.name)
                       .join(' · ')}

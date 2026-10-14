@@ -1,3 +1,4 @@
+import { practiceCompetition, practiceStatus, type SimulationRun } from './simulation-domain';
 import { randomInt, randomUUID, createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -99,6 +100,7 @@ type AttemptRow = {
   participant_number: string;
   receipt?: string | null;
   stage: Stage;
+  invalidated_at?: string | null;
   recovery_until?: string | null;
   config?: Competition;
   reading?: ReadingProgress;
@@ -185,9 +187,95 @@ export class CompetitionService {
     if (!book) throw new AppError('نسخة الكتاب غير موجودة.', 409);
     return book;
   }
-  async readingProgress(tx: Queryable, id: string, test: boolean): Promise<ReadingProgress> {
-    const table = test ? 'admin_test_events' : 'attempt_events';
-    const owner = test ? 'run_id' : 'attempt_id';
+  async practiceState(
+    s: Session,
+    runId: string,
+    tx: Queryable = this.db,
+  ): Promise<CompetitionState> {
+    requireRole(s, ['participant']);
+    const run = (
+      await tx.query<SimulationRun>('SELECT * FROM simulation_runs WHERE id=$1', [runId])
+    ).rows[0];
+    if (!run) throw new AppError('نافذة التجربة غير موجودة.', 404);
+    const p = (
+      await tx.query<{ name: string; stage: string }>(
+        'SELECT name,stage FROM participants WHERE id=$1',
+        [s.participant_id],
+      )
+    ).rows[0];
+    if (!p) throw new AppError('المشارك غير موجود.', 404);
+    const a = (
+      await tx.query<AttemptRow>(
+        'SELECT * FROM simulation_attempts WHERE run_id=$1 AND participant_id=$2',
+        [runId, s.participant_id],
+      )
+    ).rows[0];
+    if (a) a.reading = await this.readingProgress(tx, a.id, 'simulation');
+    const official = await this.current(tx);
+    const status = practiceStatus(
+      run,
+      official.id === run.competition_id && effectiveState(official, this.now()) === 'DRAFT',
+      this.now(),
+    );
+    const config = practiceCompetition(run, Boolean(a));
+    if (a ? !status.canFinish : !status.entryOpen) config.state = 'CLOSED';
+    return {
+      ...this.project(
+        config,
+        await this.book(config, tx),
+        a,
+        p.name,
+        a ? stageNames[a.stage] : p.stage,
+      ),
+      practice: status,
+    };
+  }
+  private async practiceRow(tx: Queryable, s: Session, id: string) {
+    const owner = (
+      await tx.query<{ run_id: string }>(
+        'SELECT run_id FROM simulation_attempts WHERE id=$1 AND participant_id=$2',
+        [id, s.participant_id],
+      )
+    ).rows[0];
+    if (!owner) throw new AppError('التجربة غير موجودة.', 404);
+    const row = (
+      await tx.query<SimulationRun>('SELECT * FROM simulation_runs WHERE id=$1', [owner.run_id])
+    ).rows[0];
+    await tx.query('SELECT id FROM competitions WHERE id=$1 FOR SHARE', [row.competition_id]);
+    const run = (
+      await tx.query<SimulationRun>('SELECT * FROM simulation_runs WHERE id=$1 FOR SHARE', [
+        owner.run_id,
+      ])
+    ).rows[0];
+    const a = (
+      await tx.query<AttemptRow>(
+        'SELECT * FROM simulation_attempts WHERE id=$1 AND participant_id=$2 FOR UPDATE',
+        [id, s.participant_id],
+      )
+    ).rows[0];
+    return { run, a, c: practiceCompetition(run, true) };
+  }
+  private async assertPractice(tx: Queryable, c: Competition) {
+    const official = await this.current(tx);
+    if (
+      official.id !== c.id ||
+      effectiveState(official, this.now()) !== 'DRAFT' ||
+      this.now() >= Date.parse(c.closesAt!)
+    )
+      throw new AppError(
+        'انتهت مهلة التجربة. تبقى الإجابات المعلقة محفوظة على جهازك.',
+        409,
+        'PRACTICE_EXPIRED',
+      );
+  }
+  async readingProgress(
+    tx: Queryable,
+    id: string,
+    test: boolean | 'simulation',
+  ): Promise<ReadingProgress> {
+    const table =
+      test === 'simulation' ? 'simulation_events' : test ? 'admin_test_events' : 'attempt_events';
+    const owner = test === true ? 'run_id' : 'attempt_id';
     const rows = (
       await tx.query<{ page: string; seconds: number }>(
         `SELECT payload->>'page' AS page, SUM((payload->>'creditedSeconds')::double precision) AS seconds FROM ${table} WHERE ${owner}=$1 AND payload->>'kind'='READ' GROUP BY payload->>'page'`,
@@ -198,8 +286,13 @@ export class CompetitionService {
       pageSeconds: Object.fromEntries(rows.map((r) => [Number(r.page), Number(r.seconds)])),
     };
   }
-  async recordReading(s: Session, body: Record<string, unknown>, test = false) {
-    requireRole(s, test ? ['admin'] : ['participant']);
+  async recordReading(
+    s: Session,
+    body: Record<string, unknown>,
+    test: boolean | 'simulation' = false,
+  ) {
+    const simulation = test === 'simulation';
+    requireRole(s, test === true ? ['admin'] : ['participant']);
     if (
       typeof body.attemptId !== 'string' ||
       typeof body.clientEventId !== 'string' ||
@@ -209,26 +302,34 @@ export class CompetitionService {
     )
       throw new AppError('تقدم القراءة غير صالح.');
     return this.db.transaction(async (tx) => {
+      const practice = simulation ? await this.practiceRow(tx, s, String(body.attemptId)) : null;
       const table = test ? 'admin_test_runs' : 'attempts';
       const owner = test ? 'actor' : 'participant_id';
-      const a = (
-        await tx.query<AttemptRow & { invalidated_at?: string }>(
-          `SELECT * FROM ${table} WHERE id=$1 AND ${owner}=$2 FOR UPDATE`,
-          [body.attemptId, test ? actor(s) : s.participant_id],
-        )
-      ).rows[0];
+      const a =
+        practice?.a ??
+        (
+          await tx.query<AttemptRow & { invalidated_at?: string }>(
+            `SELECT * FROM ${table} WHERE id=$1 AND ${owner}=$2 FOR UPDATE`,
+            [body.attemptId, test ? actor(s) : s.participant_id],
+          )
+        ).rows[0];
       if (!a || a.invalidated_at)
         throw new AppError('الجلسة غير متاحة. افتح التجربة الحالية.', 409);
-      if (test && !isLocalMode() && a.questions.some((q) => q.fixture))
+      if (test === true && !isLocalMode() && a.questions.some((q) => q.fixture))
         throw new AppError('ابدأ تجربة جديدة من بنك المسابقة.', 409, 'TEST_BANK_REPLACED');
-      const c = test ? a.config! : await this.current(tx, a.competition_id);
+      const c = practice?.c ?? (test ? a.config! : await this.current(tx, a.competition_id));
       if (a.submitted_at) return this.readingProgress(tx, a.id, test);
-      assertWindow(c, true, this.now(), a.recovery_until);
+      if (simulation) await this.assertPractice(tx, c);
+      else assertWindow(c, true, this.now(), a.recovery_until);
       const book = await this.book(c, tx);
       if (Number(body.page) < 1 || Number(body.page) > book.pageCount)
         throw new AppError('صفحة خارج نطاق الكتاب.');
-      const events = test ? 'admin_test_events' : 'attempt_events';
-      const key = test ? 'run_id' : 'attempt_id';
+      const events = simulation
+        ? 'simulation_events'
+        : test
+          ? 'admin_test_events'
+          : 'attempt_events';
+      const key = test === true ? 'run_id' : 'attempt_id';
       const existing = (
         await tx.query<{ payload: { page: number; active: boolean } }>(
           `SELECT payload FROM ${events} WHERE ${key}=$1 AND client_event_id=$2`,
@@ -256,7 +357,8 @@ export class CompetitionService {
         await audit(tx, s, 'ملاحظة على وتيرة القراءة', {
           competitionId: c.id,
           attemptId: a.id,
-          testRun: test,
+          testRun: Boolean(test),
+          simulation,
           page: visit.page,
           previousPage: previous?.page,
           flags: visit.flags,
@@ -413,8 +515,9 @@ export class CompetitionService {
     });
     return this.state(s);
   }
-  async write(s: Session, e: WriteEvent, test = false) {
-    requireRole(s, test ? ['admin'] : ['participant']);
+  async write(s: Session, e: WriteEvent, test: boolean | 'simulation' = false) {
+    const simulation = test === 'simulation';
+    requireRole(s, test === true ? ['admin'] : ['participant']);
     if (
       !e ||
       typeof e.clientEventId !== 'string' ||
@@ -430,10 +533,16 @@ export class CompetitionService {
       acceptedAt: this.now(),
     });
     let competitionId = '';
+    let simulationRunId = '';
     await this.db.transaction(async (tx) => {
       let a: AttemptRow;
       let c: Competition;
-      if (test) {
+      if (simulation) {
+        const practice = await this.practiceRow(tx, s, e.attemptId);
+        a = practice.a;
+        c = practice.c;
+        simulationRunId = practice.run.id;
+      } else if (test) {
         const run = (
           await tx.query<AttemptRow>(
             'SELECT * FROM admin_test_runs WHERE id=$1 AND actor=$2 FOR UPDATE',
@@ -465,8 +574,12 @@ export class CompetitionService {
         a = (await this.readAttempt(tx, s.participant_id, c, true))!;
       }
       competitionId = c.id;
-      const eventTable = test ? 'admin_test_events' : 'attempt_events';
-      const ownerColumn = test ? 'run_id' : 'attempt_id';
+      const eventTable = simulation
+        ? 'simulation_events'
+        : test
+          ? 'admin_test_events'
+          : 'attempt_events';
+      const ownerColumn = test === true ? 'run_id' : 'attempt_id';
       const old = (
         await tx.query<{ payload: unknown }>(
           `SELECT payload FROM ${eventTable} WHERE ${ownerColumn}=$1 AND client_event_id=$2`,
@@ -491,7 +604,8 @@ export class CompetitionService {
         if (e.kind === 'SUBMIT') return;
         throw new AppError('المشاركة مكتملة.', 409, 'SUBMITTED');
       }
-      assertWindow(c, true, this.now(), a.recovery_until);
+      if (simulation) await this.assertPractice(tx, c);
+      else assertWindow(c, true, this.now(), a.recovery_until);
       const reading = await this.readingProgress(tx, a.id, test);
       const needsReading = (q: CompetitionQuestion) =>
         !q.fixture && !sourceReadingReady(reading, q);
@@ -514,7 +628,7 @@ export class CompetitionService {
         (
           await tx.query<{ question_id: string }>(
             'SELECT question_id FROM competition_corrections WHERE competition_id=$1 AND $2=false',
-            [c.id, test],
+            [c.id, Boolean(test)],
           )
         ).rows.map((r) => r.question_id),
         c,
@@ -534,13 +648,14 @@ export class CompetitionService {
           await audit(tx, s, 'ملاحظة على وتيرة الإجابة', {
             competitionId: c.id,
             attemptId: a.id,
-            testRun: test,
+            testRun: Boolean(test),
+            simulation,
             flags: ['rapid_answers'],
           });
       }
       if (test) {
         await tx.query(
-          'UPDATE admin_test_runs SET answers=$1,revision=revision+1,submitted_at=$2,score=$3,percentage=$4 WHERE id=$5',
+          `UPDATE ${simulation ? 'simulation_attempts' : 'admin_test_runs'} SET answers=$1,revision=revision+1,submitted_at=$2,score=$3,percentage=$4 WHERE id=$5`,
           [
             JSON.stringify(result.answers),
             e.kind === 'SUBMIT' ? new Date(this.now()) : null,
@@ -586,7 +701,11 @@ export class CompetitionService {
         [a.id, e.clientEventId, payload],
       );
     });
-    return test ? this.testState(s, e.attemptId) : this.state(s, competitionId);
+    return simulation
+      ? this.practiceState(s, simulationRunId)
+      : test
+        ? this.testState(s, e.attemptId)
+        : this.state(s, competitionId);
   }
   async leaderboard(
     id: string | undefined,
@@ -814,6 +933,24 @@ export class CompetitionService {
       let c = await this.current(tx);
       await tx.query('SELECT id FROM competitions WHERE id=$1 FOR UPDATE', [c.id]);
       c = await this.current(tx);
+      if (
+        body.action === 'open' ||
+        body.action === 'create' ||
+        (body.action === 'settings' && body.scheduled)
+      ) {
+        const active = (
+          await tx.query(
+            'SELECT id FROM simulation_runs WHERE competition_id=$1 AND finish_until>$2 LIMIT 1',
+            [c.id, new Date(this.now())],
+          )
+        ).rows.length;
+        if (active)
+          throw new AppError(
+            'انتظر انتهاء مهلة التجربة العامة قبل إطلاق المسابقة أو تغيير الحملة.',
+            409,
+            'PRACTICE_ACTIVE',
+          );
+      }
       const before = structuredClone(c);
       if (effectiveState(c, this.now()) === 'CLOSED' && c.state !== 'CLOSED') {
         c.state = 'CLOSED';

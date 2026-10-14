@@ -28,6 +28,7 @@ import {
 
 export function Participation({
   testRunId,
+  practiceRunId,
   initialState,
   simulateOffline = false,
   onExit,
@@ -35,6 +36,7 @@ export function Participation({
   onStateChange,
 }: {
   testRunId?: string;
+  practiceRunId?: string;
   initialState?: CompetitionState;
   simulateOffline?: boolean;
   onExit?: () => void;
@@ -110,8 +112,17 @@ export function Participation({
   const examShell = useRef<HTMLDivElement>(null);
   const questionArea = useRef<HTMLDivElement>(null);
   const bookButton = useRef<HTMLButtonElement>(null);
-  const readPath = testRunId ? `admin/test-run?id=${encodeURIComponent(testRunId)}` : 'participant';
-  const writePath = testRunId ? 'admin/test-run/event' : 'attempt/event';
+  const activePointer = practiceRunId ? `simulation-active:${practiceRunId}` : 'participant-active';
+  const readPath = practiceRunId
+    ? `simulation/participant?runId=${encodeURIComponent(practiceRunId)}`
+    : testRunId
+      ? `admin/test-run?id=${encodeURIComponent(testRunId)}`
+      : 'participant';
+  const writePath = practiceRunId
+    ? 'simulation/event'
+    : testRunId
+      ? 'admin/test-run/event'
+      : 'attempt/event';
   async function reportReading() {
     const context = { ...readingContext.current };
     if (
@@ -141,7 +152,11 @@ export function Participation({
     readingInFlight.current = true;
     try {
       const reading = await api<ReadingProgress>(
-        testRunId ? 'admin/test-run/reading' : 'attempt/reading',
+        practiceRunId
+          ? 'simulation/reading'
+          : testRunId
+            ? 'admin/test-run/reading'
+            : 'attempt/reading',
         {
           attemptId: context.id,
           clientEventId: crypto.randomUUID(),
@@ -193,17 +208,19 @@ export function Participation({
     setData(state);
     if (!state.attempt) {
       controller.current = null;
-      if (!testRunId) await localWrite('participant-active', null);
+      if (!testRunId) await localWrite(activePointer, null);
       return;
     }
-    const key = `${testRunId ? 'test' : 'participant'}:${state.attempt.id}`;
+    const key = `${practiceRunId ? `simulation:${practiceRunId}` : testRunId ? 'test' : 'participant'}:${state.attempt.id}`;
     const service = new DurableCompetitionSession(
       key,
       {
         state: () =>
           api<CompetitionState>(
             readPath +
-              (!testRunId ? `?competitionId=${encodeURIComponent(state.competition.id)}` : ''),
+              (!testRunId && !practiceRunId
+                ? `?competitionId=${encodeURIComponent(state.competition.id)}`
+                : ''),
             undefined,
             AbortSignal.timeout(12000),
           ),
@@ -225,7 +242,7 @@ export function Participation({
     setIndex(Math.min(service.record.index, state.attempt.questions.length - 1));
     setPage(service.record.page);
     setMaxPage(service.record.maxPage);
-    if (!testRunId) await localWrite('participant-active', key);
+    if (!testRunId) await localWrite(activePointer, key);
     void service.sync(offline.current);
   }
   useEffect(() => {
@@ -236,7 +253,7 @@ export function Participation({
         if (alive) await attach(state);
       } catch (e) {
         if (!(e instanceof ApiError) && !testRunId) {
-          const key = await localRead<string>('participant-active').catch(() => undefined);
+          const key = await localRead<string>(activePointer).catch(() => undefined);
           const old = key
             ? await localRead<LocalCompetition>(key).catch(() => undefined)
             : undefined;
@@ -273,7 +290,7 @@ export function Participation({
       window.removeEventListener('online', sync);
       window.removeEventListener('offline', lost);
     };
-  }, [testRunId]);
+  }, [testRunId, practiceRunId]);
   useEffect(() => {
     if (!examShell.current) return;
     let first = true;
@@ -419,7 +436,10 @@ export function Participation({
     setBusy(true);
     setError('');
     try {
-      const started = await api<CompetitionState>('attempt/start', {});
+      const started = await api<CompetitionState>(
+        practiceRunId ? 'simulation/start' : 'attempt/start',
+        practiceRunId ? { runId: practiceRunId } : {},
+      );
       await opened;
       await attach(started);
     } catch (e) {
@@ -552,7 +572,23 @@ export function Participation({
     else if (readerOpener.current?.isConnected) readerOpener.current.focus();
     else bookButton.current?.focus();
   }
-  const banner = testRunId ? (
+  const banner = practiceRunId ? (
+    <div className="test-run-banner practice-banner">
+      <span>
+        تجربة عامة — لا تُحتسب ضمن نتائج المسابقة · نسخة أسئلة تجريبية
+        {data?.practice && (
+          <>
+            {' '}
+            · ينتهي الدخول {riyadhDateTime(data.practice.entryClosesAt)} · آخر موعد للإكمال{' '}
+            {riyadhDateTime(data.practice.finishUntil)}
+          </>
+        )}
+      </span>
+      <Link className="button outline" href="/participate">
+        خروج من التجربة
+      </Link>
+    </div>
+  ) : testRunId ? (
     <div className="test-run-banner">
       <span>
         وضع تجربة الإدارة — لا يؤثر على نتائج المسابقة

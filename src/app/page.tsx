@@ -1,3 +1,4 @@
+import { SimulationEntry } from '@/components/simulation-entry';
 import Link from 'next/link';
 import { arDigits } from '@/lib/format';
 import { CompetitionPrizes } from '@/components/competition-prizes';
@@ -26,6 +27,7 @@ export default async function Home() {
       <main id="main">
         <CompetitionHero intro={content.heroIntro} registrationOpen={registrationOpen} />
         {status && <CompetitionStatus status={status} />}
+        <SimulationEntry />
         {winners && (
           <section className="winners-banner container" aria-labelledby="winners-banner-title">
             <div>

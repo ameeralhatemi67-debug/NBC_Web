@@ -75,6 +75,7 @@ try {
         'tests/start-readiness.test.ts',
         'tests/reading-controls.test.ts',
         'tests/analytics-visuals.test.ts',
+        'tests/simulation.test.ts',
       ],
       {
         windowsHide: true,

@@ -32,6 +32,28 @@ Apply forward migrations, run disposable tests/build, deploy the reviewed source
 
 The first empty NBC export authorizes one identity-key enrollment with `identity_key_bootstrap_pending`. The application enrolls the existing Vercel key under an advisory lock only if participants and OTP challenges are empty, removes the marker and records a system audit. A missing unauthorized marker, existing identity/challenge, or later mismatch fails closed. No old database identity marker or secret is imported.
 
+## Simulation release migration
+
+The simulation feature adds source migration `014_simulation`, with `simulation_runs`, `simulation_attempts` and append-only `simulation_events`. It adds snapshot/submission/deadline guards with fixed `pg_catalog` function search paths. Applied migrations 001–013 are unchanged. The fresh private-schema export now creates 30 tables. This source implementation has not applied the migration or changed production data.
+
+Before deploying, inspect actual `schema_migrations`, generate the reviewed forward export from the actual last-applied ID using the existing export command, and apply once through authorized operator access. Review the SQL; never use the fresh-schema export against an existing project. Runtime requests cannot run DDL. For these new tables, apply the existing server-only permissions explicitly in the same release transaction:
+
+```sql
+REVOKE ALL ON nbc.simulation_runs,nbc.simulation_attempts,nbc.simulation_events FROM PUBLIC,anon,authenticated,service_role;
+GRANT SELECT,INSERT,UPDATE,DELETE ON nbc.simulation_runs,nbc.simulation_attempts TO nbc_runtime;
+GRANT SELECT,INSERT ON nbc.simulation_events TO nbc_runtime;
+REVOKE UPDATE,DELETE ON nbc.simulation_events FROM nbc_runtime;
+ALTER TABLE nbc.simulation_runs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE nbc.simulation_attempts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE nbc.simulation_events ENABLE ROW LEVEL SECURITY;
+CREATE POLICY nbc_server ON nbc.simulation_runs TO nbc_runtime USING(true) WITH CHECK(true);
+CREATE POLICY nbc_server ON nbc.simulation_attempts TO nbc_runtime USING(true) WITH CHECK(true);
+CREATE POLICY nbc_server ON nbc.simulation_events TO nbc_runtime USING(true) WITH CHECK(true);
+REVOKE EXECUTE ON FUNCTION nbc.guard_simulation_attempt(),nbc.guard_simulation_run() FROM PUBLIC,anon,authenticated,service_role;
+```
+
+The application verifies staff/participant ownership using existing NBC sessions; Supabase user roles must not receive direct practice access. Practice content/results do not enter official attempts, standings, winners or reminder cohorts. Normal accounts created during the window remain normal registrations. No cleanup of practice history is scheduled; retention needs an explicit later decision. Validate source checksums, runtime readiness and practice-role/expiry/isolation checks before opening a public test window.
+
 ## Restoring the verified prize snapshot
 
 `scripts/import-nbc-snapshot.mjs` validates the zero-participant/attempt snapshot, version 5, podium layout, SAR 52,000 and four coherent historical staff actions. It imports only prizes and original audit attribution/timestamps, records the export digest and a separate system import audit, and refuses conflicting imports or staff changes. The source snapshot is ignored local evidence, not a database backup; it contains no credentials. It does not import demo questions or initialization/identity markers.

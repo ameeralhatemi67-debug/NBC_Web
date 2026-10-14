@@ -239,8 +239,12 @@ export class ParticipantAdmin {
           'اسم المشارك ظاهر في إعلان الفائزين. اسحب الإعلان أولًا ثم أعد النشر.',
           409,
         );
-      const hasAttempt = (await tx.query('SELECT 1 FROM attempts WHERE participant_id=$1', [p.id]))
-        .rows.length;
+      const hasAttempt = (
+        await tx.query(
+          'SELECT 1 FROM attempts WHERE participant_id=$1 UNION ALL SELECT 1 FROM simulation_attempts WHERE participant_id=$1',
+          [p.id],
+        )
+      ).rows.length;
       await tx.query('DELETE FROM sessions WHERE participant_id=$1', [p.id]);
       await tx.query('DELETE FROM otp_challenges WHERE participant_id=$1 OR phone_hash=$2', [
         p.id,

@@ -136,6 +136,7 @@ export type CompetitionState = {
   competition: Competition;
   book: BookVersion;
   published: boolean;
+  practice?: import('./simulation-domain').PracticeStatus;
   testRun?: boolean;
   testQuestionSource?: 'bank' | 'synthetic';
   attempt: null | {

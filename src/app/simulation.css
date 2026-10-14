@@ -1,0 +1,107 @@
+.admin-simulation {
+  margin: 0 0 28px;
+  padding: 24px;
+  border: 1px solid var(--line, #d9dacd);
+  border-radius: 12px;
+  background: var(--paper, #f7f3e8);
+  color: var(--ink, #193b30);
+}
+.simulation-heading,
+.simulation-window,
+.simulation-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+}
+.simulation-heading h2,
+.simulation-entry h2 {
+  font-size: 22px;
+  margin: 0 0 8px;
+}
+.simulation-heading p,
+.simulation-window p,
+.simulation-entry p {
+  margin: 0 0 8px;
+}
+.simulation-track {
+  margin-block: 24px;
+}
+.simulation-transport,
+.simulation-actions,
+.simulation-markers {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.simulation-time {
+  font-variant-numeric: tabular-nums;
+  font-size: 18px;
+  white-space: nowrap;
+}
+.simulation-track input[type='range'] {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+  accent-color: var(--olive);
+  cursor: pointer;
+}
+.simulation-markers {
+  justify-content: space-between;
+  margin-block: 4px 16px;
+}
+.simulation-markers button {
+  min-height: 36px;
+}
+.simulation-window {
+  padding-block: 20px;
+  border-block: 1px solid var(--line, #d9dacd);
+}
+.simulation-source {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-block: 20px 12px;
+}
+.simulation-source select {
+  width: auto;
+  min-width: 190px;
+}
+.simulation-entry {
+  padding: 24px;
+  margin-block: 24px;
+  border: 1px solid var(--line, #d9dacd);
+  border-radius: 12px;
+}
+.practice-banner {
+  flex-wrap: wrap;
+  font-size: 14px;
+}
+.simulation-data-notice {
+  margin-block: 16px;
+}
+@media (max-width: 700px) {
+  .admin-simulation {
+    padding: 16px;
+  }
+  .simulation-heading,
+  .simulation-window,
+  .simulation-entry {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .simulation-actions > * {
+    flex: 1 1 160px;
+  }
+  .simulation-markers {
+    justify-content: flex-start;
+    gap: 8px 16px;
+  }
+  .simulation-source select {
+    width: 100%;
+  }
+}

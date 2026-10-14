@@ -1,6 +1,7 @@
 import { CompetitionService } from '@/lib/competition-service';
 import { backendReadiness } from '@/lib/backend-readiness';
 import type { Stage, WriteEvent } from '@/lib/competition-domain';
+import { SimulationService } from '@/lib/simulation-service';
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getDb } from '@/lib/db';
@@ -80,6 +81,18 @@ async function respond(req: NextRequest) {
         result = await participantState(
           role(session, ['participant']),
           req.nextUrl.searchParams.get('competitionId') ?? undefined,
+        );
+      else if (route === 'simulation/status')
+        result = await new SimulationService(await getDb()).status();
+      else if (route === 'admin/simulation')
+        result = await new SimulationService(await getDb()).admin(
+          role(session, ['admin']),
+          req.nextUrl.searchParams.get('readiness') !== '0',
+        );
+      else if (route === 'simulation/participant')
+        result = await new CompetitionService(await getDb()).practiceState(
+          role(session, ['participant']),
+          req.nextUrl.searchParams.get('runId') ?? '',
         );
       else if (route === 'admin') {
         const staff = role(session, ['admin', 'editor']);
@@ -229,7 +242,42 @@ async function respond(req: NextRequest) {
         });
       } else throw new AppError('المسار غير موجود.', 404);
     } else {
-      if (route === 'auth/direct') {
+      if (route === 'admin/simulation') {
+        strictKeys(body, ['action', 'id', 'version']);
+        const service = new SimulationService(await getDb());
+        const staff = role(session, ['admin']);
+        if (body.action === 'open') result = await service.open(staff);
+        else if (body.action === 'close')
+          result = await service.close(staff, body.id, body.version);
+        else throw new AppError('إجراء غير صالح.');
+      } else if (route === 'simulation/start') {
+        strictKeys(body, ['runId']);
+        result = await new SimulationService(await getDb()).start(
+          role(session, ['participant']),
+          body.runId,
+        );
+      } else if (route === 'simulation/event') {
+        strictKeys(body, [
+          'clientEventId',
+          'attemptId',
+          'kind',
+          'questionId',
+          'selected',
+          'revision',
+        ]);
+        result = await new CompetitionService(await getDb()).write(
+          role(session, ['participant']),
+          body as unknown as import('@/lib/competition-domain').WriteEvent,
+          'simulation',
+        );
+      } else if (route === 'simulation/reading') {
+        strictKeys(body, ['attemptId', 'clientEventId', 'page', 'active']);
+        result = await new CompetitionService(await getDb()).recordReading(
+          role(session, ['participant']),
+          body,
+          'simulation',
+        );
+      } else if (route === 'auth/direct') {
         setToken = await authenticateParticipant(await getDb(), body, requestIp(req));
         if (token) await revokeSession(token);
         result = { ok: true };

@@ -16,7 +16,7 @@ for (const m of migrations.slice(index + 1)) {
   sql += `INSERT INTO schema_migrations(id,checksum) VALUES(${lit(m.id)},${lit(migrationChecksum(m.sql))});\n`;
 }
 sql +=
-  'REVOKE UPDATE,DELETE ON attempt_questions,attempt_events,admin_test_events,attempt_recoveries,audit FROM nbc_runtime;\n';
+  'REVOKE UPDATE,DELETE ON attempt_questions,attempt_events,admin_test_events,attempt_recoveries,audit,simulation_events FROM nbc_runtime;\n';
 sql +=
   'REVOKE EXECUTE ON ALL FUNCTIONS IN SCHEMA nbc FROM PUBLIC,anon,authenticated,service_role;\n';
 await writeFile(file, sql);

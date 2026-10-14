@@ -62,7 +62,9 @@ export function CompetitionIntro({
             {data.competition.state === 'OPEN'
               ? 'حان وقت المشاركة. اقرأ بتأنٍّ، واجعل معرفتك دليلك.'
               : ['CLOSED', 'RESULTS_PUBLISHED'].includes(data.competition.state)
-                ? 'انتهت المسابقة. يبقى الكتاب متاحًا لتواصل القراءة.'
+                ? data.practice
+                  ? 'أُغلق الدخول إلى التجربة. يبقى الكتاب متاحًا للقراءة.'
+                  : 'انتهت المسابقة. يبقى الكتاب متاحًا لتواصل القراءة.'
                 : 'لكل رحلة بداية، وبدايتك مع الكتاب. اغتنم وقت الانتظار في القراءة حتى يحين موعد المشاركة.'}
           </p>
           <ul className="intro-facts">
@@ -110,7 +112,9 @@ export function CompetitionIntro({
               {busy
                 ? 'جارٍ فتح مساحة الأسئلة…'
                 : ['CLOSED', 'RESULTS_PUBLISHED'].includes(data.competition.state)
-                  ? 'انتهت المسابقة'
+                  ? data.practice
+                    ? 'أُغلق الدخول إلى التجربة'
+                    : 'انتهت المسابقة'
                   : data.competition.state !== 'OPEN'
                     ? 'بانتظار انطلاق المسابقة'
                     : !verified

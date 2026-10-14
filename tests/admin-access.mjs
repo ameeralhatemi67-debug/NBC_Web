@@ -82,7 +82,9 @@ try {
   assert.equal(home.status, 200);
   const html = await home.text();
   assert.ok(html.includes('id="about"'));
-  assert.ok(html.includes('تفاصيل الجوائز غير متاحة مؤقتًا'));
+  // The current homepage uses the committee's default allocation when storage is unavailable.
+  assert.ok(html.includes('52,000') || html.includes('٥٢,٠٠٠'));
+  assert.ok(!html.includes('تعذّر تحميل هذه المساحة.'));
   pass('homepage and about remain available without production database');
   const admin = await request('/admin');
   assert.equal(admin.status, 200);

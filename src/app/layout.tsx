@@ -6,6 +6,7 @@ import '@fontsource/noto-naskh-arabic/400.css';
 import '@fontsource/noto-naskh-arabic/600.css';
 import './numbers.css';
 import './globals.css';
+import './simulation.css';
 import './designs.css';
 import './exam-ux.css';
 import './reader-ux.css';

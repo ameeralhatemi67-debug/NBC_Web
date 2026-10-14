@@ -235,6 +235,51 @@ UPDATE settings SET value=replace(value::text,'تعتمد جميع الأسئل�
     // Frozen SQL: committee homepage notes, hero subtitle wording.
     sql: `UPDATE settings SET value=replace(value::text,'نقرأ لنفهم معنى الانتماء، ونشارك في تعزيز اللحمة الوطنية. رحلة معرفية تبدأ بصفحة.', 'صفحاتٌ تُثري المعرفة، وقيمٌ تُرسّخ الانتماء، ووعيٌ يُعزّز اللُّحمة الوطنية.')::jsonb WHERE id='site_content';`,
   },
+  {
+    id: '014_simulation',
+    sql: `
+      CREATE TABLE simulation_runs (
+        id TEXT PRIMARY KEY, competition_id TEXT NOT NULL REFERENCES competitions(id), actor TEXT NOT NULL,
+        config JSONB NOT NULL, banks JSONB NOT NULL, opened_at TIMESTAMPTZ NOT NULL,
+        entry_closes_at TIMESTAMPTZ NOT NULL, finish_until TIMESTAMPTZ NOT NULL,
+        closed_at TIMESTAMPTZ, version INT NOT NULL DEFAULT 1 CHECK(version>0),
+        CHECK(entry_closes_at>=opened_at AND finish_until>entry_closes_at));
+      CREATE INDEX simulation_runs_campaign ON simulation_runs(competition_id,opened_at DESC);
+      CREATE TABLE simulation_attempts (
+        id TEXT PRIMARY KEY, run_id TEXT NOT NULL REFERENCES simulation_runs(id),
+        participant_id TEXT NOT NULL REFERENCES participants(id),
+        stage TEXT NOT NULL CHECK(stage IN ('middle','highschool','university')),
+        participant_number TEXT NOT NULL, questions JSONB NOT NULL, answers JSONB NOT NULL DEFAULT '{}',
+        revision INT NOT NULL DEFAULT 0 CHECK(revision>=0), submitted_at TIMESTAMPTZ,
+        score INT CHECK(score IS NULL OR score BETWEEN 0 AND jsonb_array_length(questions)),
+        percentage DOUBLE PRECISION CHECK(percentage IS NULL OR percentage BETWEEN 0 AND 100),
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(), UNIQUE(run_id,participant_id));
+      CREATE TABLE simulation_events (
+        attempt_id TEXT NOT NULL REFERENCES simulation_attempts(id), client_event_id TEXT NOT NULL,
+        payload JSONB NOT NULL, PRIMARY KEY(attempt_id,client_event_id));
+      CREATE FUNCTION guard_simulation_attempt() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog AS $$
+      BEGIN
+        IF OLD.questions IS DISTINCT FROM NEW.questions OR OLD.run_id IS DISTINCT FROM NEW.run_id
+          OR OLD.participant_id IS DISTINCT FROM NEW.participant_id OR OLD.stage IS DISTINCT FROM NEW.stage
+          OR OLD.participant_number IS DISTINCT FROM NEW.participant_number OR OLD.created_at IS DISTINCT FROM NEW.created_at THEN
+          RAISE EXCEPTION 'Practice snapshots and ownership are immutable';
+        END IF;
+        IF OLD.submitted_at IS NOT NULL AND OLD IS DISTINCT FROM NEW THEN RAISE EXCEPTION 'Submitted practice cannot be changed'; END IF;
+        RETURN NEW;
+      END $$;
+      CREATE TRIGGER immutable_simulation_attempt BEFORE UPDATE ON simulation_attempts FOR EACH ROW EXECUTE FUNCTION guard_simulation_attempt();
+      CREATE TRIGGER immutable_simulation_events BEFORE UPDATE OR DELETE ON simulation_events FOR EACH ROW EXECUTE FUNCTION guard_snapshot_rows();
+      CREATE FUNCTION guard_simulation_run() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog AS $$
+      BEGIN
+        IF OLD.config IS DISTINCT FROM NEW.config OR OLD.banks IS DISTINCT FROM NEW.banks
+          OR OLD.competition_id IS DISTINCT FROM NEW.competition_id OR OLD.actor IS DISTINCT FROM NEW.actor
+          OR OLD.opened_at IS DISTINCT FROM NEW.opened_at OR NEW.entry_closes_at>OLD.entry_closes_at
+          OR NEW.finish_until>OLD.finish_until THEN RAISE EXCEPTION 'Practice content and deadlines cannot be extended'; END IF;
+        RETURN NEW;
+      END $$;
+      CREATE TRIGGER immutable_simulation_run BEFORE UPDATE ON simulation_runs FOR EACH ROW EXECUTE FUNCTION guard_simulation_run();
+    `,
+  },
 ];
 export const migrationChecksum = (sql: string) => createHash('sha256').update(sql).digest('hex');
 export async function migrate(db: Database) {

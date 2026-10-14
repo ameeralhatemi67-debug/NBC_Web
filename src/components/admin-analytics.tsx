@@ -33,7 +33,13 @@ const dimensions = {
 };
 type Dimension = keyof typeof dimensions;
 
-export function AdminAnalytics({ people }: { people: AnalyticsParticipant[] }) {
+export function AdminAnalytics({
+  people,
+  exportEnabled = true,
+}: {
+  people: AnalyticsParticipant[];
+  exportEnabled?: boolean;
+}) {
   const [filters, setFilters] = useState<AnalyticsFilters>(emptyFilters);
   const [dimension, setDimension] = useState<Dimension>('institution');
   const [compare, setCompare] = useState<Dimension>('gender');
@@ -239,9 +245,13 @@ export function AdminAnalytics({ people }: { people: AnalyticsParticipant[] }) {
           <strong>{stats.institutions}</strong>
           <span>مدارس وجامعات مسجلة</span>
         </div>
-        <a href={exportUrl} className="button primary">
-          <Icon name="download" size={18} /> تصدير المجموعة CSV
-        </a>
+        {exportEnabled ? (
+          <a href={exportUrl} className="button primary">
+            <Icon name="download" size={18} /> تصدير المجموعة CSV
+          </a>
+        ) : (
+          <span className="fine-print">التصدير متاح للبيانات الفعلية فقط.</span>
+        )}
       </div>
       <AdminAnalyticsCharts
         people={rows}

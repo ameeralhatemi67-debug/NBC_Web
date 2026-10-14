@@ -162,7 +162,7 @@ export class CampaignHistory {
     const c = await this.campaign(id);
     return (
       await this.db.query<ParticipantReport>(
-        'SELECT p.id,p.name,p.stage,p.institution,p.gender,p.region,p.locality,p.village,p.created_at,a.score,a.max_score,a.submitted_at,a.receipt,a.id AS attempt_id FROM attempts a JOIN participants p ON p.id=a.participant_id WHERE a.competition_id=$1 ORDER BY p.created_at',
+        'SELECT p.id,p.name,p.stage,p.institution,p.gender,p.region,p.locality,p.village,p.created_at,a.score,a.max_score,a.submitted_at,a.receipt,a.id AS attempt_id,a.created_at AS attempt_started_at FROM attempts a JOIN participants p ON p.id=a.participant_id WHERE a.competition_id=$1 ORDER BY p.created_at',
         [c.id],
       )
     ).rows;

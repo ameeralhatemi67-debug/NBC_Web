@@ -5,7 +5,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getDb } from '@/lib/db';
 import { AppError, csvCell } from '@/lib/domain';
-import { emptyFilters, filterParticipants, scorePercentage } from '@/lib/analytics';
+import {
+  completionMinutes,
+  emptyFilters,
+  filterParticipants,
+  scorePercentage,
+} from '@/lib/analytics';
 import {
   adminState,
   changeAttempt,
@@ -191,6 +196,9 @@ async function respond(req: NextRequest) {
             'عدد الأسئلة',
             'نسبة الدرجة',
             'تاريخ التسجيل',
+            'وقت بدء المحاولة',
+            'وقت الإرسال',
+            'مدة الإكمال بالدقائق',
           ],
           ...rows.map((p) => [
             p.name,
@@ -205,6 +213,9 @@ async function respond(req: NextRequest) {
             p.max_score ?? '',
             scorePercentage(p) === null ? '' : scorePercentage(p)!.toFixed(2) + '%',
             p.created_at,
+            p.attempt_started_at ?? '',
+            p.submitted_at ?? '',
+            completionMinutes(p)?.toFixed(2) ?? '',
           ]),
         ]
           .map((row) => row.map(csvCell).join(','))

@@ -74,6 +74,7 @@ try {
         'tests/meeting-updates.test.ts',
         'tests/start-readiness.test.ts',
         'tests/reading-controls.test.ts',
+        'tests/analytics-visuals.test.ts',
       ],
       {
         windowsHide: true,

@@ -396,6 +396,20 @@ try {
     assert.equal(mixedReport.text.trim().split('\r\n').length - 1, 1);
     assert.ok(mixedReport.text.includes(payload.institution));
   });
+  const timedReport = await admin('admin');
+  const completedPerson = timedReport.data.participants.find(
+    (p) => p.attempt_id === final[0].data.attempt.id,
+  );
+  check('analytics report includes owned attempt timing without rehearsal evidence', () => {
+    assert.ok(completedPerson.attempt_started_at);
+    assert.ok(completedPerson.submitted_at);
+    assert.deepEqual(completedPerson.reading_flags, []);
+    assert.ok(mixedReport.text.includes('مدة الإكمال بالدقائق'));
+  });
+  const excludedDateReport = await admin('export?fromDate=2099-01-01');
+  check('analytics export applies the same registration date filter', () => {
+    assert.equal(excludedDateReport.text.trim().split('\r\n').length, 1);
+  });
   assert.equal((await anon('leaderboard?stage=middle')).status, 403);
   const c = (await admin('admin')).data.competition;
   await competitionAction('settings', { ...c, closingPolicy: 'immediate' });

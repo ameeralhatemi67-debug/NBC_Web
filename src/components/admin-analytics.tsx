@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   emptyFilters,
   filterParticipants,
@@ -12,6 +12,9 @@ import {
   type AnalyticsParticipant,
 } from '@/lib/analytics';
 import { Icon } from './ui';
+import { AdminAnalyticsCharts } from './admin-analytics-charts';
+import { stages } from '@/lib/content';
+import { registrationDay } from '@/lib/analytics';
 
 const percent = (n: number | null) =>
   n === null ? '—' : `${n.toLocaleString('ar-SA', { maximumFractionDigits: 1 })}٪`;
@@ -34,9 +37,22 @@ export function AdminAnalytics({ people }: { people: AnalyticsParticipant[] }) {
   const [filters, setFilters] = useState<AnalyticsFilters>(emptyFilters);
   const [dimension, setDimension] = useState<Dimension>('institution');
   const [compare, setCompare] = useState<Dimension>('gender');
+  const [period, setPeriod] = useState('');
+  function changePeriod(value: string) {
+    setPeriod(value);
+    const today = registrationDay(new Date().toISOString());
+    const first = value
+      ? new Date(Date.parse(today) - (Number(value) - 1) * 86400000).toISOString()
+      : '';
+    setFilters((f) => ({
+      ...f,
+      fromDate: first ? registrationDay(first) : '',
+      toDate: value ? today : '',
+    }));
+  }
   const update = (key: keyof AnalyticsFilters, value: string) =>
     setFilters((f) => ({ ...f, [key]: value }));
-  const rows = filterParticipants(people, filters);
+  const rows = useMemo(() => filterParticipants(people, filters), [people, filters]);
   const stats = summarize(rows);
   const groups = groupParticipants(rows, dimension);
   const columns = groupParticipants(rows, compare);
@@ -48,43 +64,18 @@ export function AdminAnalytics({ people }: { people: AnalyticsParticipant[] }) {
     crossCounts.set(key, (crossCounts.get(key) || 0) + 1);
   }
   const exportUrl = `/api/export?${new URLSearchParams(filters)}`;
-  const bands = [
-    { min: 0, max: 50, label: 'أقل من 50٪' },
-    { min: 50, max: 70, label: '50 إلى أقل من 70٪' },
-    { min: 70, max: 90, label: '70 إلى أقل من 90٪' },
-    { min: 90, max: 101, label: '90 إلى 100٪' },
-  ];
-  function Distribution({ field, title }: { field: Dimension; title: string }) {
-    return (
-      <section className="panel analytics-distribution">
-        <div className="panel-heading">
-          <h2>{title}</h2>
-          <span>{rows.length} مشاركًا</span>
-        </div>
-        {groupParticipants(rows, field).map((group) => (
-          <div className="analytics-bar-row" key={group.label}>
-            <div>
-              <span>{group.label}</span>
-              <strong>
-                {group.total}{' '}
-                <small>({percent(rows.length ? (group.total / rows.length) * 100 : 0)})</small>
-              </strong>
-            </div>
-            <div className="chart-track">
-              <span style={{ width: `${rows.length ? (group.total / rows.length) * 100 : 0}%` }} />
-            </div>
-          </div>
-        ))}
-        {!rows.length && <p className="empty-inline">لا توجد بيانات مطابقة.</p>}
-      </section>
-    );
-  }
   return (
     <>
       <section className="panel analytics-filter-panel" aria-label="مرشحات التحليلات">
         <div className="panel-heading">
           <h2>حدد مجموعة المشاركين</h2>
-          <button className="text-link" onClick={() => setFilters(emptyFilters)}>
+          <button
+            className="text-link"
+            onClick={() => {
+              setFilters(emptyFilters);
+              setPeriod('');
+            }}
+          >
             مسح المرشحات
           </button>
         </div>
@@ -100,9 +91,13 @@ export function AdminAnalytics({ people }: { people: AnalyticsParticipant[] }) {
                 <option value="">الكل</option>
                 {[
                   ...new Set(
-                    people.map((p) =>
-                      key === 'year' ? registrationYear(p.created_at) : p[key] || 'غير مسجل',
-                    ),
+                    key === 'gender'
+                      ? ['ذكر', 'أنثى', ...(people.some((p) => !p.gender) ? ['غير مسجل'] : [])]
+                      : key === 'stage'
+                        ? stages
+                        : people.map((p) =>
+                            key === 'year' ? registrationYear(p.created_at) : p[key] || 'غير مسجل',
+                          ),
                   ),
                 ]
                   .sort((a, b) => a.localeCompare(b, 'ar'))
@@ -126,6 +121,46 @@ export function AdminAnalytics({ people }: { people: AnalyticsParticipant[] }) {
                 </option>
               ))}
             </select>
+          </label>
+          <label>
+            فترة التسجيل
+            <select
+              aria-label="فترة التسجيل"
+              value={period}
+              onChange={(e) => changePeriod(e.target.value)}
+            >
+              <option value="">الفترة كاملة</option>
+              <option value="7">آخر 7 أيام</option>
+              <option value="14">آخر 14 يومًا</option>
+              <option value="30">آخر 30 يومًا</option>
+              <option value="custom" disabled>
+                فترة محددة
+              </option>
+            </select>
+          </label>
+          <label>
+            التسجيل من
+            <input
+              aria-label="التسجيل من"
+              type="date"
+              value={filters.fromDate}
+              onChange={(e) => {
+                update('fromDate', e.target.value);
+                setPeriod('custom');
+              }}
+            />
+          </label>
+          <label>
+            التسجيل إلى
+            <input
+              aria-label="التسجيل إلى"
+              type="date"
+              value={filters.toDate}
+              onChange={(e) => {
+                update('toDate', e.target.value);
+                setPeriod('custom');
+              }}
+            />
           </label>
           <label>
             الدرجة من ٪
@@ -161,8 +196,14 @@ export function AdminAnalytics({ people }: { people: AnalyticsParticipant[] }) {
         </div>
         <p className="fine-print">
           تعمل المرشحات معًا على جميع الأرقام والرسوم والمقارنات والتصدير. سنة التسجيل هي السنة
-          الميلادية بتوقيت المملكة. مرشحات الدرجة تشمل المشاركات المكتملة فقط.
+          الميلادية بتوقيت المملكة. مرشحات الدرجة تشمل المشاركات المكتملة فقط. نسبة الإكمال محسوبة
+          داخل المجموعة المختارة، ومتوسط الوقت من البدء إلى الإرسال ويشمل التوقف.
         </p>
+        {filters.fromDate && filters.toDate && filters.fromDate > filters.toDate && (
+          <p role="alert" className="error-message">
+            تاريخ البداية بعد تاريخ النهاية. صحح الفترة.
+          </p>
+        )}
         {filters.minScore &&
           filters.maxScore &&
           Number(filters.minScore) > Number(filters.maxScore) && (
@@ -174,15 +215,25 @@ export function AdminAnalytics({ people }: { people: AnalyticsParticipant[] }) {
       <div className="report-summary analytics-summary" aria-live="polite">
         <div>
           <strong>{stats.total}</strong>
-          <span>مشاركون مطابقون</span>
+          <span>المشاركون المسجلون</span>
         </div>
         <div>
-          <strong>{percent(stats.total ? (stats.completed / stats.total) * 100 : null)}</strong>
-          <span>نسبة الإكمال · {stats.completed} مشاركة</span>
+          <strong>{stats.completed}</strong>
+          <span>
+            أكملوا المسابقة · {percent(stats.total ? (stats.completed / stats.total) * 100 : null)}
+          </span>
         </div>
         <div>
           <strong>{percent(stats.average)}</strong>
           <span>متوسط درجات المكتملين</span>
+        </div>
+        <div>
+          <strong>
+            {stats.averageMinutes === null
+              ? '—'
+              : `${stats.averageMinutes.toLocaleString('ar-SA', { maximumFractionDigits: 1 })} دقيقة`}
+          </strong>
+          <span>متوسط وقت الإكمال · {stats.timedCompletions} مشاركة ذات توقيت صالح</span>
         </div>
         <div>
           <strong>{stats.institutions}</strong>
@@ -192,43 +243,13 @@ export function AdminAnalytics({ people }: { people: AnalyticsParticipant[] }) {
           <Icon name="download" size={18} /> تصدير المجموعة CSV
         </a>
       </div>
-      <div className="dashboard-grid">
-        <Distribution field="gender" title="توزيع الذكور والإناث" />
-        <section className="panel analytics-scores">
-          <div className="panel-heading">
-            <h2>توزيع نسب الدرجات</h2>
-            <span>{stats.completed} مشاركة مكتملة</span>
-          </div>
-          {bands.map(({ min, max, label }) => {
-            const count = rows.filter((p) => {
-              const value = scorePercentage(p);
-              return value !== null && value >= min && value < max;
-            }).length;
-            return (
-              <div className="analytics-bar-row" key={min}>
-                <div>
-                  <span>{label}</span>
-                  <strong>
-                    {count}{' '}
-                    <small>
-                      ({percent(stats.completed ? (count / stats.completed) * 100 : 0)})
-                    </small>
-                  </strong>
-                </div>
-                <div className="chart-track">
-                  <span
-                    style={{ width: `${stats.completed ? (count / stats.completed) * 100 : 0}%` }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-          <p className="fine-print">
-            النسبة = الدرجة ÷ عدد أسئلة محاولة المشارك. المشاركات غير المكتملة لا تدخل في متوسط
-            الدرجات.
-          </p>
-        </section>
-      </div>
+      <AdminAnalyticsCharts
+        people={rows}
+        city={filters.locality}
+        onCityChange={(value) => update('locality', value)}
+        stage={filters.stage}
+        onStageChange={(value) => update('stage', value)}
+      />
       <section className="panel analytics-table">
         <div className="analytics-table-heading">
           <h2>مقارنة مجموعات المشاركين</h2>

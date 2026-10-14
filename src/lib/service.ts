@@ -27,6 +27,8 @@ export type ParticipantReport = {
   created_at: string;
   submitted_at: string | null;
   attempt_id: string | null;
+  attempt_started_at?: string | null;
+  reading_flags?: string[];
   receipt: string | null;
 };
 const hash = (s: string) => createHash('sha256').update(s).digest('hex');
@@ -78,7 +80,20 @@ export async function adminState() {
   return db.transaction(async (tx) => ({
     participants: (
       await tx.query<ParticipantReport>(
-        "SELECT p.id,p.name,p.stage,p.institution,p.gender,p.region,p.locality,p.village,p.created_at,a.score,jsonb_array_length(a.questions) AS max_score,a.submitted_at,a.receipt,a.id AS attempt_id FROM participants p LEFT JOIN attempts a ON a.participant_id=p.id AND a.competition_id=(SELECT value #>> '{}' FROM settings WHERE id='current_competition') ORDER BY p.created_at",
+        `WITH observations AS (
+          SELECT detail::jsonb->>'attemptId' AS attempt_id, jsonb_agg(DISTINCT flag) AS flags
+          FROM audit CROSS JOIN LATERAL jsonb_array_elements_text(detail::jsonb->'flags') AS flag
+          WHERE action IN ('ملاحظة على وتيرة القراءة','ملاحظة على وتيرة الإجابة')
+            AND detail::jsonb->>'testRun' IS DISTINCT FROM 'true'
+            AND detail::jsonb->>'competitionId'=(SELECT value #>> '{}' FROM settings WHERE id='current_competition')
+          GROUP BY detail::jsonb->>'attemptId'
+        )
+        SELECT p.id,p.name,p.stage,p.institution,p.gender,p.region,p.locality,p.village,p.created_at,
+          a.score,jsonb_array_length(a.questions) AS max_score,a.submitted_at,a.receipt,a.id AS attempt_id,
+          a.created_at AS attempt_started_at,COALESCE(o.flags,'[]'::jsonb) AS reading_flags
+        FROM participants p LEFT JOIN attempts a ON a.participant_id=p.id
+          AND a.competition_id=(SELECT value #>> '{}' FROM settings WHERE id='current_competition')
+        LEFT JOIN observations o ON o.attempt_id=a.id ORDER BY p.created_at`,
       )
     ).rows,
     questions: (

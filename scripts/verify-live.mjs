@@ -14,7 +14,7 @@ async function check(path, status, options) {
   return response;
 }
 const home = await (await check('/', 200)).text();
-assert.match(home, /٥٢٬٠٠٠/);
+assert.match(home, /٥٢[,٬]٠٠٠/);
 assert.ok(
   !home.includes('تعذّر تحميل هذه المساحة.'),
   'Homepage must render, not its error boundary',

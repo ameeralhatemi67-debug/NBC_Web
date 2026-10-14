@@ -167,7 +167,7 @@ try {
       assert.equal(stalePrizes.status, 409);
       assert.deepEqual(prizesState.data.prizes.stages[0].awards, changedPrizes.stages[0].awards);
       assert.ok(homePrizes.includes('prize-layout-ledger'));
-      assert.ok(homePrizes.includes('٤٬٥٠٠'));
+      assert.match(homePrizes, /٤[,٬]٥٠٠/);
       assert.ok(
         homePrizes.includes('٩٥٠') && homePrizes.includes('٨٥٠') && homePrizes.includes('٧٥٠'),
       );

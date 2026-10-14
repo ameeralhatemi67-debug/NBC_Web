@@ -788,7 +788,10 @@ export function BookReader({
       )}
       {hintPages && (
         <div className="reader-hint-bar" role="status">
-          <span>التلميح: صفحة المصدر والتي قبلها فقط</span>
+          <span>
+            التلميح: {pages.length === 1 ? 'صفحة PDF' : 'صفحات PDF'}{' '}
+            <bdi dir="ltr">{pages.join('، ')}</bdi> فقط
+          </span>
           <button
             className="text-link"
             onClick={() => {

@@ -34,7 +34,7 @@ The first empty NBC export authorizes one identity-key enrollment with `identity
 
 ## Simulation release migration
 
-The simulation feature adds source migration `014_simulation`, with `simulation_runs`, `simulation_attempts` and append-only `simulation_events`. It adds snapshot/submission/deadline guards with fixed `pg_catalog` function search paths. Applied migrations 001–013 are unchanged. The fresh private-schema export now creates 30 tables. This source implementation has not applied the migration or changed production data.
+The simulation feature adds source migration `014_simulation`, with `simulation_runs`, `simulation_attempts` and append-only `simulation_events`. It adds snapshot/submission/deadline guards with fixed `pg_catalog` function search paths. Applied migrations 001–013 are unchanged. The fresh private-schema export now creates 30 tables. The production migration was applied on 2026-10-14 as `nbc_014_simulation`, after verified source/Git/database backups. Only new simulation objects received permission changes; existing official data was verified unchanged. Source commit `20581c0c6591596367af9f646a118a0955b25747` is deployed on the canonical website. Release evidence is in `.data/simulation-release-2026-10-14/release-verification.json`.
 
 Before deploying, inspect actual `schema_migrations`, generate the reviewed forward export from the actual last-applied ID using the existing export command, and apply once through authorized operator access. Review the SQL; never use the fresh-schema export against an existing project. Runtime requests cannot run DDL. For these new tables, apply the existing server-only permissions explicitly in the same release transaction:
 

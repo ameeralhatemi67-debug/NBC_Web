@@ -1,6 +1,6 @@
 # Plan 001: Add a five-minute admin simulation and public practice window
 
-Status: DONE locally; production migration and deployment pending. Priority: P2. Effort: L. Implementation risk: medium.
+Status: DONE; production migration and deployment verified. Priority: P2. Effort: L. Implementation risk: medium.
 Planned against commit `11990be` on 2026-10-14, including the working-tree state inspected that day.
 Category: product direction. Dependencies: none.
 
@@ -8,7 +8,7 @@ Category: product direction. Dependencies: none.
 
 Add a control at the top of the admin page that plays five minutes of simulated competition activity through the existing dashboard. It must support play, pause, seeking to any time, replay, and end. Separately, allow an administrator to open a five-minute practice admission window on the actual website. The user explicitly selected open entry for registered participants, without an invitation link requirement. These actions can run together.
 
-The user authorized implementation on 2026-10-14, including five-minute admission and 15 minutes to finish after entry closes. The feature is implemented and verified locally. The original baseline evidence below describes the code before implementation.
+The user authorized implementation and production release on 2026-10-14, including five-minute admission and 15 minutes to finish after entry closes, with a backup before permanent changes. The feature is implemented and deployed. The original baseline evidence below describes the code before implementation.
 
 Use two clocks. A reversible playback clock controls generated dashboard data. An irreversible server clock controls public admission and practice writes. Moving the track must never undo a person's answers, alter a deadline, or change the official competition state.
 
@@ -74,13 +74,13 @@ At 05:00 stop playback and hold the final snapshot for inspection. Replay restar
 
 Use one fixed, deterministic scenario in the first release, for example 240 obviously synthetic participants distributed across the three configured stages and enabled cities. This number is a proposed visual fixture, not a forecast or capacity claim. No real identities or phone numbers are generated.
 
-| Playback position | Dashboard activity |
-|---|---|
-| 00:00–00:30 | Initial arrivals and registrations |
-| 00:30–02:00 | Exam starts; more schools, cities and stages appear |
-| 02:00–03:30 | First submissions; score and duration distributions fill |
-| 03:30–04:30 | Larger participation wave, varied outcomes and unfinished attempts |
-| 04:30–05:00 | Closing phase and final summary |
+| Playback position | Dashboard activity                                                 |
+| ----------------- | ------------------------------------------------------------------ |
+| 00:00–00:30       | Initial arrivals and registrations                                 |
+| 00:30–02:00       | Exam starts; more schools, cities and stages appear                |
+| 02:00–03:30       | First submissions; score and duration distributions fill           |
+| 03:30–04:30       | Larger participation wave, varied outcomes and unfinished attempts |
+| 04:30–05:00       | Closing phase and final summary                                    |
 
 The track is a compressed representation of a competition period. Generate internally consistent event timestamps in a fixed fictional competition period; do not claim that the illustrated real exam duration is five minutes. Display that period so registration-date filters are understandable. Changing the browser clock must not regenerate different history.
 
@@ -136,15 +136,15 @@ Prefer reusing the existing scored event and projection logic. Keep official and
 
 Suggested routes inside the existing router:
 
-| Method and route | Access and purpose |
-|---|---|
-| GET `/api/simulation/status` | Public admission state, run ID and deadlines only |
-| GET `/api/admin/simulation` | Admin readiness, active run and practice report |
-| POST `/api/admin/simulation` | Admin `open` or `close`, expected version; validates readiness |
-| GET `/api/simulation/participant?runId=...` | Participant's own state only |
-| POST `/api/simulation/start` | Participant session, run ID; stage comes from registration |
-| POST `/api/simulation/event` | Owned practice attempt; same event validation as official writes |
-| POST `/api/simulation/reading` | Owned practice attempt; server-timed evidence |
+| Method and route                            | Access and purpose                                               |
+| ------------------------------------------- | ---------------------------------------------------------------- |
+| GET `/api/simulation/status`                | Public admission state, run ID and deadlines only                |
+| GET `/api/admin/simulation`                 | Admin readiness, active run and practice report                  |
+| POST `/api/admin/simulation`                | Admin `open` or `close`, expected version; validates readiness   |
+| GET `/api/simulation/participant?runId=...` | Participant's own state only                                     |
+| POST `/api/simulation/start`                | Participant session, run ID; stage comes from registration       |
+| POST `/api/simulation/event`                | Owned practice attempt; same event validation as official writes |
+| POST `/api/simulation/reading`              | Owned practice attempt; server-timed evidence                    |
 
 Return no answer keys/source excerpts in public or participant responses. Apply existing request security, strict body keys, authorization, structured errors and no-store responses. Other admins can inspect and close a public window; mutations record the acting staff subject. Audit practice actions with an explicit simulation marker; exclude those observations from official reading analytics.
 
@@ -196,15 +196,15 @@ Verify the UI suite with `node tests/simulation-ui.cjs` against an isolated loca
 
 Run the repository gates below and update both operating guides with the clock, isolation, registration and completion rules. Record evidence and mark the plan DONE only after the feature is implemented and checks pass. Prepare a release note listing the additive migration and private-schema permissions. Deploy only in a separately authorized implementation/release task.
 
-| Command | Expected result |
-|---|---|
-| `npm run typecheck` | Exit 0, no type errors |
-| `npm test` | Exit 0, including new simulation tests |
-| `npm run build` | Exit 0; official PDF preparation succeeds |
-| `npm run test:integration` | Exit 0, including practice HTTP and unchanged official flows |
-| `npm run test:postgres` | Exit 0, including new engine, role and storage checks |
-| `npm run test:admin-access` | Exit 0; existing staff access preserved |
-| `npm run format:check` | Exit 0 or documented pre-existing failures outside this change |
+| Command                     | Expected result                                                |
+| --------------------------- | -------------------------------------------------------------- |
+| `npm run typecheck`         | Exit 0, no type errors                                         |
+| `npm test`                  | Exit 0, including new simulation tests                         |
+| `npm run build`             | Exit 0; official PDF preparation succeeds                      |
+| `npm run test:integration`  | Exit 0, including practice HTTP and unchanged official flows   |
+| `npm run test:postgres`     | Exit 0, including new engine, role and storage checks          |
+| `npm run test:admin-access` | Exit 0; existing staff access preserved                        |
+| `npm run format:check`      | Exit 0 or documented pre-existing failures outside this change |
 
 There is no separate lint script in this repository. Do not invent one.
 
@@ -246,4 +246,8 @@ Verification: full 148-test unit suite; six final focused simulation tests inclu
 
 All changed source/test/script files pass scoped formatting and `git diff --check`. Repository-wide formatting still reports 57 pre-existing unrelated violations. Windows sandbox junction restrictions require the webpack build flag and loopback permission for browser/database tests.
 
-Production was not changed or deployed. Apply the reviewed source migration plus the private-schema grants/RLS in `docs/implementation/NBC_BACKEND_OPERATIONS.md` before releasing the code. The public test window remains gated by DRAFT campaign state and valid current-book stage banks.
+Production release completed on 2026-10-14. Before migration or Git push, a verified source archive, Git history bundle and Windows-user-encrypted full database snapshot were saved under `.data/simulation-release-2026-10-14/`; `backup-manifest.json` records checksums and verification. The database migration `nbc_014_simulation` and permissions scoped to the three new tables/two new functions were applied to the authorized NBC project. Existing critical table contents were unchanged; RLS, append-only event permissions and the security advisor passed.
+
+Source commit `20581c0c6591596367af9f646a118a0955b25747` is deployed at `https://nbc-web-two.vercel.app`, deployment `dpl_3435XqbERZitB5C1fRsJ9hDDMQKe`. All 29 existing live checks and eight additional simulation-route checks passed. The new routes reject unauthorized writes, the public practice window is closed, and the official campaign remains DRAFT with four participants and zero official attempts. No runtime errors were returned by the bounded release log check. Authenticated exam and dashboard journeys were verified locally; the live browser showed the public homepage and staff sign-in gate.
+
+The previous deployment `dpl_BcTFDq9wSNs3igQqb3dMYc42GCNq` remains available as a rollback reference. The public test window remains gated by DRAFT campaign state and valid current-book stage banks. Detailed release evidence is saved in `.data/simulation-release-2026-10-14/release-verification.json`.

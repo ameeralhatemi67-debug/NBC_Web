@@ -184,7 +184,8 @@ test('20/25/30 server journeys edit, reload, reject incomplete/stale/concurrent 
       assert.equal(state.attempt!.percentage, 100);
       // Submitted participants still never receive correct answers or explanations.
       assert.deepEqual(state.attempt!.feedback, {});
-      assert.ok(Object.values(state.attempt!.answers).every((a) => a.locked && a.checkedAt));
+      assert.deepEqual(state.attempt!.answers, {});
+      assert.deepEqual(state.attempt!.questions, []);
       assert.equal(
         (await service.write(student, event(state, 'SUBMIT'))).attempt!.revision,
         state.attempt!.revision,
@@ -193,7 +194,7 @@ test('20/25/30 server journeys edit, reload, reject incomplete/stale/concurrent 
         code: 'SUBMITTED',
       });
       const changedAnswer = JSON.stringify([
-        (state.attempt!.answers[first.id].selected[0] + 1) % first.options.length,
+        (questions.find((q) => q.id === first.id)!.correctAnswers[0] + 1) % first.options.length,
       ]);
       await assert.rejects(
         db.query('UPDATE attempt_answers SET selected=$1 WHERE attempt_id=$2 AND question_id=$3', [

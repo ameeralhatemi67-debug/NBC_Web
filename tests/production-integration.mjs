@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { randomBytes, createHmac } from 'node:crypto';
+import { randomBytes, createHmac, randomUUID } from 'node:crypto';
 import { generateKeyPair, exportJWK, SignJWT } from 'jose';
 import { Pool } from 'pg';
 const databaseUrl = process.env.NBC_TEST_DATABASE_URL;
@@ -302,7 +302,57 @@ try {
   const attempt = await student('attempt/start', {});
   assert.equal(attempt.status, 200);
   assert.equal(attempt.data.attempt.questions.length, 20);
-  const questionId = attempt.data.attempt.questions[0].id;
+  const firstQuestion = attempt.data.attempt.questions[0];
+  const questionId = firstQuestion.id;
+  const unread = await student('attempt/event', {
+    clientEventId: 'unread-save-0001',
+    attemptId: attempt.data.attempt.id,
+    kind: 'SELECT',
+    questionId,
+    selected: [0],
+    revision: 0,
+  });
+  assert.equal(unread.status, 409);
+  assert.equal(unread.data.code, 'READING_REQUIRED');
+  assert.equal(
+    (
+      await student('admin/test-run/reading', {
+        attemptId: attempt.data.attempt.id,
+        clientEventId: randomUUID(),
+        page: firstQuestion.pdfPage,
+        active: true,
+      })
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await student('attempt/reading', {
+        attemptId: attempt.data.attempt.id,
+        clientEventId: randomUUID(),
+        page: firstQuestion.pdfPage,
+        active: true,
+        creditedSeconds: 999,
+      })
+    ).status,
+    400,
+  );
+  let reading;
+  for (let beat = 0; beat < 4; beat++) {
+    if (beat) await new Promise((resolve) => setTimeout(resolve, 2000));
+    reading = await student('attempt/reading', {
+      attemptId: attempt.data.attempt.id,
+      clientEventId: randomUUID(),
+      page: firstQuestion.pdfPage,
+      active: true,
+    });
+    assert.equal(reading.status, 200, JSON.stringify(reading.data));
+  }
+  assert.ok(reading.data.pageSeconds[firstQuestion.pdfPage] >= 5);
+  assert.equal((await student('participant')).data.attempt.revision, 0);
+  check(
+    'production enforces source reading, rejects forged time and protects admin reading routes',
+  );
   const saved = await student('attempt/event', {
     clientEventId: 'production-save-0001',
     attemptId: attempt.data.attempt.id,

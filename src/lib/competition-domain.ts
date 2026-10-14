@@ -1,5 +1,6 @@
 import { AppError, type Question } from './domain';
 import type { Eligibility } from './eligibility';
+import type { ReadingProgress } from './reading-progress';
 
 export const stageKeys = ['middle', 'highschool', 'university'] as const;
 export type Stage = (typeof stageKeys)[number];
@@ -70,6 +71,7 @@ export type Competition = {
   maxPerPhone?: number;
   questionCounts?: Record<Stage, number>;
   answerMode?: 'per_question' | 'final_submission';
+  readingRequired?: boolean;
 };
 export const meetingQuestionCounts: Record<Stage, number> = {
   middle: 20,
@@ -139,6 +141,7 @@ export type CompetitionState = {
   attempt: null | {
     id: string;
     questions: SafeQuestion[];
+    reading?: ReadingProgress;
     answers: AnswerMap;
     feedback: Record<string, Feedback>;
     revision: number;

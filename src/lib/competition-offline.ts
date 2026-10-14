@@ -1,5 +1,6 @@
 import { finalSubmission, type CompetitionState, type WriteEvent } from './competition-domain';
 import { openingReaderPage } from './reader-presentation';
+import type { ReadingProgress } from './reading-progress';
 export type LocalCompetition = {
   state: CompetitionState;
   events: WriteEvent[];
@@ -111,6 +112,13 @@ export class DurableCompetitionSession {
       },
     };
     await localWrite(this.key, { ...this.record, state });
+  }
+  async rememberReading(reading: ReadingProgress) {
+    return this.exclusive(async () => {
+      this.record = (await localRead<LocalCompetition>(this.key)) ?? this.record;
+      if (this.record.state.attempt) this.record.state.attempt.reading = reading;
+      await this.persist();
+    });
   }
   async remember(index: number, page: number, maxPage: number) {
     return this.exclusive(async () => {

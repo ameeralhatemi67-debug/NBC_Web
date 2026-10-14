@@ -413,7 +413,7 @@ test('admin test runs use core engine, repeat/reset, actor isolation, simulated 
     assert.deepEqual(run.attempt!.feedback, {});
     for (const q of qs)
       run = await service.write(admin, event(run, 'CHECK', q.id, q.correctAnswers), true);
-    assert.equal(run.attempt!.feedback[qs[0].id].isCorrect, true);
+    assert.deepEqual(run.attempt!.feedback, {});
     run = await service.write(admin, event(run, 'SUBMIT'), true);
     assert.equal(run.attempt!.score, 20);
     assert.equal(run.attempt!.percentage, 100);

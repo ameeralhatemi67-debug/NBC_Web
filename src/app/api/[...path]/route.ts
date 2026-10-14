@@ -260,6 +260,14 @@ async function respond(req: NextRequest) {
         if (token) await revokeSession(token);
         jar.delete(cookieName);
         result = { ok: true };
+      } else if (route === 'attempt/reading' || route === 'admin/test-run/reading') {
+        strictKeys(body, ['attemptId', 'clientEventId', 'page', 'active']);
+        const test = route === 'admin/test-run/reading';
+        result = await new CompetitionService(await getDb()).recordReading(
+          role(session, [test ? 'admin' : 'participant']),
+          body,
+          test,
+        );
       } else if (route === 'attempt/start') {
         strictKeys(body, []);
         result = await startAttempt(role(session, ['participant']));
@@ -335,7 +343,14 @@ async function respond(req: NextRequest) {
           body as unknown as WriteEvent,
           true,
         );
-      else if (route === 'admin/question') {
+      else if (route === 'admin/questions/approve') {
+        strictKeys(body, ['questions', 'reviewed']);
+        await new CompetitionService(await getDb()).approveQuestions(
+          role(session, ['admin']),
+          body,
+        );
+        result = { ok: true };
+      } else if (route === 'admin/question') {
         await updateQuestion(role(session, ['admin', 'editor']), body);
         result = { ok: true };
       } else if (route === 'admin/prizes') {

@@ -80,7 +80,9 @@ test('production rehearsals require the current book bank and reject synthetic f
 
 test('all 75 supplied drafts run and score through the production rehearsal engine without opening the campaign', async () => {
   const previousMode = process.env.NBC_RUNTIME_MODE;
-  const { db, service } = await setup();
+  const { db } = await setup();
+  let now = Date.now();
+  const service = new CompetitionService(db, () => now);
   try {
     const bank = await drafts();
     for (const q of bank)
@@ -95,6 +97,20 @@ test('all 75 supplied drafts run and score through the production rehearsal engi
         new Set(bank.filter((q) => q.stage === stage).map((q) => q.id)),
       );
       assert.deepEqual(state.attempt!.feedback, {});
+      const firstId = state.attempt!.questions[0].id;
+      const pages = new Set<number>();
+      for (const q of state.attempt!.questions)
+        if (q.pdfPage !== null)
+          for (let page = q.pdfPage; page <= (q.pdfPageEnd ?? q.pdfPage); page++) pages.add(page);
+      for (const page of pages)
+        for (let beat = 0; beat < 4; beat++) {
+          now += 2000;
+          await service.recordReading(
+            admin,
+            { attemptId: state.attempt!.id, clientEventId: randomUUID(), page, active: true },
+            true,
+          );
+        }
       for (const q of state.attempt!.questions) {
         assert.ok(
           !('correctAnswers' in q) && !('sourceExcerpt' in q) && !('answerExplanation' in q),
@@ -127,6 +143,9 @@ test('all 75 supplied drafts run and score through the production rehearsal engi
       );
       assert.equal(state.attempt!.score, meetingQuestionCounts[stage]);
       assert.equal(state.attempt!.percentage, 100);
+      assert.deepEqual(state.attempt!.questions, []);
+      assert.deepEqual(state.attempt!.answers, {});
+      assert.deepEqual(state.attempt!.feedback, {});
       await assert.rejects(
         service.write(
           admin,
@@ -135,7 +154,7 @@ test('all 75 supplied drafts run and score through the production rehearsal engi
             clientEventId: randomUUID(),
             revision: state.attempt!.revision,
             kind: 'SELECT',
-            questionId: state.attempt!.questions[0].id,
+            questionId: firstId,
             selected: [0],
           },
           true,

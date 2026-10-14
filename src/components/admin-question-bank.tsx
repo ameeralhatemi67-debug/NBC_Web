@@ -13,7 +13,7 @@ import { approvable, changedFields, coverageDensity, coverageSummary } from '@/l
 import { stageReadiness } from '@/lib/admin-launch';
 import { riyadhDateTime } from '@/lib/format';
 import { AdminQuestionEditor } from './admin-question-editor';
-import { Icon } from './ui';
+import { api, ErrorMessage, Icon } from './ui';
 type Mutation = (path: string, body: unknown, message: string) => Promise<unknown>;
 type VersionRow = Record<string, unknown>;
 
@@ -71,6 +71,7 @@ export function AdminQuestionBank({
   canApprove,
   initialStage = '',
   campaign,
+  onReload,
 }: {
   questions: CompetitionQuestion[];
   book: BookVersion;
@@ -80,6 +81,7 @@ export function AdminQuestionBank({
   canApprove: boolean;
   initialStage?: Stage | '';
   campaign?: Competition;
+  onReload: () => Promise<void>;
 }) {
   const [stage, setStage] = useState<string>(initialStage);
   const [approval, setApproval] = useState('');
@@ -89,6 +91,10 @@ export function AdminQuestionBank({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [shownHistory, setShownHistory] = useState('');
   const [bulkError, setBulkError] = useState('');
+  const [reviewing, setReviewing] = useState(false);
+  const [reviewed, setReviewed] = useState(false);
+  const [approving, setApproving] = useState(false);
+  useEffect(() => setReviewed(false), [selected, stage, approval, topic, difficulty]);
   const [importText, setImportText] = useState('');
   const [importError, setImportError] = useState('');
   useEffect(() => setStage(initialStage), [initialStage]);
@@ -125,24 +131,35 @@ export function AdminQuestionBank({
       sourceExcerpt: '',
     });
   }
-  const approveOne = (q: CompetitionQuestion) =>
-    mutate(
-      'admin/question',
-      { id: q.id, version: q.version, approve: true },
-      'اعتمدت اللجنة الإصدار.',
-    );
-  // Same pattern as the JSON import: stop at the first error; earlier approvals stand.
+  const approveOne = (q: CompetitionQuestion) => {
+    setSelected(new Set([q.id]));
+    setBulkError('');
+    setReviewed(false);
+    setReviewing(true);
+  };
   async function approveSelected() {
     setBulkError('');
-    for (const q of pending) {
-      if ((await approveOne(q)) === false) {
-        setBulkError(
-          `توقف الاعتماد عند السؤال ${q.id}. الأسئلة السابقة اعتُمدت؛ راجع الخطأ ثم أعد المحاولة.`,
-        );
-        return;
-      }
+    setApproving(true);
+    let accepted = false;
+    try {
+      await api('admin/questions/approve', {
+        reviewed,
+        questions: pending.map((q) => ({ id: q.id, version: q.version })),
+      });
+      accepted = true;
+      setSelected(new Set());
+      setReviewing(false);
+      setReviewed(false);
+      await onReload();
+    } catch (error) {
+      setBulkError(
+        accepted
+          ? 'تم اعتماد الدفعة، لكن تعذّر تحديث العرض. حدّث الصفحة.'
+          : (error as Error).message + ' لم يُعتمد أي سؤال من هذه الدفعة.',
+      );
+    } finally {
+      setApproving(false);
     }
-    setSelected(new Set());
   }
   async function importBank() {
     setImportError('');
@@ -237,17 +254,91 @@ export function AdminQuestionBank({
         {canApprove && (
           <button
             className="button outline"
-            disabled={busy || !pending.length}
-            onClick={() => void approveSelected()}
+            disabled={busy || approving || !pending.length}
+            onClick={() => {
+              setBulkError('');
+              setReviewed(false);
+              setReviewing(true);
+            }}
           >
-            اعتمد المحدد ({pending.length})
+            راجع واعتمد المحدد ({pending.length})
           </button>
         )}
         <span className="muted" role="status">
           {filtered.length} من {questions.length} سؤالًا
         </span>
       </div>
-      {bulkError && (
+      {reviewing && (
+        <section className="panel" aria-label="مراجعة الأسئلة المحددة قبل الاعتماد">
+          <h3>مراجعة {pending.length} سؤالًا قبل الاعتماد</h3>
+          <p>
+            راجع النص والإجابة المسجلة وشاهد المصدر. الاعتماد يحفظ مراجعتك باسم حسابك، ولا يفتح
+            المسابقة.
+          </p>
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>السؤال</th>
+                  <th>الإجابة المسجلة</th>
+                  <th>المصدر</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pending.map((q) => (
+                  <tr key={q.id}>
+                    <td>{q.title}</td>
+                    <td>{q.correctAnswers.map((index) => q.options[index]).join('، ')}</td>
+                    <td>
+                      {q.source}
+                      <small>{q.sourceExcerpt}</small>
+                      {q.sourceUrl && (
+                        <a href={q.sourceUrl} target="_blank" rel="noreferrer">
+                          افتح المصدر الرسمي
+                        </a>
+                      )}
+                      {q.pdfPage !== null && (
+                        <a href={`${book.url}#page=${q.pdfPage}`} target="_blank" rel="noreferrer">
+                          افتح صفحة المصدر
+                        </a>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={reviewed}
+              disabled={approving}
+              onChange={(event) => setReviewed(event.target.checked)}
+            />
+            راجعت النصوص والإجابات والمصادر للأسئلة المحددة وأؤكد صلاحيتها للاعتماد
+          </label>
+          <ErrorMessage message={bulkError} />
+          <div className="button-row">
+            <button
+              type="button"
+              className="button primary"
+              disabled={!reviewed || approving || busy || !pending.length}
+              onClick={() => void approveSelected()}
+            >
+              {approving ? 'جارٍ اعتماد الدفعة…' : `اعتمد ${pending.length} سؤالًا دفعة واحدة`}
+            </button>
+            <button
+              type="button"
+              className="button outline"
+              disabled={approving}
+              onClick={() => setReviewing(false)}
+            >
+              إلغاء
+            </button>
+          </div>
+        </section>
+      )}
+      {!reviewing && bulkError && (
         <p role="alert" className="error-message">
           {bulkError}
         </p>

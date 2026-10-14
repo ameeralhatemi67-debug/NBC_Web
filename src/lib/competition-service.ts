@@ -5,6 +5,12 @@ import type { Database, Queryable } from './database';
 import { AppError } from './domain';
 import type { Session } from './service';
 import { isLocalMode } from './runtime';
+import {
+  readingVisit,
+  sourceReadingReady,
+  type ReadingProgress,
+  type ReadingVisit,
+} from './reading-progress';
 import { defaultPrizes, type PrizeSettings } from './prizes';
 import {
   PLACES,
@@ -25,7 +31,6 @@ import {
   questionCount,
   assertWindow,
   effectiveState,
-  feedbackFor,
   rankResults,
   registeredStage,
   safeQuestions,
@@ -96,6 +101,7 @@ type AttemptRow = {
   stage: Stage;
   recovery_until?: string | null;
   config?: Competition;
+  reading?: ReadingProgress;
 };
 function shuffled<T>(items: T[]): T[] {
   const next = structuredClone(items);
@@ -179,6 +185,85 @@ export class CompetitionService {
     if (!book) throw new AppError('نسخة الكتاب غير موجودة.', 409);
     return book;
   }
+  async readingProgress(tx: Queryable, id: string, test: boolean): Promise<ReadingProgress> {
+    const table = test ? 'admin_test_events' : 'attempt_events';
+    const owner = test ? 'run_id' : 'attempt_id';
+    const rows = (
+      await tx.query<{ page: string; seconds: number }>(
+        `SELECT payload->>'page' AS page, SUM((payload->>'creditedSeconds')::double precision) AS seconds FROM ${table} WHERE ${owner}=$1 AND payload->>'kind'='READ' GROUP BY payload->>'page'`,
+        [id],
+      )
+    ).rows;
+    return {
+      pageSeconds: Object.fromEntries(rows.map((r) => [Number(r.page), Number(r.seconds)])),
+    };
+  }
+  async recordReading(s: Session, body: Record<string, unknown>, test = false) {
+    requireRole(s, test ? ['admin'] : ['participant']);
+    if (
+      typeof body.attemptId !== 'string' ||
+      typeof body.clientEventId !== 'string' ||
+      !/^[a-zA-Z0-9_-]{8,100}$/.test(body.clientEventId) ||
+      !Number.isInteger(body.page) ||
+      typeof body.active !== 'boolean'
+    )
+      throw new AppError('تقدم القراءة غير صالح.');
+    return this.db.transaction(async (tx) => {
+      const table = test ? 'admin_test_runs' : 'attempts';
+      const owner = test ? 'actor' : 'participant_id';
+      const a = (
+        await tx.query<AttemptRow & { invalidated_at?: string }>(
+          `SELECT * FROM ${table} WHERE id=$1 AND ${owner}=$2 FOR UPDATE`,
+          [body.attemptId, test ? actor(s) : s.participant_id],
+        )
+      ).rows[0];
+      if (!a || a.invalidated_at)
+        throw new AppError('الجلسة غير متاحة. افتح التجربة الحالية.', 409);
+      if (test && !isLocalMode() && a.questions.some((q) => q.fixture))
+        throw new AppError('ابدأ تجربة جديدة من بنك المسابقة.', 409, 'TEST_BANK_REPLACED');
+      const c = test ? a.config! : await this.current(tx, a.competition_id);
+      if (a.submitted_at) return this.readingProgress(tx, a.id, test);
+      assertWindow(c, true, this.now(), a.recovery_until);
+      const book = await this.book(c, tx);
+      if (Number(body.page) < 1 || Number(body.page) > book.pageCount)
+        throw new AppError('صفحة خارج نطاق الكتاب.');
+      const events = test ? 'admin_test_events' : 'attempt_events';
+      const key = test ? 'run_id' : 'attempt_id';
+      const existing = (
+        await tx.query<{ payload: { page: number; active: boolean } }>(
+          `SELECT payload FROM ${events} WHERE ${key}=$1 AND client_event_id=$2`,
+          [a.id, body.clientEventId],
+        )
+      ).rows[0];
+      if (existing) {
+        if (existing.payload.page !== body.page || existing.payload.active !== body.active)
+          throw new AppError('معرف الحدث مستخدم لمحتوى آخر.', 409, 'EVENT_REUSED');
+        return this.readingProgress(tx, a.id, test);
+      }
+      const previous = (
+        await tx.query<{ payload: ReadingVisit }>(
+          `SELECT payload FROM ${events} WHERE ${key}=$1 AND payload->>'kind'='READ' ORDER BY (payload->>'acceptedAt')::bigint DESC LIMIT 1`,
+          [a.id],
+        )
+      ).rows[0]?.payload;
+      const visit = readingVisit(previous, Number(body.page), body.active === true, this.now());
+      await tx.query(`INSERT INTO ${events}(${key},client_event_id,payload) VALUES($1,$2,$3)`, [
+        a.id,
+        body.clientEventId,
+        JSON.stringify({ kind: 'READ', ...visit }),
+      ]);
+      if (visit.flags.length)
+        await audit(tx, s, 'ملاحظة على وتيرة القراءة', {
+          competitionId: c.id,
+          attemptId: a.id,
+          testRun: test,
+          page: visit.page,
+          previousPage: previous?.page,
+          flags: visit.flags,
+        });
+      return this.readingProgress(tx, a.id, test);
+    });
+  }
   async readAttempt(tx: Queryable, participantId: string | null, c: Competition, lock = false) {
     const a = (
       await tx.query<AttemptRow>(
@@ -193,6 +278,7 @@ export class CompetitionService {
           [a.id],
         )
       ).rows;
+      a.reading = await this.readingProgress(tx, a.id, false);
       a.answers = Object.fromEntries(
         rows.map((r) => [
           r.question_id,
@@ -213,7 +299,12 @@ export class CompetitionService {
     const visible = c.leaderboardMode !== 'hidden';
     return {
       participant: { name, stage },
-      competition: { ...c, feedbackMode: 'educational', state: effectiveState(c, this.now()) },
+      competition: {
+        ...c,
+        readingRequired: a?.questions.some((q) => !q.fixture) ?? false,
+        feedbackMode: 'educational',
+        state: effectiveState(c, this.now()),
+      },
       book,
       published: effectiveState(c, this.now()) === 'RESULTS_PUBLISHED',
       testRun,
@@ -227,13 +318,11 @@ export class CompetitionService {
       attempt: a
         ? {
             id: a.id,
-            questions: safeQuestions(a.questions),
-            answers: a.answers,
-            // Participants never receive correct answers or explanations, during or after the
-            // competition. Only the committee's own test runs may review them.
-            feedback: testRun
-              ? feedbackFor(c, a.questions, a.answers, Boolean(a.submitted_at))
-              : {},
+            questions: a.submitted_at ? [] : safeQuestions(a.questions),
+            answers: a.submitted_at ? {} : a.answers,
+            reading: a.submitted_at ? { pageSeconds: {} } : (a.reading ?? { pageSeconds: {} }),
+            // Both participant and rehearsal responses disclose only the aggregate score.
+            feedback: {},
             revision: a.revision,
             submittedAt: a.submitted_at,
             participantNumber: a.participant_number,
@@ -338,6 +427,7 @@ export class CompetitionService {
       kind: e.kind,
       questionId: e.questionId,
       selected: e.selected,
+      acceptedAt: this.now(),
     });
     let competitionId = '';
     await this.db.transaction(async (tx) => {
@@ -402,6 +492,19 @@ export class CompetitionService {
         throw new AppError('المشاركة مكتملة.', 409, 'SUBMITTED');
       }
       assertWindow(c, true, this.now(), a.recovery_until);
+      const reading = await this.readingProgress(tx, a.id, test);
+      const needsReading = (q: CompetitionQuestion) =>
+        !q.fixture && !sourceReadingReady(reading, q);
+      if (
+        e.kind === 'SUBMIT'
+          ? a.questions.some(needsReading)
+          : a.questions.some((q) => q.id === e.questionId && needsReading(q))
+      )
+        throw new AppError(
+          'تصفّح موضع السؤال في الكتاب بهدوء قبل تسجيل الإجابة والمتابعة.',
+          409,
+          'READING_REQUIRED',
+        );
       const result = applyEvent(
         a.questions,
         a.answers,
@@ -416,6 +519,25 @@ export class CompetitionService {
         ).rows.map((r) => r.question_id),
         c,
       );
+      if (e.kind === 'SELECT' && a.questions.some((q) => !q.fixture)) {
+        const previousAnswer = (
+          await tx.query<{ payload: { acceptedAt?: number; questionId?: string } }>(
+            `SELECT payload FROM ${eventTable} WHERE ${ownerColumn}=$1 AND payload->>'kind'='SELECT' ORDER BY (payload->>'acceptedAt')::bigint DESC NULLS LAST LIMIT 1`,
+            [a.id],
+          )
+        ).rows[0]?.payload;
+        if (
+          previousAnswer?.acceptedAt !== undefined &&
+          previousAnswer.questionId !== e.questionId &&
+          this.now() - previousAnswer.acceptedAt < 1500
+        )
+          await audit(tx, s, 'ملاحظة على وتيرة الإجابة', {
+            competitionId: c.id,
+            attemptId: a.id,
+            testRun: test,
+            flags: ['rapid_answers'],
+          });
+      }
       if (test) {
         await tx.query(
           'UPDATE admin_test_runs SET answers=$1,revision=revision+1,submitted_at=$2,score=$3,percentage=$4 WHERE id=$5',
@@ -545,6 +667,7 @@ export class CompetitionService {
         409,
         'TEST_BANK_REPLACED',
       );
+    a.reading = await this.readingProgress(tx, a.id, true);
     return this.project(
       a.config!,
       await this.book(a.config!, tx),
@@ -868,6 +991,66 @@ export class CompetitionService {
       : await readFile(path.join(process.cwd(), 'public', b.url)).catch(() => null);
     if (!bytes || createHash('sha256').update(bytes).digest('hex') !== b.sha256)
       throw new AppError('ملف نسخة الكتاب مفقود أو تغير. شغّل تجهيز الأصول.', 409);
+  }
+  async approveQuestions(s: Session, body: Record<string, unknown>) {
+    requireRole(s, ['admin']);
+    if (
+      body.reviewed !== true ||
+      !Array.isArray(body.questions) ||
+      !body.questions.length ||
+      body.questions.length > 75
+    )
+      throw new AppError('راجع نصوص الأسئلة وإجاباتها ومصادرها، ثم أكد المراجعة قبل الاعتماد.');
+    const requests = body.questions as { id: string; version: number }[];
+    if (
+      requests.some((q) => !q || typeof q.id !== 'string' || !Number.isInteger(q.version)) ||
+      new Set(requests.map((q) => q.id)).size !== requests.length
+    )
+      throw new AppError('قائمة الاعتماد غير صالحة.');
+    await this.db.transaction(async (tx) => {
+      await tx.query("SELECT id FROM settings WHERE id='current_competition' FOR UPDATE");
+      const c = await this.current(tx);
+      const book = await this.book(c, tx);
+      await this.verifyBook(book);
+      const prepared: CompetitionQuestion[] = [];
+      for (const request of requests) {
+        const old = (
+          await tx.query<{ body: CompetitionQuestion }>(
+            'SELECT body FROM questions WHERE id=$1 FOR UPDATE',
+            [request.id],
+          )
+        ).rows[0]?.body;
+        if (!old || old.bookVersionId !== book.id || !old.active)
+          throw new AppError(`${request.id}: السؤال غير متاح للاعتماد.`, 409);
+        if (old.version !== request.version)
+          throw new AppError(
+            `${request.id}: يوجد إصدار أحدث. حدّث بنك الأسئلة وراجع الإصدار الحالي.`,
+            409,
+          );
+        const next = {
+          ...old,
+          sourceVerified: true,
+          approved: true,
+          version: old.sourceVerified === true ? old.version : old.version + 1,
+        };
+        validateQuestion(next, book, true);
+        if (next.fixture && !isLocalMode())
+          throw new AppError('الأسئلة الاصطناعية غير قابلة للاعتماد.');
+        prepared.push(next);
+      }
+      for (const q of prepared) {
+        await tx.query('UPDATE questions SET body=$1 WHERE id=$2', [JSON.stringify(q), q.id]);
+        await tx.query(
+          'INSERT INTO question_versions(question_id,version,body,actor) VALUES($1,$2,$3,$4) ON CONFLICT(question_id,version) DO UPDATE SET body=excluded.body,actor=excluded.actor',
+          [q.id, q.version, JSON.stringify(q), actor(s)],
+        );
+      }
+      await audit(tx, s, 'مراجعة مصادر واعتماد مجموعة أسئلة', {
+        competitionId: c.id,
+        questions: prepared.map((q) => ({ id: q.id, version: q.version })),
+        reviewed: true,
+      });
+    });
   }
   async saveQuestion(s: Session, body: Record<string, unknown>) {
     requireRole(s, ['admin', 'editor']);

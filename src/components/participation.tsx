@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { sourceReadingReady, type ReadingProgress } from '@/lib/reading-progress';
 import { useEffect, useId, useRef, useState } from 'react';
 import { api, ApiError, ErrorMessage, Icon, Loading } from './ui';
 import { BookReader } from './book-reader';
@@ -79,6 +80,28 @@ export function Participation({
   const currentLocked = !!(currentQuestionId && data?.attempt?.answers[currentQuestionId]?.locked);
   const currentFeedback = !!(currentQuestionId && data?.attempt?.feedback[currentQuestionId]);
   const isOffline = simulateOffline || !connected;
+  const currentSource = data?.attempt?.questions[index];
+  const sourceReady =
+    !data?.competition.readingRequired ||
+    Boolean(currentSource && sourceReadingReady(data?.attempt?.reading, currentSource));
+  const readingInFlight = useRef(false);
+  const lastReadingActivity = useRef(Date.now());
+  const readingContext = useRef({
+    id: '',
+    page: 1,
+    active: false,
+    offline: false,
+    required: false,
+    submitted: false,
+  });
+  readingContext.current = {
+    id: data?.attempt?.id ?? '',
+    page,
+    active: bookOpen && (!narrow || !dockExpanded),
+    offline: isOffline,
+    required: Boolean(data?.competition.readingRequired),
+    submitted: Boolean(data?.attempt?.submittedAt),
+  };
   const controller = useRef<DurableCompetitionSession | null>(null);
   const offline = useRef(simulateOffline);
   offline.current = simulateOffline;
@@ -89,6 +112,80 @@ export function Participation({
   const bookButton = useRef<HTMLButtonElement>(null);
   const readPath = testRunId ? `admin/test-run?id=${encodeURIComponent(testRunId)}` : 'participant';
   const writePath = testRunId ? 'admin/test-run/event' : 'attempt/event';
+  async function reportReading() {
+    const context = { ...readingContext.current };
+    if (
+      readingInFlight.current ||
+      !context.id ||
+      !context.required ||
+      context.offline ||
+      context.submitted
+    )
+      return;
+    const canvas = bookPanel.current?.querySelector<HTMLCanvasElement>(
+      `[data-page="${context.page}"] canvas`,
+    );
+    const rect = canvas?.getBoundingClientRect();
+    const panel = bookPanel.current?.getBoundingClientRect();
+    const visible =
+      rect &&
+      panel &&
+      rect.bottom > Math.max(0, panel.top) &&
+      rect.top < Math.min(innerHeight, panel.bottom);
+    const active = Boolean(
+      context.active &&
+      visible &&
+      document.visibilityState === 'visible' &&
+      Date.now() - lastReadingActivity.current < 45000,
+    );
+    readingInFlight.current = true;
+    try {
+      const reading = await api<ReadingProgress>(
+        testRunId ? 'admin/test-run/reading' : 'attempt/reading',
+        {
+          attemptId: context.id,
+          clientEventId: crypto.randomUUID(),
+          page: context.page,
+          active,
+        },
+        AbortSignal.timeout(12000),
+      );
+      if (readingContext.current.id !== context.id) return;
+      await controller.current?.rememberReading(reading);
+      setData((state) =>
+        state?.attempt && state.attempt.id === context.id
+          ? { ...state, attempt: { ...state.attempt, reading } }
+          : state,
+      );
+    } catch {
+      // Answer synchronization keeps its own error state; new reading needs a server connection.
+    } finally {
+      readingInFlight.current = false;
+    }
+  }
+  useEffect(() => {
+    const touch = () => {
+      lastReadingActivity.current = Date.now();
+    };
+    const events = ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchmove'];
+    events.forEach((name) =>
+      window.addEventListener(name, touch, { capture: true, passive: true }),
+    );
+    const visible = () => {
+      void reportReading();
+    };
+    document.addEventListener('visibilitychange', visible);
+    const timer = setInterval(visible, 2000);
+    void reportReading();
+    return () => {
+      clearInterval(timer);
+      events.forEach((name) => window.removeEventListener(name, touch, { capture: true }));
+      document.removeEventListener('visibilitychange', visible);
+    };
+  }, [data?.attempt?.id]);
+  useEffect(() => {
+    void reportReading();
+  }, [page, bookOpen, dockExpanded, connected]);
   useEffect(() => {
     if (data) onStateChange?.(data);
   }, [data, onStateChange]);
@@ -333,6 +430,21 @@ export function Participation({
   }
   async function write(kind: WriteEvent['kind'], selected?: number[]) {
     if (!data?.attempt || !controller.current || pendingSubmit || data.attempt.submittedAt) return;
+    if (kind !== 'SUBMIT' && !sourceReady) {
+      setError('تصفّح موضع السؤال في الكتاب بهدوء قبل تسجيل الإجابة.');
+      return false;
+    }
+    if (kind === 'SUBMIT' && data.competition.readingRequired) {
+      const missing = data.attempt.questions.findIndex(
+        (q) => !sourceReadingReady(data.attempt!.reading, q),
+      );
+      if (missing >= 0) {
+        setReviewOpen(false);
+        setIndex(missing);
+        setError('أكمل تصفّح مواضع الأسئلة في الكتاب قبل الإرسال.');
+        return false;
+      }
+    }
     setBusy(true);
     setError('');
     if (kind === 'CHECK') setHintPages(null);
@@ -355,6 +467,10 @@ export function Participation({
   }
   function go(i: number, keyboard = false) {
     if (!data?.attempt || i < 0 || i >= data.attempt.questions.length) return;
+    if (i > index && !sourceReady) {
+      setError('تصفّح موضع السؤال في الكتاب بهدوء قبل المتابعة.');
+      return;
+    }
     setInputOrigin(keyboard ? 'keyboard' : 'pointer');
     setIndex(i);
     setHintPages(null);
@@ -370,6 +486,7 @@ export function Participation({
       busy ||
       pendingSubmit ||
       attempt.answers[question.id]?.locked ||
+      !sourceReady ||
       option >= question.options.length
     )
       return;
@@ -384,7 +501,7 @@ export function Participation({
   }
   function advance(keyboard = false) {
     const attempt = data?.attempt;
-    if (!attempt) return;
+    if (!attempt || !sourceReady) return;
     if (index < attempt.questions.length - 1) go(index + 1, keyboard);
     else if (lockedCount === attempt.questions.length) setReviewOpen(true);
     else
@@ -479,7 +596,7 @@ export function Participation({
   const q = a.questions[index];
   const answer = a.answers[q.id];
   const feedback = answer?.locked ? a.feedback[q.id] : undefined;
-  const eligible = hintEligible(maxPage, q, data.book.pageCount);
+  const eligible = sourceReady && hintEligible(maxPage, q, data.book.pageCount);
   const pendingText = pendingSubmit
     ? 'المشاركة بانتظار الإرسال'
     : pendingAnswers
@@ -502,10 +619,28 @@ export function Participation({
         <h2 ref={heading} tabIndex={-1}>
           {q.title}
         </h2>
+        {!sourceReady && (
+          <div className="reading-nudge" role="status">
+            <strong>تصفّح الكتاب قبل المتابعة</strong>
+            <p>
+              {isOffline
+                ? 'يتأكد تقدم القراءة عند عودة الاتصال. تبقى إجاباتك المحفوظة متاحة.'
+                : 'تمهّل في تصفّح موضع هذا السؤال في الكتاب، ثم سجّل إجابتك. القفز إلى نهاية الكتاب لا يغني عن قراءة الموضع.'}
+            </p>
+            {!bookOpen && (
+              <button type="button" className="button outline" onClick={() => openBook()}>
+                افتح الكتاب
+              </button>
+            )}
+          </div>
+        )}
         <p className="answer-instruction">
           {q.type === 'multi_select' ? 'حدد كل الإجابات الصحيحة' : 'اختر إجابة واحدة'}
         </p>
-        <fieldset className="answer-options" disabled={busy || pendingSubmit || answer?.locked}>
+        <fieldset
+          className="answer-options"
+          disabled={busy || pendingSubmit || answer?.locked || !sourceReady}
+        >
           <legend className="sr-only">
             {q.type === 'multi_select' ? 'حدد كل الإجابات الصحيحة' : 'اختر إجابة واحدة'}
           </legend>
@@ -630,7 +765,7 @@ export function Participation({
           <button
             ref={mainAction}
             className="button primary"
-            disabled={busy}
+            disabled={busy || !sourceReady}
             onClick={(event) => advance(event.detail === 0)}
           >
             {index < a.questions.length - 1

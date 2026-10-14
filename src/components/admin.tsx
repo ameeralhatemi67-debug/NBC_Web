@@ -704,6 +704,7 @@ export function Admin({
               busy={busy}
               mutate={mutate}
               initialStage={questionStage}
+              onReload={load}
             />
           )}
           {tab === 'coverage' && data.book && (

@@ -73,6 +73,7 @@ try {
         'tests/migrations.test.ts',
         'tests/meeting-updates.test.ts',
         'tests/start-readiness.test.ts',
+        'tests/reading-controls.test.ts',
       ],
       {
         windowsHide: true,

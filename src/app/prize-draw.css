@@ -1,0 +1,597 @@
+/* Prize draw: committee console, the audience arch and the projector screen.
+   The console uses tokens, so every identity works. The arch keeps the site's green and gold. */
+.prize-draw {
+  --draw-ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --draw-green: #194e3c;
+  --draw-deep: #103b30;
+  --draw-lift: #356951;
+  --draw-gold: #cfb779;
+  --draw-gold-hi: #ead197;
+  --draw-ivory: #f7f3e8;
+  display: grid;
+  gap: 18px;
+  container-type: inline-size;
+}
+.prize-draw :focus-visible {
+  outline: 2px solid var(--copper);
+  outline-offset: 2px;
+}
+.draw-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.draw-head h2 {
+  margin: 4px 0 6px;
+}
+.draw-head .launch-description {
+  max-width: 62ch;
+}
+.draw-head-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.draw-console {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  min-width: 0;
+}
+.draw-criteria {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px 24px;
+  flex-wrap: wrap;
+}
+.draw-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.draw-chip {
+  font: 500 14px var(--body);
+  padding: 7px 15px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--white);
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease,
+    transform 140ms var(--draw-ease);
+}
+.draw-chip:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.draw-chip[aria-pressed='true'] {
+  background: var(--olive);
+  border-color: var(--olive);
+  color: var(--white);
+}
+.draw-chip:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+.draw-toggles {
+  display: flex;
+  gap: 4px 20px;
+  flex-wrap: wrap;
+}
+.prize-draw .draw-toggles label {
+  margin: 0;
+  font-size: 14px;
+  cursor: pointer;
+}
+.prize-draw .draw-toggles input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--olive);
+}
+.draw-stats {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+.draw-stats div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: var(--cream);
+}
+.draw-stats div[data-key] {
+  background: var(--olive);
+  color: var(--white);
+}
+.draw-stats dt {
+  font-size: 12px;
+  color: var(--muted);
+}
+.draw-stats div[data-key] dt {
+  color: inherit;
+  opacity: 0.8;
+}
+.draw-stats dd {
+  margin: 0;
+  font: 600 22px var(--body);
+  font-variant-numeric: tabular-nums;
+}
+.prize-draw .fine-print {
+  margin: 0;
+}
+.draw-prizes {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  min-width: 0;
+}
+.draw-prizes legend {
+  padding-inline: 6px;
+  font-weight: 600;
+}
+.draw-prizes ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.draw-prizes li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.draw-prizes li input {
+  flex: 1;
+  min-width: 0;
+}
+.draw-prize-no {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50% 50% 3px 3px;
+  border: 1px solid var(--copper);
+  color: var(--copper);
+  font-size: 13px;
+}
+.draw-prize-tools {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.prize-draw .draw-alternates {
+  flex-direction: row;
+  align-items: center;
+  margin: 0;
+  font-size: 14px;
+}
+.draw-alternates input {
+  width: 72px;
+}
+.draw-summary {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: var(--cream);
+  font-size: 14px;
+}
+.draw-steps {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.draw-steps .button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.draw-cancel {
+  display: grid;
+  gap: 8px;
+}
+.draw-cancel label {
+  margin: 0;
+}
+.draw-hashes {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.draw-hashes code {
+  font:
+    11.5px/1.6 ui-monospace,
+    Consolas,
+    monospace;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+.draw-hashes code.ok {
+  color: #2f6b3f;
+  font-weight: 600;
+}
+.draw-hashes code.bad {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+/* Output: the audience arch beside the operator record. */
+.draw-out {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+  gap: 16px;
+  align-items: start;
+}
+.draw-audience {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  min-height: 320px;
+  padding: 28px 16px;
+  border-radius: var(--radius);
+  color: var(--draw-ivory);
+  background:
+    radial-gradient(ellipse at 50% 40%, var(--draw-lift) 0%, transparent 60%),
+    linear-gradient(125deg, var(--draw-green), var(--draw-deep) 75%);
+}
+:root:is([data-design='official'], [data-design='hybrid']) .draw-audience,
+:root:is([data-design='official'], [data-design='hybrid']) .draw-screen {
+  background:
+    linear-gradient(180deg, rgb(5 54 85 / 0.2), rgb(3 30 52 / 0.6)), var(--identity-banner);
+}
+.draw-audience::before,
+.draw-screen-texture {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: url('/images/competition/weave.svg') repeat;
+  background-size: 96px;
+  opacity: 0.13;
+  mask-image: radial-gradient(ellipse at 50% 50%, transparent 25%, #000 75%);
+}
+.draw-arch {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: min(260px, 86%);
+  padding: 56px 18px 28px;
+  border: 1px solid rgb(207 183 121 / 0.55);
+  border-radius: 999px 999px 6px 6px;
+  text-align: center;
+}
+.draw-arch::before {
+  content: '';
+  position: absolute;
+  inset: -9px;
+  border: 1px solid rgb(207 183 121 / 0.2);
+  border-radius: 999px 999px 8px 8px;
+  pointer-events: none;
+}
+.draw-arch-label {
+  font: 500 13px var(--body);
+  color: var(--draw-gold);
+}
+.draw-roll {
+  font: 500 40px/1 var(--body);
+  color: var(--draw-gold-hi);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.draw-roll[data-empty] {
+  opacity: 0.55;
+  font-size: 26px;
+}
+.draw-who {
+  min-height: 1.5em;
+  font:
+    600 24px 'Noto Naskh Arabic',
+    serif;
+  color: var(--draw-ivory);
+}
+.draw-record {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+}
+.draw-record h3 {
+  margin: 0;
+}
+.draw-winner {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.draw-winner header {
+  display: grid;
+  gap: 2px;
+}
+.draw-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.prize-draw .badge.danger {
+  background: #f5e4df;
+  color: var(--danger);
+}
+.draw-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0 16px;
+  margin: 0;
+  font-size: 13.5px;
+}
+.draw-fields div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding-block: 7px;
+  border-bottom: 1px solid var(--line);
+}
+.draw-fields dt {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.draw-fields dd {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.draw-queue {
+  display: grid;
+  gap: 6px;
+}
+.draw-queue div {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.draw-queue span {
+  padding: 3px 11px;
+  border-radius: 999px;
+  background: var(--cream);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.draw-contact {
+  display: grid;
+  gap: 8px;
+}
+.draw-contact label {
+  margin: 0;
+}
+.draw-trail {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: var(--cream);
+  list-style: none;
+  font-size: 13px;
+  color: var(--muted);
+}
+.draw-history h3 {
+  margin: 0 0 8px;
+}
+.draw-history ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.draw-history button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: border-color 160ms ease;
+}
+.draw-history button[aria-current='true'] {
+  border-color: var(--olive);
+  box-shadow: inset 3px 0 0 var(--olive);
+}
+.draw-history small,
+.draw-history span:not(.badge) {
+  color: var(--muted);
+  font-size: 13px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .draw-history button:hover {
+    border-color: var(--copper);
+  }
+}
+@container (max-width: 820px) {
+  .draw-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .draw-out {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .draw-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container (max-width: 520px) {
+  .draw-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .draw-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .draw-history button {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+/* Projector screen: full-bleed green, the arch large, winners listed as they are revealed. */
+.draw-screen {
+  --draw-gold: #cfb779;
+  --draw-gold-hi: #ead197;
+  --draw-ivory: #f7f3e8;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100dvh;
+  padding: clamp(16px, 3vw, 40px);
+  color: var(--draw-ivory);
+  background:
+    radial-gradient(ellipse at 50% 42%, #356951 0%, transparent 58%),
+    linear-gradient(125deg, #194e3c, #103b30 75%);
+}
+.draw-screen-texture {
+  background-size: 144px;
+  opacity: 0.12;
+}
+.draw-screen-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  color: var(--draw-gold);
+  font-size: clamp(14px, 1.6vw, 20px);
+}
+.draw-screen-title {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  margin: 0;
+}
+.draw-screen-title img {
+  height: clamp(26px, 3.4vw, 46px);
+  width: auto;
+}
+.draw-screen-stage {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: clamp(20px, 3vw, 36px);
+}
+.draw-arch-large {
+  width: min(520px, 88vw);
+  padding: clamp(70px, 10vw, 130px) 24px clamp(36px, 5vw, 60px);
+  gap: 20px;
+}
+.draw-arch-large .draw-arch-label {
+  font-size: clamp(16px, 2vw, 24px);
+}
+.draw-arch-large .draw-roll {
+  font-size: clamp(48px, 9vw, 112px);
+}
+.draw-arch-large .draw-roll[data-empty] {
+  font-size: clamp(32px, 5vw, 60px);
+}
+.draw-arch-large .draw-who {
+  font-size: clamp(28px, 4.5vw, 56px);
+}
+.draw-who:not(:empty) {
+  animation: draw-name 420ms var(--draw-ease, cubic-bezier(0.23, 1, 0.32, 1)) both;
+}
+@keyframes draw-name {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.draw-screen-wait {
+  margin: 0;
+  color: var(--draw-gold);
+  font-size: clamp(16px, 2vw, 22px);
+}
+.draw-screen-list {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.draw-screen-list li {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 150px;
+  padding: 12px 18px;
+  border: 1px solid rgb(207 183 121 / 0.4);
+  border-radius: 999px 999px 6px 6px;
+  background: rgb(16 59 48 / 0.45);
+  animation: draw-name 420ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+.draw-screen-list span {
+  color: var(--draw-gold);
+  font-size: 14px;
+}
+.draw-screen-list strong {
+  color: var(--draw-gold-hi);
+  font-size: 26px;
+  font-variant-numeric: tabular-nums;
+}
+.draw-screen-foot {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  opacity: 0.55;
+  transition: opacity 200ms ease;
+}
+.draw-screen-foot:hover,
+.draw-screen-foot:focus-within {
+  opacity: 1;
+}
+.draw-screen .text-link {
+  color: var(--draw-ivory);
+}
+.draw-screen-error {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 16px;
+  text-align: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .draw-who:not(:empty),
+  .draw-screen-list li {
+    animation: none;
+  }
+}

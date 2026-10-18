@@ -8,7 +8,7 @@ The dashboard Connect dialog verified `aws-1-eu-central-1.pooler.supabase.com:65
 
 The client pool has at most three connections per function instance, five-second connection timeout, 15-second database statement timeout, ten-second lock timeout, 20-second client query timeout, 30-second idle timeout and five-minute connection lifetime. The login has a 30-connection limit and no superuser, role/database creation, inheritance, replication or RLS bypass. Monitor saturation and Vercel instance growth against Supabase pooler limits before opening; these bounds are not a load-test capacity claim.
 
-`postgres` is the authenticated migration/operator role and owns the schema. Runtime has CRUD on application state, sequence usage, and read-only migration history. Audit, attempt question snapshots, event history and recoveries are append-only for runtime. All 22 tables enable RLS. The only policy is for `nbc_runtime`; it permits this server role to implement NBC's existing cookie/subject authorization. Supabase `auth.uid()` does not represent NBC participants. `anon`, `authenticated`, `service_role` and PUBLIC have no private-schema/table access, even when a role bypasses RLS. Supabase Auth/Data API is not an alternate application access path. There are no SECURITY DEFINER functions; trigger functions have fixed `pg_catalog` search paths.
+`postgres` is the authenticated migration/operator role and owns the schema. Runtime has CRUD on application state, sequence usage, and read-only migration history. Audit, attempt question snapshots, event history and recoveries are append-only for runtime. All 32 private tables (after `015_prize_draw`) enable RLS. The only policy is for `nbc_runtime`; it permits this server role to implement NBC's existing cookie/subject authorization. Supabase `auth.uid()` does not represent NBC participants. `anon`, `authenticated`, `service_role` and PUBLIC have no private-schema/table access, even when a role bypasses RLS. Supabase Auth/Data API is not an alternate application access path. There are no SECURITY DEFINER functions; trigger functions have fixed `pg_catalog` search paths.
 
 ## Migrations and deployment
 
@@ -53,6 +53,18 @@ REVOKE EXECUTE ON FUNCTION nbc.guard_simulation_attempt(),nbc.guard_simulation_r
 ```
 
 The application verifies staff/participant ownership using existing NBC sessions; Supabase user roles must not receive direct practice access. Practice content/results do not enter official attempts, standings, winners or reminder cohorts. Normal accounts created during the window remain normal registrations. No cleanup of practice history is scheduled; retention needs an explicit later decision. Validate source checksums, runtime readiness and practice-role/expiry/isolation checks before opening a public test window.
+
+## Prize draw release migration
+
+The admin page «سحب الجوائز» adds source migration `015_prize_draw`: `prize_draws` (frozen pool, its SHA-256 fingerprint, seed commitment, seed, who and when) and `prize_draw_entries` (drawn order, winner or alternate, contact outcome). Guard triggers `guard_prize_draw` and `guard_prize_draw_entry` keep both append-only: a frozen pool never changes, each step (seed, draw, cancellation, outcome) is recorded once and in order, and nothing is deleted. Applied migrations 001–014 are unchanged. The fresh private-schema export now creates 32 tables.
+
+Unlike 014, the forward export carries the new tables' server-only permissions itself, inside the same transaction: PUBLIC/`anon`/`authenticated`/`service_role` lose all access, `nbc_runtime` gets SELECT, INSERT and UPDATE (never DELETE; UPDATE is needed to record each step), both tables enable RLS with the single `nbc_server` policy, and the guard functions lose public EXECUTE. Generate it from the actual last-applied ID, after checking production `schema_migrations`:
+
+```powershell
+node --import tsx scripts/export-supabase-upgrade.mjs .data/nbc-upgrade.sql eerfhnaduachqluowsdo 014_simulation
+```
+
+`npm run test:postgres` rehearses this exact path: it builds the 014 private schema, applies the generated upgrade, refuses a second application, checks public roles are denied, then runs a whole draw as `nbc_runtime` and confirms it cannot delete or rewrite draw records. The page needs a closed competition (after the grace and recovery windows), like winner selection. A witness checks a published draw with `node scripts/verify-draw.mjs <verification-file.json>`; the verification file carries participant numbers and phone groups, never names or phone numbers.
 
 ## Restoring the verified prize snapshot
 

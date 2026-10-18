@@ -26,6 +26,7 @@ sql += `GRANT USAGE ON SCHEMA nbc TO nbc_runtime;
 GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA nbc TO nbc_runtime;
 REVOKE INSERT,UPDATE,DELETE ON schema_migrations FROM nbc_runtime;
 REVOKE UPDATE,DELETE ON attempt_questions,attempt_events,admin_test_events,attempt_recoveries,audit,simulation_events FROM nbc_runtime;
+REVOKE DELETE ON prize_draws,prize_draw_entries FROM nbc_runtime;
 GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA nbc TO nbc_runtime;
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA nbc REVOKE ALL ON TABLES FROM PUBLIC,anon,authenticated,service_role;
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA nbc REVOKE ALL ON SEQUENCES FROM PUBLIC,anon,authenticated,service_role;

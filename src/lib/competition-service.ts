@@ -1411,7 +1411,8 @@ export class CompetitionService {
     return row?.value ?? defaultPrizes;
   }
   // Winners are chosen only after scores can no longer change, like result publication.
-  private async assertFinal(tx: Queryable, c: Competition) {
+  // The prize draw applies the same rule.
+  async assertFinal(tx: Queryable, c: Competition) {
     const state = effectiveState(c, this.now());
     if (state !== 'CLOSED' && state !== 'RESULTS_PUBLISHED')
       throw new AppError('أغلق المسابقة قبل اختيار الفائزين.', 409);

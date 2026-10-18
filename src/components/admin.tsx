@@ -34,6 +34,7 @@ import { AdminAnalytics } from './admin-analytics';
 import { AdminSecurity } from './admin-security';
 import { AdminPrizes } from './admin-prizes';
 import { AdminWinners } from './admin-winners';
+import { AdminPrizeDraw } from './admin-prize-draw';
 import { AdminParticipants } from './admin-participants';
 import { AdminCampaigns } from './admin-campaigns';
 import { AdminBook } from './admin-book';
@@ -77,6 +78,7 @@ const tabs = [
   { id: 'questions', name: 'بنك الأسئلة', icon: 'book' },
   { id: 'results', name: 'النتائج والاعتماد', icon: 'shield' },
   { id: 'winners', name: 'الفائزون والجوائز', icon: 'trophy' },
+  { id: 'draw', name: 'سحب الجوائز', icon: 'trophy' },
   { id: 'campaigns', name: 'سجل المسابقات', icon: 'clock' },
   { id: 'book', name: 'كتاب المسابقة', icon: 'book' },
   { id: 'content', name: 'محتوى الموقع', icon: 'pages' },
@@ -805,6 +807,7 @@ export function Admin({
           )}
           {tab === 'test-run' && role === 'admin' && <AdminTestRun />}
           {tab === 'winners' && role === 'admin' && <AdminWinners />}
+          {tab === 'draw' && role === 'admin' && <AdminPrizeDraw />}
           {tab === 'campaigns' && role === 'admin' && <AdminCampaigns />}
           {tab === 'content' && role === 'admin' && <AdminContent />}
           {tab === 'book' && role === 'admin' && data.competition && data.book && (

@@ -13,6 +13,7 @@ import './reader-ux.css';
 import './result-intro-ux.css';
 import './admin-ux.css';
 import './winners-ux.css';
+import './prize-draw.css';
 import './meeting-ux.css';
 import './refinements.css';
 import { Providers } from '@/components/ui';

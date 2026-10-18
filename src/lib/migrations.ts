@@ -280,6 +280,64 @@ UPDATE settings SET value=replace(value::text,'تعتمد جميع الأسئل�
       CREATE TRIGGER immutable_simulation_run BEFORE UPDATE ON simulation_runs FOR EACH ROW EXECUTE FUNCTION guard_simulation_run();
     `,
   },
+  {
+    id: '015_prize_draw',
+    sql: `
+      CREATE TABLE prize_draws (
+        id TEXT PRIMARY KEY, competition_id TEXT NOT NULL REFERENCES competitions(id),
+        stage TEXT CHECK(stage IS NULL OR stage IN ('middle','highschool','university')),
+        prizes JSONB NOT NULL CHECK(jsonb_typeof(prizes)='array' AND jsonb_array_length(prizes) BETWEEN 1 AND 20),
+        alternates INT NOT NULL CHECK(alternates BETWEEN 0 AND 5),
+        exclude_ranked BOOLEAN NOT NULL, exclude_flags BOOLEAN NOT NULL,
+        pool JSONB NOT NULL, pool_size INT NOT NULL CHECK(pool_size > 0), pool_fingerprint TEXT NOT NULL,
+        frozen_by TEXT NOT NULL, frozen_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        seed_commitment TEXT, seed TEXT, committed_by TEXT, committed_at TIMESTAMPTZ,
+        drawn_by TEXT, drawn_at TIMESTAMPTZ,
+        cancelled_by TEXT, cancelled_at TIMESTAMPTZ, cancel_reason TEXT,
+        CHECK((seed IS NULL) = (seed_commitment IS NULL) AND (seed IS NULL) = (committed_at IS NULL)),
+        CHECK(drawn_at IS NULL OR seed IS NOT NULL),
+        CHECK(drawn_at IS NULL OR cancelled_at IS NULL));
+      CREATE UNIQUE INDEX prize_draws_one_open ON prize_draws(competition_id) WHERE drawn_at IS NULL AND cancelled_at IS NULL;
+      CREATE TABLE prize_draw_entries (
+        draw_id TEXT NOT NULL REFERENCES prize_draws(id), position INT NOT NULL CHECK(position > 0),
+        role TEXT NOT NULL CHECK(role IN ('winner','alternate')), prize_index INT,
+        attempt_id TEXT NOT NULL REFERENCES attempts(id), participant_number TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','confirmed','unreachable','ineligible')),
+        note TEXT, decided_by TEXT, decided_at TIMESTAMPTZ,
+        PRIMARY KEY(draw_id,position), UNIQUE(draw_id,attempt_id),
+        CHECK((role='winner') = (prize_index IS NOT NULL)));
+      CREATE FUNCTION guard_prize_draw() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog AS $$
+      BEGIN
+        IF TG_OP='DELETE' THEN RAISE EXCEPTION 'Prize draws are append-only'; END IF;
+        IF OLD.competition_id IS DISTINCT FROM NEW.competition_id OR OLD.stage IS DISTINCT FROM NEW.stage
+          OR OLD.prizes IS DISTINCT FROM NEW.prizes OR OLD.alternates IS DISTINCT FROM NEW.alternates
+          OR OLD.exclude_ranked IS DISTINCT FROM NEW.exclude_ranked OR OLD.exclude_flags IS DISTINCT FROM NEW.exclude_flags
+          OR OLD.pool IS DISTINCT FROM NEW.pool OR OLD.pool_size IS DISTINCT FROM NEW.pool_size
+          OR OLD.pool_fingerprint IS DISTINCT FROM NEW.pool_fingerprint OR OLD.frozen_by IS DISTINCT FROM NEW.frozen_by
+          OR OLD.frozen_at IS DISTINCT FROM NEW.frozen_at THEN RAISE EXCEPTION 'A frozen draw pool is immutable'; END IF;
+        IF (OLD.seed IS NOT NULL AND (OLD.seed IS DISTINCT FROM NEW.seed OR OLD.seed_commitment IS DISTINCT FROM NEW.seed_commitment
+            OR OLD.committed_by IS DISTINCT FROM NEW.committed_by OR OLD.committed_at IS DISTINCT FROM NEW.committed_at))
+          OR (OLD.drawn_at IS NOT NULL AND (OLD.drawn_at IS DISTINCT FROM NEW.drawn_at OR OLD.drawn_by IS DISTINCT FROM NEW.drawn_by))
+          OR (OLD.cancelled_at IS NOT NULL AND (OLD.cancelled_at IS DISTINCT FROM NEW.cancelled_at
+            OR OLD.cancelled_by IS DISTINCT FROM NEW.cancelled_by OR OLD.cancel_reason IS DISTINCT FROM NEW.cancel_reason))
+          OR (OLD.drawn_at IS NULL AND NEW.drawn_at IS NOT NULL AND OLD.seed IS NULL)
+          OR (OLD.cancelled_at IS NOT NULL AND NEW.drawn_at IS NOT NULL)
+          THEN RAISE EXCEPTION 'Draw steps are recorded once and in order'; END IF;
+        RETURN NEW;
+      END $$;
+      CREATE TRIGGER immutable_prize_draw BEFORE UPDATE OR DELETE ON prize_draws FOR EACH ROW EXECUTE FUNCTION guard_prize_draw();
+      CREATE FUNCTION guard_prize_draw_entry() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog AS $$
+      BEGIN
+        IF TG_OP='DELETE' THEN RAISE EXCEPTION 'Prize draw entries are append-only'; END IF;
+        IF OLD.draw_id IS DISTINCT FROM NEW.draw_id OR OLD.position IS DISTINCT FROM NEW.position
+          OR OLD.role IS DISTINCT FROM NEW.role OR OLD.prize_index IS DISTINCT FROM NEW.prize_index
+          OR OLD.attempt_id IS DISTINCT FROM NEW.attempt_id OR OLD.participant_number IS DISTINCT FROM NEW.participant_number
+          OR OLD.status <> 'pending' THEN RAISE EXCEPTION 'A draw result is recorded once'; END IF;
+        RETURN NEW;
+      END $$;
+      CREATE TRIGGER immutable_prize_draw_entry BEFORE UPDATE OR DELETE ON prize_draw_entries FOR EACH ROW EXECUTE FUNCTION guard_prize_draw_entry();
+    `,
+  },
 ];
 export const migrationChecksum = (sql: string) => createHash('sha256').update(sql).digest('hex');
 export async function migrate(db: Database) {

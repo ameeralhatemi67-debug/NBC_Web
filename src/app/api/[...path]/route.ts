@@ -2,6 +2,7 @@ import { CompetitionService } from '@/lib/competition-service';
 import { backendReadiness } from '@/lib/backend-readiness';
 import type { Stage, WriteEvent } from '@/lib/competition-domain';
 import { SimulationService } from '@/lib/simulation-service';
+import { PrizeDrawService } from '@/lib/prize-draw-service';
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getDb } from '@/lib/db';
@@ -147,6 +148,30 @@ async function respond(req: NextRequest) {
         result = announcement ? { published: true, announcement } : { published: false };
       } else if (route === 'admin/winners') {
         result = await new CompetitionService(await getDb()).winners(role(session, ['admin']));
+      } else if (route === 'admin/prize-draw') {
+        const q = req.nextUrl.searchParams;
+        result = await new PrizeDrawService(await getDb()).state(role(session, ['admin']), {
+          id: q.get('id') || undefined,
+          stage: q.get('stage') || undefined,
+          excludeRanked: q.has('excludeRanked') ? q.get('excludeRanked') === '1' : undefined,
+          excludeFlags: q.has('excludeFlags') ? q.get('excludeFlags') === '1' : undefined,
+        });
+      } else if (route === 'admin/prize-draw/screen') {
+        result = await new PrizeDrawService(await getDb()).screen(role(session, ['admin']));
+      } else if (route === 'admin/prize-draw/file') {
+        const file = await new PrizeDrawService(await getDb()).verificationFile(
+          role(session, ['admin']),
+          req.nextUrl.searchParams.get('id') ?? '',
+        );
+        if (req.nextUrl.searchParams.get('download') !== '1') result = file;
+        else
+          return new NextResponse(JSON.stringify(file, null, 2), {
+            headers: {
+              'Content-Type': 'application/json; charset=utf-8',
+              'Content-Disposition': `attachment; filename="nbc-prize-draw-${file.drawId.slice(0, 8)}.json"`,
+              'Cache-Control': 'no-store',
+            },
+          });
       } else if (route === 'leaderboard') {
         const q = req.nextUrl.searchParams;
         result = await new CompetitionService(await getDb()).leaderboard(
@@ -377,6 +402,32 @@ async function respond(req: NextRequest) {
         else if (body.action === 'publish') result = await service.publishWinners(staff, body);
         else if (body.action === 'withdraw') result = await service.withdrawWinners(staff);
         else throw new AppError('إجراء غير صالح.');
+      } else if (route === 'admin/prize-draw') {
+        const service = new PrizeDrawService(await getDb());
+        const staff = role(session, ['admin']);
+        if (body.action === 'freeze') {
+          strictKeys(body, [
+            'action',
+            'stage',
+            'prizes',
+            'alternates',
+            'excludeRanked',
+            'excludeFlags',
+          ]);
+          result = await service.freeze(staff, body);
+        } else if (body.action === 'commit') {
+          strictKeys(body, ['action', 'id']);
+          result = await service.commit(staff, body);
+        } else if (body.action === 'draw') {
+          strictKeys(body, ['action', 'id']);
+          result = await service.draw(staff, body);
+        } else if (body.action === 'cancel') {
+          strictKeys(body, ['action', 'id', 'reason']);
+          result = await service.cancel(staff, body);
+        } else if (body.action === 'status') {
+          strictKeys(body, ['action', 'id', 'position', 'status', 'note']);
+          result = await service.setStatus(staff, body);
+        } else throw new AppError('إجراء غير صالح.');
       } else if (route === 'admin/question-credit') {
         await new CompetitionService(await getDb()).creditInvalidQuestion(
           role(session, ['admin']),

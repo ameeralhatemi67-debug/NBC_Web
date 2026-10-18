@@ -37,9 +37,9 @@ try {
   const tables = (
     await operator.query("SELECT tablename,rowsecurity FROM pg_tables WHERE schemaname='nbc'")
   ).rows;
-  assert.equal(tables.length, 30);
+  assert.equal(tables.length, 32);
   assert.ok(tables.every((t) => t.rowsecurity));
-  pass('source-derived fresh export creates 30 private tables with RLS');
+  pass('source-derived fresh export creates 32 private tables with RLS');
   for (const role of ['anon', 'authenticated', 'service_role']) {
     await operator.query(`SET ROLE ${role}`);
     await assert.rejects(operator.query('SELECT * FROM nbc.settings'), /permission denied/);
@@ -70,6 +70,8 @@ try {
   );
   await assert.rejects(operator.query('DELETE FROM nbc.audit'), /permission denied/);
   await assert.rejects(operator.query('DELETE FROM nbc.simulation_events'), /permission denied/);
+  await assert.rejects(operator.query('DELETE FROM nbc.prize_draws'), /permission denied/);
+  await assert.rejects(operator.query('DELETE FROM nbc.prize_draw_entries'), /permission denied/);
   assert.equal(
     (await operator.query('SELECT count(*)::int AS n FROM nbc.simulation_runs')).rows[0].n,
     0,

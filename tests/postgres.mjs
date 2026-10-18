@@ -76,6 +76,7 @@ try {
         'tests/reading-controls.test.ts',
         'tests/analytics-visuals.test.ts',
         'tests/simulation.test.ts',
+        'tests/prize-draw.test.ts',
       ],
       {
         windowsHide: true,
@@ -107,6 +108,21 @@ try {
     });
   }
   if (exitCode === 0) {
+    await createDatabase('nbc_release_test');
+    const release = spawn(process.execPath, ['--import', 'tsx', 'tests/upgrade-release.mjs'], {
+      windowsHide: true,
+      stdio: 'inherit',
+      env: {
+        ...process.env,
+        NBC_TEST_DATABASE_URL: `postgresql://postgres:${password}@127.0.0.1:${port}/nbc_release_test`,
+      },
+    });
+    exitCode = await new Promise((resolve, reject) => {
+      release.on('error', reject);
+      release.on('exit', (code) => resolve(code ?? 1));
+    });
+  }
+  if (exitCode === 0) {
     const http = spawn(process.execPath, ['tests/production-integration.mjs'], {
       windowsHide: true,
       stdio: 'inherit',
@@ -123,7 +139,7 @@ try {
   completed = exitCode === 0;
   if (completed)
     console.log(
-      'PostgreSQL verification completed: OTP, competition/migrations, private grants and production HTTP phases passed.',
+      'PostgreSQL verification completed: OTP, competition/migrations, private grants, release upgrade and production HTTP phases passed.',
     );
 } catch (error) {
   exitCode = 1;

@@ -3,6 +3,7 @@ import { backendReadiness } from '@/lib/backend-readiness';
 import type { Stage, WriteEvent } from '@/lib/competition-domain';
 import { SimulationService } from '@/lib/simulation-service';
 import { PrizeDrawService } from '@/lib/prize-draw-service';
+import { AnalyticsService } from '@/lib/analytics-service';
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getDb } from '@/lib/db';
@@ -156,6 +157,8 @@ async function respond(req: NextRequest) {
           excludeRanked: q.has('excludeRanked') ? q.get('excludeRanked') === '1' : undefined,
           excludeFlags: q.has('excludeFlags') ? q.get('excludeFlags') === '1' : undefined,
         });
+      } else if (route === 'admin/analytics') {
+        result = await new AnalyticsService(await getDb()).insights(role(session, ['admin']));
       } else if (route === 'admin/prize-draw/screen') {
         result = await new PrizeDrawService(await getDb()).screen(role(session, ['admin']));
       } else if (route === 'admin/prize-draw/file') {

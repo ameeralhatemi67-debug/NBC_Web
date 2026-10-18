@@ -7,6 +7,7 @@ import { CompetitionService } from './competition-service';
 import { strictKeys, textField } from './otp';
 import { identityLookup, keyedHash, normalizePhone } from './otp-crypto';
 import { otpEnabled } from './runtime';
+import { cleanSource } from './analytics-insights';
 import { lock, rateLimit, securityEvent } from './security-store';
 
 export async function authenticateParticipant(
@@ -31,6 +32,7 @@ export async function authenticateParticipant(
     'village',
     'backup',
     'terms',
+    'source',
   ]);
   if (body.mode !== 'register' && body.mode !== 'login')
     throw new AppError('اختر التسجيل أو الدخول.');
@@ -60,6 +62,7 @@ export async function authenticateParticipant(
       locality,
       region: place.region,
       institution: textField(body, 'institution', 160),
+      source: cleanSource(body.source) ?? '',
     };
   }
   return db.transaction(async (tx) => {
@@ -92,7 +95,7 @@ export async function authenticateParticipant(
       participant = randomUUID();
       const p = profile!;
       const inserted = await tx.query(
-        'INSERT INTO participants(id,identity,name,phone,stage,region,locality,institution,gender) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT(identity) DO NOTHING RETURNING id',
+        'INSERT INTO participants(id,identity,name,phone,stage,region,locality,institution,gender,source) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ON CONFLICT(identity) DO NOTHING RETURNING id',
         [
           participant,
           identity,
@@ -103,6 +106,7 @@ export async function authenticateParticipant(
           p.locality,
           p.institution,
           p.gender,
+          p.source || null,
         ],
       );
       if (!inserted.rows.length)

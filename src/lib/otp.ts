@@ -18,6 +18,7 @@ import { otpProvider, type OtpProvider } from './otp-provider';
 import { isLocalMode, isProduction } from './runtime';
 import { assertOtpActive, configFingerprint, readSetup, saveSetup } from './otp-readiness';
 import { lock, rateLimit, securityEvent } from './security-store';
+import { cleanSource } from './analytics-insights';
 
 export type OtpContext = { ip: string; actor?: string };
 type Challenge = {
@@ -106,6 +107,7 @@ export class OtpService {
             'village',
             'backup',
             'terms',
+            'source',
           ],
     );
     const phone = normalizePhone(textField(body, 'phone', 30));
@@ -169,6 +171,7 @@ export class OtpService {
           locality,
           institution: textField(body, 'institution', 160),
           region: place.region,
+          source: cleanSource(body.source) ?? '',
         };
       }
     }
@@ -388,8 +391,8 @@ export class OtpService {
           participant = randomUUID();
           const p = row.payload_json;
           const inserted = await tx.query(
-            `INSERT INTO participants(id,identity,name,phone,stage,region,locality,institution,gender)
-            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT(identity) DO NOTHING RETURNING id`,
+            `INSERT INTO participants(id,identity,name,phone,stage,region,locality,institution,gender,source)
+            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ON CONFLICT(identity) DO NOTHING RETURNING id`,
             [
               participant,
               p.identity,
@@ -400,6 +403,7 @@ export class OtpService {
               p.locality,
               p.institution,
               p.gender,
+              cleanSource(p.source),
             ],
           );
           if (!inserted.rows.length) {

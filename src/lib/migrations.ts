@@ -338,6 +338,14 @@ UPDATE settings SET value=replace(value::text,'تعتمد جميع الأسئل�
       CREATE TRIGGER immutable_prize_draw_entry BEFORE UPDATE OR DELETE ON prize_draw_entries FOR EACH ROW EXECUTE FUNCTION guard_prize_draw_entry();
     `,
   },
+  {
+    id: '016_registration_source',
+    // The post link code a participant arrived with (?ref=...), for analytics attribution only.
+    sql: `
+      ALTER TABLE participants ADD COLUMN source TEXT CHECK(source IS NULL OR source ~ '^[a-z0-9][a-z0-9_-]{0,39}$');
+      CREATE INDEX participants_source ON participants(source) WHERE source IS NOT NULL;
+    `,
+  },
 ];
 export const migrationChecksum = (sql: string) => createHash('sha256').update(sql).digest('hex');
 export async function migrate(db: Database) {

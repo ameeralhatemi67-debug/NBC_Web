@@ -14,6 +14,7 @@ import './result-intro-ux.css';
 import './admin-ux.css';
 import './winners-ux.css';
 import './prize-draw.css';
+import './analytics-insights.css';
 import './meeting-ux.css';
 import './refinements.css';
 import { Providers } from '@/components/ui';
@@ -32,7 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{const d=localStorage.getItem('nbc-design');if(d==='official'||d==='hybrid')document.documentElement.dataset.design=d}catch{}`,
+            __html: `try{const d=localStorage.getItem('nbc-design');if(d==='official'||d==='hybrid')document.documentElement.dataset.design=d}catch{}try{const r=(new URLSearchParams(location.search).get('ref')||'').trim().toLowerCase();if(/^[a-z0-9][a-z0-9_-]{0,39}$/.test(r))localStorage.setItem('nbc-source',JSON.stringify({code:r,at:Date.now()}))}catch{}`,
           }}
         />
       </head>

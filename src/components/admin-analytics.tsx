@@ -13,6 +13,7 @@ import {
 } from '@/lib/analytics';
 import { Icon } from './ui';
 import { AdminAnalyticsCharts } from './admin-analytics-charts';
+import { AdminAnalyticsInsights } from './admin-analytics-insights';
 import { stages } from '@/lib/content';
 import { registrationDay } from '@/lib/analytics';
 
@@ -253,6 +254,7 @@ export function AdminAnalytics({
           <span className="fine-print">التصدير متاح للبيانات الفعلية فقط.</span>
         )}
       </div>
+      <AdminAnalyticsInsights people={rows} stage={filters.stage} live={exportEnabled} />
       <AdminAnalyticsCharts
         people={rows}
         city={filters.locality}

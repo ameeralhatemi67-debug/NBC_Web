@@ -9,6 +9,20 @@ import { OtpEntry, type OtpChallenge } from './otp-entry';
 import { genders, stages } from '@/lib/content';
 import type { Eligibility } from '@/lib/eligibility';
 
+// The post link code captured on arrival (see layout.tsx), kept for 30 days, sent on registration.
+function linkSource(mode: 'login' | 'register') {
+  if (mode !== 'register') return {};
+  try {
+    const saved = JSON.parse(localStorage.getItem('nbc-source') ?? 'null') as {
+      code?: string;
+      at?: number;
+    } | null;
+    if (saved?.code && Date.now() - (saved.at ?? 0) < 30 * 86400000) return { source: saved.code };
+  } catch {
+    // Storage blocked or malformed: register without a link code.
+  }
+  return {};
+}
 type RegistrationOptions = Eligibility & {
   registration: { open: boolean; reason: 'paused' | 'closed' | null };
 };
@@ -69,11 +83,11 @@ function RegistrationForm({
     setError('');
     try {
       if (!otpEnabled) {
-        await api('auth/direct', { ...values, mode });
+        await api('auth/direct', { ...values, mode, ...linkSource(mode) });
         router.push('/participate');
         return;
       }
-      setChallenge(await api('auth/challenge', { ...values, mode }));
+      setChallenge(await api('auth/challenge', { ...values, mode, ...linkSource(mode) }));
       setStep(2);
     } catch (e) {
       setError((e as Error).message);

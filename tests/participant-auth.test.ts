@@ -162,3 +162,27 @@ test('direct login throttles failed attempts and never creates accounts or OTP c
     assert.equal((await db.query('SELECT id FROM otp_challenges')).rows.length, 0);
   });
 });
+test('registration keeps a clean post link code for analytics and drops anything else', async () => {
+  await fixture(async (db) => {
+    await authenticateParticipant(
+      db,
+      { ...form(21, '0551111021'), source: ' X-Launch ' },
+      '10.0.0.21',
+    );
+    await authenticateParticipant(
+      db,
+      { ...form(22, '0551111022'), source: '<script>' },
+      '10.0.0.22',
+    );
+    await authenticateParticipant(db, form(23, '0551111023'), '10.0.0.23');
+    const sources = (
+      await db.query<{ source: string | null }>('SELECT source FROM participants')
+    ).rows.map((r) => r.source);
+    assert.deepEqual(sources.filter(Boolean), ['x-launch']);
+    assert.equal(sources.length, 3);
+    await assert.rejects(
+      db.query("UPDATE participants SET source='Bad Code' WHERE source='x-launch'"),
+      /check constraint/,
+    );
+  });
+});

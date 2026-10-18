@@ -77,6 +77,7 @@ try {
         'tests/analytics-visuals.test.ts',
         'tests/simulation.test.ts',
         'tests/prize-draw.test.ts',
+        'tests/analytics-insights.test.ts',
       ],
       {
         windowsHide: true,

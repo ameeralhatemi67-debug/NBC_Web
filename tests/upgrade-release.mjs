@@ -39,15 +39,20 @@ try {
     IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='service_role') THEN CREATE ROLE service_role NOLOGIN BYPASSRLS; END IF;
     IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='nbc_runtime') THEN CREATE ROLE nbc_runtime LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS; END IF;
   END $$; ALTER ROLE nbc_runtime PASSWORD ${lit(password)};`);
-  // The fresh export without 015 is the private schema production has today.
+  // The fresh export without the migrations after 014 is the schema the first forward release
+  // started from; the upgrade below applies all of them (015 onwards) in one go.
   const draw = migrations.find((m) => m.id === '015_prize_draw');
+  const later = migrations.slice(migrations.findIndex((m) => m.id === '014_simulation') + 1);
   const fresh = await exportTo('scripts/export-fresh-supabase.mjs', '.data/release-test-fresh.sql');
-  const at014 = fresh
-    .replace(
-      `${draw.sql}\nINSERT INTO schema_migrations(id,checksum) VALUES(${lit(draw.id)},${lit(migrationChecksum(draw.sql))});\n`,
-      '',
-    )
-    .replace('REVOKE DELETE ON prize_draws,prize_draw_entries FROM nbc_runtime;\n', '');
+  let at014 = fresh.replace(
+    'REVOKE DELETE ON prize_draws,prize_draw_entries FROM nbc_runtime;\n',
+    '',
+  );
+  for (const m of later) {
+    const block = `${m.sql}\nINSERT INTO schema_migrations(id,checksum) VALUES(${lit(m.id)},${lit(migrationChecksum(m.sql))});\n`;
+    assert.ok(at014.includes(block), m.id);
+    at014 = at014.replace(block, '');
+  }
   assert.notEqual(at014, fresh);
   await operator.query('BEGIN');
   await operator.query(at014);
@@ -82,7 +87,13 @@ try {
     await operator.query("SELECT checksum FROM nbc.schema_migrations WHERE id='015_prize_draw'")
   ).rows[0];
   assert.equal(applied.checksum, migrationChecksum(draw.sql));
-  pass('forward export adds 015 once: 32 tables, RLS and runtime-only policies, recorded checksum');
+  const recorded = (await operator.query('SELECT id FROM nbc.schema_migrations')).rows.map(
+    (r) => r.id,
+  );
+  assert.ok(later.every((m) => recorded.includes(m.id)));
+  pass(
+    'forward export adds every later migration once: 32 tables, RLS and runtime-only policies, recorded checksums',
+  );
 
   await operator.query('BEGIN');
   await assert.rejects(operator.query(upgrade), /already applied/);

@@ -23,6 +23,8 @@ import {
 } from '@/lib/analytics-insights';
 import { stageKeys, stageNames } from '@/lib/competition-domain';
 import { api } from './ui';
+import { MakePoster, type PosterHook } from './admin-analytics-charts';
+import type { ChartKind } from '@/lib/media/charts';
 
 const number = (v: number) => v.toLocaleString('ar-SA', { maximumFractionDigits: 1 });
 const pct = (v: number | null) => (v === null ? '—' : `${number(v)}٪`);
@@ -38,18 +40,23 @@ function Panel({
   foot,
   wide,
   children,
+  poster,
+  chart,
 }: {
   title: string;
   subtitle?: ReactNode;
   foot?: ReactNode;
   wide?: boolean;
   children: ReactNode;
+  poster?: PosterHook;
+  chart?: ChartKind;
 }) {
   return (
     <section className={`panel analytics-visual insight-panel${wide ? ' wide' : ''}`}>
       <div className="panel-heading">
         <h2>{title}</h2>
         {subtitle && <span>{subtitle}</span>}
+        {chart && <MakePoster poster={poster} chart={chart} />}
       </div>
       <div className="analytics-visual-body">{children}</div>
       {foot && <p className="insight-foot">{foot}</p>}
@@ -76,10 +83,12 @@ export function AdminAnalyticsInsights({
   people,
   stage,
   live,
+  poster,
 }: {
   people: AnalyticsParticipant[];
   stage: string;
   live: boolean;
+  poster?: PosterHook;
 }) {
   const [data, setData] = useState<InsightsData | null>(null);
   const [error, setError] = useState('');
@@ -166,6 +175,8 @@ export function AdminAnalyticsInsights({
         <Panel
           title="مسار المشاركة"
           subtitle="من التسجيل إلى الإرسال"
+          poster={poster}
+          chart="funnel"
           foot={
             ready && loss
               ? `أكبر فقد بين «${loss.from}» و«${loss.to}»: ${count(loss.lost)} مشاركًا.`
@@ -216,6 +227,8 @@ export function AdminAnalyticsInsights({
         <Panel
           title="متى يسجّل المشاركون"
           subtitle="اليوم والساعة بتوقيت المملكة"
+          poster={poster}
+          chart="heat"
           foot={
             heat.peak
               ? `الذروة يوم ${weekdays[heat.peak.day]} عند ${hourLabel(heat.peak.hour)}: وقت مناسب لنشر التذكيرات.`
@@ -227,6 +240,8 @@ export function AdminAnalyticsInsights({
         <Panel
           title="المدن: الحجم مقابل الأداء"
           subtitle="الإكمال والدرجة · حجم الدائرة عدد المسجلين"
+          poster={poster}
+          chart="bubbles"
           foot={<CityNote cities={cities} />}
         >
           <CityBubbles cities={cities} />
@@ -272,9 +287,18 @@ export function AdminAnalyticsInsights({
 
       <div className="insight-grid-3">
         <Panel title="المنشورات التي جلبت مشاركين" subtitle="حسب رمز الرابط ‎?ref=">
-          {!live ? <ServerOnly /> : !ready ? null : <SourceList sources={sources} />}
+          {!live ? (
+            <ServerOnly />
+          ) : !ready ? null : (
+            <SourceList sources={sources} names={data.postNames ?? {}} />
+          )}
         </Panel>
-        <Panel title="الإكمال حسب المرحلة والمدينة" subtitle="نسبة المكتملين من المسجلين">
+        <Panel
+          title="الإكمال حسب المرحلة والمدينة"
+          subtitle="نسبة المكتملين من المسجلين"
+          poster={poster}
+          chart="matrix"
+        >
           <Matrix matrix={matrix} />
         </Panel>
         <Panel title="مؤشرات للمراجعة" subtitle="للجنة فقط">
@@ -684,7 +708,13 @@ function ReadingNote({ r }: { r: number }) {
   );
 }
 
-function SourceList({ sources }: { sources: ReturnType<typeof sourceAttribution> }) {
+function SourceList({
+  sources,
+  names,
+}: {
+  sources: ReturnType<typeof sourceAttribution>;
+  names: Record<string, string>;
+}) {
   const coded = sources.filter((s) => s.source);
   const max = Math.max(1, ...sources.map((s) => s.total));
   return (
@@ -699,7 +729,17 @@ function SourceList({ sources }: { sources: ReturnType<typeof sourceAttribution>
           <div className="analytics-count-row" key={s.source || 'direct'}>
             <div>
               <span>
-                {s.source ? <bdi dir="ltr">{s.source}</bdi> : 'دخول مباشر'}
+                {s.source ? (
+                  names[s.source] ? (
+                    <>
+                      {names[s.source]} <bdi dir="ltr">{s.source}</bdi>
+                    </>
+                  ) : (
+                    <bdi dir="ltr">{s.source}</bdi>
+                  )
+                ) : (
+                  'دخول مباشر'
+                )}
                 <small>{s.completion === null ? 'إكمال —' : `إكمال ${pct(s.completion)}`}</small>
               </span>
               <bdi>{count(s.total)}</bdi>

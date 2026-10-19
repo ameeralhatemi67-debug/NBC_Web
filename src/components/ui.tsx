@@ -18,6 +18,13 @@ export function Icon({ name = 'arrow', size = 22 }: { name?: string; size?: numb
       </>
     ),
     check: <path d="m5 12 4 4L19 6" />,
+    image: (
+      <>
+        <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" />
+        <path d="m3.5 16 4.6-4.6a1.5 1.5 0 0 1 2.1 0L16 17.2m-2.6-2.6 1.6-1.6a1.5 1.5 0 0 1 2.1 0l3.4 3.4" />
+        <circle cx="15.5" cy="9" r="1.6" />
+      </>
+    ),
     moon: <path d="M20 15a8 8 0 0 1-11-11 9 9 0 1 0 11 11Z" />,
     pages: (
       <>

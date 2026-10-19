@@ -55,6 +55,8 @@ export type InsightsData = {
   items: Record<string, StageItems>;
   guidance?: { participants: GuidanceSet; tests: GuidanceSet };
   otp: { enabled: boolean; hours: OtpHour[] };
+  // Media centre post titles by link code, so the source list names the post.
+  postNames?: Record<string, string>;
   generatedAt: string;
 };
 

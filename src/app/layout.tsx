@@ -16,6 +16,7 @@ import './winners-ux.css';
 import './prize-draw.css';
 import './analytics-insights.css';
 import './meeting-ux.css';
+import './media.css';
 import './refinements.css';
 import { Providers } from '@/components/ui';
 export const metadata: Metadata = {

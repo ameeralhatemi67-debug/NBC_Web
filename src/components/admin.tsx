@@ -17,7 +17,8 @@ import {
   type Stage,
 } from '@/lib/competition-domain';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { PosterRequest } from '@/lib/media/charts';
 import {
   api,
   Brand,
@@ -41,6 +42,10 @@ const CeremonyStudio = dynamic(
   () => import('./ceremony/ceremony-studio').then((m) => m.CeremonyStudio),
   { ssr: false },
 );
+// The media centre loads its poster engine, fonts and QR code only when its tab opens.
+const AdminMedia = dynamic(() => import('./media/admin-media').then((m) => m.AdminMedia), {
+  ssr: false,
+});
 import { AdminParticipants } from './admin-participants';
 import { AdminCampaigns } from './admin-campaigns';
 import { AdminBook } from './admin-book';
@@ -81,6 +86,7 @@ const tabs = [
   { id: 'overview', name: 'نظرة عامة', icon: 'chart' },
   { id: 'participants', name: 'المشاركون', icon: 'user' },
   { id: 'analytics', name: 'تحليلات المسابقة', icon: 'chart' },
+  { id: 'media', name: 'المركز الإعلامي', icon: 'image' },
   { id: 'prizes', name: 'الجوائز والتصميم', icon: 'trophy' },
   { id: 'questions', name: 'بنك الأسئلة', icon: 'book' },
   { id: 'results', name: 'النتائج والاعتماد', icon: 'shield' },
@@ -120,6 +126,8 @@ export function Admin({
     loginFailed ? 'تعذّر تسجيل الدخول. استخدم حساب Vercel المصرح له ثم أعد المحاولة.' : '',
   );
   const [tab, setTab] = useState('overview');
+  const [posterRequest, setPosterRequest] = useState<PosterRequest | null>(null);
+  const posterHandled = useCallback(() => setPosterRequest(null), []);
   const [questionStage, setQuestionStage] = useState<Stage | ''>('');
   const [stage, setStage] = useState('');
   const [region, setRegion] = useState('');
@@ -471,6 +479,7 @@ export function Admin({
           {role === 'admin' &&
             dataReady &&
             tab !== 'ceremony' &&
+            tab !== 'media' &&
             simulationSource === 'actual' &&
             data.competition &&
             data.book && (
@@ -498,12 +507,14 @@ export function Admin({
                   ? 'صورة واضحة للمشاركة، من البداية إلى الاعتماد.'
                   : tab === 'ceremony'
                     ? 'ثلاثة تصاميم لحفل التدشين، تعرضها اللجنة وتختار أحدها. العرض لا يغيّر شيئًا في المسابقة.'
-                    : demo
-                      ? 'المعلومات المعروضة من سجلات العرض التجريبي.'
-                      : 'المعلومات المعروضة من سجلات المنصة.'}
+                    : tab === 'media'
+                      ? 'منشورات جاهزة بهوية المسابقة، تُقرأ أرقامها من البيانات الحية وتُنزَّل بكل مقاسات المنصات.'
+                      : demo
+                        ? 'المعلومات المعروضة من سجلات العرض التجريبي.'
+                        : 'المعلومات المعروضة من سجلات المنصة.'}
               </p>
             </div>
-            {role === 'admin' && tab !== 'ceremony' && (
+            {role === 'admin' && !['ceremony', 'media'].includes(tab) && (
               <button
                 className="button outline"
                 disabled={busy || simulationSource !== 'actual'}
@@ -514,8 +525,8 @@ export function Admin({
             )}
           </div>
           {role === 'admin' && (
-            // Kept mounted on the ceremony tab so a running simulation keeps reporting.
-            <div hidden={tab === 'ceremony'}>
+            // Kept mounted on the ceremony and media tabs so a running simulation keeps reporting.
+            <div hidden={tab === 'ceremony' || tab === 'media'}>
               <AdminSimulation
                 competition={data.competition}
                 source={simulationSource}
@@ -526,7 +537,7 @@ export function Admin({
               />
             </div>
           )}
-          {simulationSource !== 'actual' && (
+          {simulationSource !== 'actual' && tab !== 'media' && (
             <p className="notice simulation-data-notice">
               {projected
                 ? simulationSource === 'generated'
@@ -571,6 +582,31 @@ export function Admin({
               key={simulationSource}
               people={people}
               exportEnabled={simulationSource === 'actual'}
+              onMakePoster={
+                role === 'admin'
+                  ? (request) => {
+                      setPosterRequest(request);
+                      setTab('media');
+                      window.scrollTo({ top: 0 });
+                    }
+                  : undefined
+              }
+            />
+          )}
+          {tab === 'media' && role === 'admin' && (
+            <AdminMedia
+              participants={data.participants}
+              competition={data.competition}
+              prizes={data.prizes}
+              request={posterRequest}
+              onRequestDone={posterHandled}
+              preview={
+                simulationSource === 'generated'
+                  ? simulationRows
+                  : simulationSource === 'practice'
+                    ? practiceRows
+                    : null
+              }
             />
           )}
           {tab === 'prizes' && (

@@ -16,6 +16,7 @@ import { AdminAnalyticsCharts } from './admin-analytics-charts';
 import { AdminAnalyticsInsights } from './admin-analytics-insights';
 import { stages } from '@/lib/content';
 import { registrationDay } from '@/lib/analytics';
+import type { ChartKind, PosterRequest } from '@/lib/media/charts';
 
 const percent = (n: number | null) =>
   n === null ? '—' : `${n.toLocaleString('ar-SA', { maximumFractionDigits: 1 })}٪`;
@@ -37,9 +38,11 @@ type Dimension = keyof typeof dimensions;
 export function AdminAnalytics({
   people,
   exportEnabled = true,
+  onMakePoster,
 }: {
   people: AnalyticsParticipant[];
   exportEnabled?: boolean;
+  onMakePoster?: (request: PosterRequest) => void;
 }) {
   const [filters, setFilters] = useState<AnalyticsFilters>(emptyFilters);
   const [dimension, setDimension] = useState<Dimension>('institution');
@@ -71,6 +74,25 @@ export function AdminAnalytics({
     crossCounts.set(key, (crossCounts.get(key) || 0) + 1);
   }
   const exportUrl = `/api/export?${new URLSearchParams(filters)}`;
+  // The current filters, in words, travel with a chart that becomes a poster.
+  const scope = [
+    filters.stage,
+    filters.region,
+    filters.locality,
+    filters.gender,
+    filters.institution,
+    filters.status && statuses[filters.status],
+    filters.year,
+    (filters.fromDate || filters.toDate) && `${filters.fromDate || '…'} – ${filters.toDate || '…'}`,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+  const poster = onMakePoster
+    ? {
+        enabled: exportEnabled,
+        make: (chart: ChartKind) => onMakePoster({ chart, people: rows, scope, at: Date.now() }),
+      }
+    : undefined;
   return (
     <>
       <section className="panel analytics-filter-panel" aria-label="مرشحات التحليلات">
@@ -254,13 +276,19 @@ export function AdminAnalytics({
           <span className="fine-print">التصدير متاح للبيانات الفعلية فقط.</span>
         )}
       </div>
-      <AdminAnalyticsInsights people={rows} stage={filters.stage} live={exportEnabled} />
+      <AdminAnalyticsInsights
+        people={rows}
+        stage={filters.stage}
+        live={exportEnabled}
+        poster={poster}
+      />
       <AdminAnalyticsCharts
         people={rows}
         city={filters.locality}
         onCityChange={(value) => update('locality', value)}
         stage={filters.stage}
         onStageChange={(value) => update('stage', value)}
+        poster={poster}
       />
       <section className="panel analytics-table">
         <div className="analytics-table-heading">

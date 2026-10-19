@@ -4,6 +4,7 @@ import type { Stage, WriteEvent } from '@/lib/competition-domain';
 import { SimulationService } from '@/lib/simulation-service';
 import { PrizeDrawService } from '@/lib/prize-draw-service';
 import { AnalyticsService } from '@/lib/analytics-service';
+import { MediaLog } from '@/lib/media-log';
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getDb } from '@/lib/db';
@@ -159,6 +160,8 @@ async function respond(req: NextRequest) {
         });
       } else if (route === 'admin/analytics') {
         result = await new AnalyticsService(await getDb()).insights(role(session, ['admin']));
+      } else if (route === 'admin/media') {
+        result = await new MediaLog(await getDb()).list(session);
       } else if (route === 'admin/prize-draw/screen') {
         result = await new PrizeDrawService(await getDb()).screen(role(session, ['admin']));
       } else if (route === 'admin/prize-draw/file') {
@@ -489,6 +492,9 @@ async function respond(req: NextRequest) {
       } else if (route === 'admin/question') {
         await updateQuestion(role(session, ['admin', 'editor']), body);
         result = { ok: true };
+      } else if (route === 'admin/media') {
+        if (body.action !== 'record') throw new AppError('إجراء غير صالح.');
+        result = await new MediaLog(await getDb()).record(session, body);
       } else if (route === 'admin/prizes') {
         const staff = role(session, ['admin']);
         result = { prizes: await updatePrizes(body, staff.actor ?? 'admin') };

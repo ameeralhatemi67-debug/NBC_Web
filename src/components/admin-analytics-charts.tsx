@@ -14,6 +14,8 @@ import {
 } from '@/lib/analytics';
 import { stages } from '@/lib/content';
 import { CityParticipationMap } from './city-participation-map';
+import type { ChartKind } from '@/lib/media/charts';
+import { Icon } from './ui';
 
 const number = (value: number) => value.toLocaleString('ar-SA', { maximumFractionDigits: 1 });
 const percentage = (value: number) => `${number(value)}٪`;
@@ -23,23 +25,48 @@ const states = [
   { key: 'new', label: 'لم تبدأ' },
 ] as const;
 type Bucket = { label: string; count: number };
+export type PosterHook = { enabled: boolean; make: (chart: ChartKind) => void };
+
+export function MakePoster({ poster, chart }: { poster?: PosterHook; chart: ChartKind }) {
+  if (!poster) return null;
+  return (
+    <button
+      type="button"
+      className="make-poster"
+      disabled={!poster.enabled}
+      title={
+        poster.enabled
+          ? 'افتح هذا الرسم منشورًا في المركز الإعلامي'
+          : 'متاح لبيانات المسابقة الفعلية فقط'
+      }
+      onClick={() => poster.make(chart)}
+    >
+      <Icon name="image" size={14} /> اصنع منشورًا
+    </button>
+  );
+}
 
 function ChartPanel({
   title,
   subtitle,
   children,
   className = '',
+  poster,
+  chart,
 }: {
   title: string;
   subtitle: string;
   children: ReactNode;
   className?: string;
+  poster?: PosterHook;
+  chart?: ChartKind;
 }) {
   return (
     <section className={`panel analytics-visual ${className}`}>
       <div className="panel-heading">
         <h2>{title}</h2>
         <span>{subtitle}</span>
+        {chart && <MakePoster poster={poster} chart={chart} />}
       </div>
       <div className="analytics-visual-body">{children}</div>
     </section>
@@ -414,12 +441,14 @@ export function AdminAnalyticsCharts({
   onCityChange,
   stage,
   onStageChange,
+  poster,
 }: {
   people: AnalyticsParticipant[];
   city: string;
   onCityChange: (value: string) => void;
   stage: string;
   onStageChange: (value: string) => void;
+  poster?: PosterHook;
 }) {
   const schools = institutionParticipation(people);
   const timed = people.filter((p) => completionMinutes(p) !== null).length;
@@ -427,7 +456,12 @@ export function AdminAnalyticsCharts({
   return (
     <>
       <div className="analytics-visual-grid">
-        <ChartPanel title="المشاركة حسب المدينة" subtitle="عدد المسجلين · ترتيب تنازلي">
+        <ChartPanel
+          title="المشاركة حسب المدينة"
+          subtitle="عدد المسجلين · ترتيب تنازلي"
+          poster={poster}
+          chart="cities"
+        >
           <CountBars
             rows={groupParticipants(people, 'locality').map((group) => ({
               label: group.label,
@@ -436,15 +470,27 @@ export function AdminAnalyticsCharts({
             unit="مسجل"
           />
         </ChartPanel>
-        <ChartPanel title="الإكمال حسب المرحلة" subtitle="نسبة من مسجّلي كل مرحلة">
+        <ChartPanel
+          title="الإكمال حسب المرحلة"
+          subtitle="نسبة من مسجّلي كل مرحلة"
+          poster={poster}
+          chart="stages"
+        >
           <StageCompletion people={people} />
         </ChartPanel>
-        <ChartPanel title="توزيع الذكور والإناث" subtitle="حصة من المجموعة المختارة">
+        <ChartPanel
+          title="توزيع الذكور والإناث"
+          subtitle="حصة من المجموعة المختارة"
+          poster={poster}
+          chart="gender"
+        >
           <GenderDonut people={people} />
         </ChartPanel>
         <ChartPanel
           title="توزيع الدرجات"
           subtitle={`${number(people.filter((p) => scorePercentage(p) !== null).length)} مشاركة مكتملة`}
+          poster={poster}
+          chart="scores"
         >
           <Histogram
             buckets={scoreDistribution(people)}
@@ -453,10 +499,20 @@ export function AdminAnalyticsCharts({
             empty="تظهر الدرجات بعد إرسال أول مشاركة مطابقة."
           />
         </ChartPanel>
-        <ChartPanel title="تراكم التسجيل مع الوقت" subtitle="حسب تاريخ التسجيل · المجموعة المختارة">
+        <ChartPanel
+          title="تراكم التسجيل مع الوقت"
+          subtitle="حسب تاريخ التسجيل · المجموعة المختارة"
+          poster={poster}
+          chart="trend"
+        >
           <RegistrationTrend people={people} />
         </ChartPanel>
-        <ChartPanel title="توزيع وقت الإكمال" subtitle={`${number(timed)} مشاركة ذات توقيت صالح`}>
+        <ChartPanel
+          title="توزيع وقت الإكمال"
+          subtitle={`${number(timed)} مشاركة ذات توقيت صالح`}
+          poster={poster}
+          chart="duration"
+        >
           <Histogram
             buckets={durationDistribution(people)}
             title="توزيع مدة الإكمال بالدقائق"
@@ -472,6 +528,8 @@ export function AdminAnalyticsCharts({
         title="الخريطة الحرارية للمشاركة"
         subtitle="عدد المسجلين حسب المدينة / المحافظة"
         className="analytics-map-panel"
+        poster={poster}
+        chart="map"
       >
         <CityParticipationMap people={people} selectedCity={city} onSelect={onCityChange} />
       </ChartPanel>
@@ -479,6 +537,8 @@ export function AdminAnalyticsCharts({
         <ChartPanel
           title="مشاركة المدارس والجامعات"
           subtitle={`${number(schools.length)} جهة تعليمية مسجلة`}
+          poster={poster}
+          chart="schools"
         >
           <label className="analytics-school-filter">
             مرحلة الجهات التعليمية

@@ -2,6 +2,7 @@ import type { Database } from './database';
 import { AppError } from './domain';
 import type { Session } from './service';
 import { otpEnabled } from './runtime';
+import { readMediaPosts } from './media-log';
 import {
   pointBiserial,
   type GuidanceRow,
@@ -187,10 +188,14 @@ export class AnalyticsService {
           title: questions.find((q) => q.id === r.questionId)?.title ?? '',
         })),
       };
+      const postNames = Object.fromEntries(
+        (await readMediaPosts(tx)).map((p) => [p.code, p.title]),
+      );
       return {
         rows,
         items,
         guidance: { participants, tests },
+        postNames,
         otp: { enabled: otpEnabled(), hours },
         generatedAt: new Date(this.now()).toISOString(),
       };

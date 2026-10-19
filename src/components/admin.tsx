@@ -35,6 +35,12 @@ import { AdminSecurity } from './admin-security';
 import { AdminPrizes } from './admin-prizes';
 import { AdminWinners } from './admin-winners';
 import { AdminPrizeDraw } from './admin-prize-draw';
+import dynamic from 'next/dynamic';
+// The ceremony designs are heavy and shown only on their own tab, so they load on demand.
+const CeremonyStudio = dynamic(
+  () => import('./ceremony/ceremony-studio').then((m) => m.CeremonyStudio),
+  { ssr: false },
+);
 import { AdminParticipants } from './admin-participants';
 import { AdminCampaigns } from './admin-campaigns';
 import { AdminBook } from './admin-book';
@@ -68,6 +74,7 @@ type AdminData = {
 };
 const tabs = [
   { id: 'competition', name: 'إدارة المسابقة', icon: 'clock' },
+  { id: 'ceremony', name: 'التدشين', icon: 'play' },
   { id: 'coverage', name: 'تغطية الكتاب', icon: 'book' },
   { id: 'test-run', name: 'تجربة الإدارة', icon: 'shield' },
   { id: 'security', name: 'إعداد التحقق والأمان', icon: 'shield' },
@@ -463,6 +470,7 @@ export function Admin({
         <main id="main" className="admin-main">
           {role === 'admin' &&
             dataReady &&
+            tab !== 'ceremony' &&
             simulationSource === 'actual' &&
             data.competition &&
             data.book && (
@@ -488,12 +496,14 @@ export function Admin({
               <p>
                 {tab === 'overview'
                   ? 'صورة واضحة للمشاركة، من البداية إلى الاعتماد.'
-                  : demo
-                    ? 'المعلومات المعروضة من سجلات العرض التجريبي.'
-                    : 'المعلومات المعروضة من سجلات المنصة.'}
+                  : tab === 'ceremony'
+                    ? 'ثلاثة تصاميم لحفل التدشين، تعرضها اللجنة وتختار أحدها. العرض لا يغيّر شيئًا في المسابقة.'
+                    : demo
+                      ? 'المعلومات المعروضة من سجلات العرض التجريبي.'
+                      : 'المعلومات المعروضة من سجلات المنصة.'}
               </p>
             </div>
-            {role === 'admin' && (
+            {role === 'admin' && tab !== 'ceremony' && (
               <button
                 className="button outline"
                 disabled={busy || simulationSource !== 'actual'}
@@ -504,14 +514,17 @@ export function Admin({
             )}
           </div>
           {role === 'admin' && (
-            <AdminSimulation
-              competition={data.competition}
-              source={simulationSource}
-              onSource={setSimulationSource}
-              onRows={setSimulationRows}
-              onPracticeRows={setPracticeRows}
-              onEnd={load}
-            />
+            // Kept mounted on the ceremony tab so a running simulation keeps reporting.
+            <div hidden={tab === 'ceremony'}>
+              <AdminSimulation
+                competition={data.competition}
+                source={simulationSource}
+                onSource={setSimulationSource}
+                onRows={setSimulationRows}
+                onPracticeRows={setPracticeRows}
+                onEnd={load}
+              />
+            </div>
           )}
           {simulationSource !== 'actual' && (
             <p className="notice simulation-data-notice">
@@ -808,6 +821,7 @@ export function Admin({
           {tab === 'test-run' && role === 'admin' && <AdminTestRun />}
           {tab === 'winners' && role === 'admin' && <AdminWinners />}
           {tab === 'draw' && role === 'admin' && <AdminPrizeDraw />}
+          {tab === 'ceremony' && role === 'admin' && <CeremonyStudio />}
           {tab === 'campaigns' && role === 'admin' && <AdminCampaigns />}
           {tab === 'content' && role === 'admin' && <AdminContent />}
           {tab === 'book' && role === 'admin' && data.competition && data.book && (

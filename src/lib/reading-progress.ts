@@ -47,3 +47,47 @@ export function sourceReadingReady(
     if ((progress?.pageSeconds[page] ?? 0) < READING_MIN_SOURCE_SECONDS) return false;
   return true;
 }
+
+// Share of the required source-page reading already credited by the server, from 0 to 1.
+export function sourceReadingShare(
+  progress: ReadingProgress | undefined,
+  question: Pick<SafeQuestion, 'pdfPage' | 'pdfPageEnd'>,
+) {
+  if (question.pdfPage === null) return 1;
+  const end = question.pdfPageEnd ?? question.pdfPage;
+  let total = 0;
+  for (let page = question.pdfPage; page <= end; page++)
+    total += Math.min(1, (progress?.pageSeconds[page] ?? 0) / READING_MIN_SOURCE_SECONDS);
+  return total / (end - question.pdfPage + 1);
+}
+
+// First source page still short of reading time, so guidance can move on to it by itself.
+export function nextUnreadSourcePage(
+  progress: ReadingProgress | undefined,
+  question: Pick<SafeQuestion, 'pdfPage' | 'pdfPageEnd'>,
+) {
+  if (question.pdfPage === null) return null;
+  for (let page = question.pdfPage; page <= (question.pdfPageEnd ?? question.pdfPage); page++)
+    if ((progress?.pageSeconds[page] ?? 0) < READING_MIN_SOURCE_SECONDS) return page;
+  return null;
+}
+
+// Highest page the server has seen the student on, so hint access survives a device change.
+export function furthestPageRead(progress: ReadingProgress | undefined) {
+  return Math.max(0, ...Object.keys(progress?.pageSeconds ?? {}).map(Number));
+}
+
+// Which reading rule stopped the answer, so the student is told why instead of guessing:
+// never reached the source page, passed it too quickly, or jumped beyond it (e.g. to the end).
+export type ReadingGap = 'unreached' | 'too-fast' | 'skipped';
+export function readingGap(
+  progress: ReadingProgress | undefined,
+  question: Pick<SafeQuestion, 'pdfPage' | 'pdfPageEnd'>,
+  maxPage = 0,
+): ReadingGap | null {
+  if (sourceReadingReady(progress, question) || question.pdfPage === null) return null;
+  const end = question.pdfPageEnd ?? question.pdfPage;
+  const seen = progress?.pageSeconds ?? {};
+  for (let page = question.pdfPage; page <= end; page++) if (page in seen) return 'too-fast';
+  return Math.max(maxPage, furthestPageRead(progress)) > end ? 'skipped' : 'unreached';
+}

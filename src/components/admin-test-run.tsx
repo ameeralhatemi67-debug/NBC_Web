@@ -11,6 +11,17 @@ export function AdminTestRun() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [entered, setEntered] = useState(false);
+  const [cities, setCities] = useState<string[]>([]);
+  const [city, setCity] = useState('');
+  useEffect(() => {
+    api<{ cities: Record<string, string[]> }>('registration-options')
+      .then((options) => {
+        const list = Object.values(options.cities).flat();
+        setCities(list);
+        setCity((old) => old || list[0] || '');
+      })
+      .catch(() => setCities([]));
+  }, []);
   useEffect(() => {
     const id = sessionStorage.getItem('nbc-admin-test-run');
     if (id)
@@ -27,7 +38,7 @@ export function AdminTestRun() {
     try {
       const state = await api<CompetitionState>(
         reset ? 'admin/test-run/reset' : 'admin/test-run/start',
-        reset ? { id: run?.attempt?.id } : { stage, reveal: true, closed },
+        reset ? { id: run?.attempt?.id } : { stage, reveal: true, closed, city },
       );
       setRun(state);
       sessionStorage.setItem('nbc-admin-test-run', state.attempt!.id);
@@ -73,6 +84,18 @@ export function AdminTestRun() {
             ))}
           </select>
         </label>
+        {cities.length > 0 && (
+          <label>
+            مدينة المشارك التجريبي
+            <select value={city} onChange={(e) => setCity(e.target.value)}>
+              {cities.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <label>
           <input type="checkbox" checked={closed} onChange={(e) => setClosed(e.target.checked)} />{' '}
           محاكاة مسابقة مغلقة

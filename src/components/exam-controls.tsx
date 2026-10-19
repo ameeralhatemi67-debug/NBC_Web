@@ -45,9 +45,11 @@ export function QuestionStrip({
           name={
             status === 'pending'
               ? 'lock'
-              : status === 'correct' || status === 'answered'
-                ? 'check'
-                : 'close'
+              : status === 'answered'
+                ? 'dot'
+                : status === 'correct'
+                  ? 'check'
+                  : 'close'
           }
           size={14}
         />

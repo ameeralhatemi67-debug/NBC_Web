@@ -814,3 +814,61 @@
     line-height: 1.6;
   }
 }
+
+/* Answered-but-not-submitted reads as neutral gold, never as the green of a correct answer. */
+.exam-shell .question-segment.answered {
+  color: var(--copper);
+  background: color-mix(in srgb, var(--copper) 10%, var(--paper));
+  border-color: color-mix(in srgb, var(--copper) 45%, transparent);
+}
+
+/* Reading guidance: explains which reading rule stopped the answer and shows the credit filling. */
+.exam-shell .reading-nudge.guided {
+  border-inline-start-color: var(--copper);
+  background: color-mix(in srgb, var(--copper) 7%, var(--paper));
+}
+.exam-shell .reading-nudge.ready {
+  border-inline-start-color: var(--olive);
+  background: color-mix(in srgb, var(--olive) 8%, var(--paper));
+}
+.exam-shell .reading-nudge strong {
+  display: block;
+  margin-block-end: 2px;
+}
+.exam-shell .reading-meter {
+  block-size: 6px;
+  margin-block-start: 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+  overflow: hidden;
+}
+.exam-shell .reading-meter > span {
+  display: block;
+  block-size: 100%;
+  border-radius: inherit;
+  background: var(--copper);
+  transition: inline-size 0.6s var(--ease);
+}
+.exam-shell .answer-options.awaiting-reading .answer-option {
+  opacity: 0.62;
+}
+@media (prefers-reduced-motion: reduce) {
+  .exam-shell .reading-meter > span {
+    transition: none;
+  }
+}
+.exam-shell .question-dock .dock-meter {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  block-size: 3px;
+  background: var(--copper);
+  transition: inline-size 0.6s var(--ease);
+}
+.exam-shell .question-dock.guiding span {
+  display: -webkit-box;
+  white-space: normal;
+  line-height: 1.5;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}

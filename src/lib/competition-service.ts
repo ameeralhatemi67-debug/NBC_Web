@@ -45,6 +45,7 @@ import {
   type CompetitionQuestion,
   type CompetitionState,
   type Stage,
+  type Standing,
   type WriteEvent,
 } from './competition-domain';
 
@@ -641,6 +642,7 @@ export class CompetitionService {
           )
         ).rows[0]?.payload;
         if (
+          !a.answers[e.questionId!]?.selected.length &&
           previousAnswer?.acceptedAt !== undefined &&
           previousAnswer.questionId !== e.questionId &&
           this.now() - previousAnswer.acceptedAt < 1500
@@ -771,6 +773,70 @@ export class CompetitionService {
       mine: mine ? toEntry(mine) : null,
     };
   }
+  // The student's own position right after submission, within the stage and within their city.
+  // Only their rank and the totals are disclosed, never another participant's entry.
+  async standing(s: Session, competitionId?: string): Promise<Standing | null> {
+    requireRole(s, ['participant']);
+    const c = await this.current(this.db, competitionId);
+    if (c.leaderboardMode === 'hidden') return null;
+    const own = (
+      await this.db.query<{ stage: Stage; percentage: number; locality: string }>(
+        'SELECT a.stage,a.percentage,p.locality FROM attempts a JOIN participants p ON p.id=a.participant_id WHERE a.participant_id=$1 AND a.competition_id=$2 AND a.submitted_at IS NOT NULL',
+        [s.participant_id, c.id],
+      )
+    ).rows[0];
+    if (!own) throw new AppError('لم تُرسل المشاركة بعد.', 409);
+    const position = async (city: boolean) => {
+      const row = (
+        await this.db.query<{ above: string; total: string }>(
+          `SELECT count(*) FILTER (WHERE a.percentage > $3) AS above,count(*) AS total FROM attempts a JOIN participants p ON p.id=a.participant_id WHERE a.competition_id=$1 AND a.stage=$2 AND a.submitted_at IS NOT NULL${city ? ' AND p.locality=$4' : ''}`,
+          city
+            ? [c.id, own.stage, own.percentage, own.locality]
+            : [c.id, own.stage, own.percentage],
+        )
+      ).rows[0];
+      return { rank: Number(row.above) + 1, total: Number(row.total) };
+    };
+    return {
+      stage: own.stage,
+      overall: await position(false),
+      city: { name: own.locality, ...(await position(true)) },
+    };
+  }
+  // Rehearsal standing ranks the administrator's own submitted runs, with a chosen test city.
+  async testStanding(s: Session, id: string): Promise<Standing> {
+    await this.testState(s, id);
+    const own = (
+      await this.db.query<{
+        competition_id: string;
+        stage: Stage;
+        percentage: number;
+        city: string | null;
+        submitted_at: string | null;
+      }>(
+        "SELECT competition_id,stage,percentage,config->>'testCity' AS city,submitted_at FROM admin_test_runs WHERE id=$1 AND actor=$2",
+        [id, actor(s)],
+      )
+    ).rows[0];
+    if (!own?.submitted_at) throw new AppError('لم تُرسل التجربة بعد.', 409);
+    const city = own.city ?? '';
+    const position = async (byCity: boolean) => {
+      const row = (
+        await this.db.query<{ above: string; total: string }>(
+          `SELECT count(*) FILTER (WHERE percentage > $4) AS above,count(*) AS total FROM admin_test_runs WHERE actor=$1 AND competition_id=$2 AND stage=$3 AND submitted_at IS NOT NULL AND invalidated_at IS NULL${byCity ? " AND coalesce(config->>'testCity','')=$5" : ''}`,
+          byCity
+            ? [actor(s), own.competition_id, own.stage, own.percentage, city]
+            : [actor(s), own.competition_id, own.stage, own.percentage],
+        )
+      ).rows[0];
+      return { rank: Number(row.above) + 1, total: Number(row.total) };
+    };
+    return {
+      stage: own.stage,
+      overall: await position(false),
+      city: { name: city || 'مدينة التجربة', ...(await position(true)) },
+    };
+  }
   async testState(s: Session, id: string, tx: Queryable = this.db) {
     requireRole(s, ['admin']);
     const a = (
@@ -836,8 +902,11 @@ export class CompetitionService {
     const book = await this.book(c, tx);
     await this.verifyBook(book);
     questions.forEach((q) => validateQuestion(q, book));
+    const cities = Object.values(resolveEligibility(c).cities).flat();
     const config = {
       ...c,
+      // Rehearsal-only city, so the result screen can show a city standing like a participant's.
+      testCity: typeof body.city === 'string' && cities.includes(body.city) ? body.city : cities[0],
       state: body.closed === true ? ('CLOSED' as const) : ('OPEN' as const),
       closesAt: null,
       closedAt: body.closed === true ? new Date(this.now()).toISOString() : null,
@@ -876,6 +945,7 @@ export class CompetitionService {
           reveal: old.competition.feedbackMode === 'educational',
           closed: old.competition.state === 'CLOSED',
           synthetic: old.testQuestionSource === 'synthetic',
+          city: (old.competition as Competition & { testCity?: string }).testCity,
         },
         tx,
       );

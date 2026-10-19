@@ -514,3 +514,89 @@
   min-height: 40px;
   padding-inline: 8px;
 }
+
+/* Right/wrong share after submission: totals only, never which questions. */
+.score-split {
+  margin-block-start: 12px;
+  max-inline-size: 420px;
+}
+.score-split-bar {
+  display: flex;
+  block-size: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--sand);
+}
+.score-split-bar .right {
+  background: var(--olive);
+}
+.score-split-bar .wrong {
+  background: color-mix(in srgb, var(--copper) 55%, var(--sand));
+}
+.score-split dl {
+  display: flex;
+  gap: 24px;
+  margin: 8px 0 0;
+}
+.score-split dl > div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.score-split dt {
+  font-size: 13px;
+  color: var(--muted);
+}
+.score-split dd {
+  margin: 0;
+  font: 600 18px/1.4 var(--display);
+}
+.score-split .right dd {
+  color: var(--olive);
+}
+.score-split .wrong dd {
+  color: var(--copper);
+}
+.result-hash {
+  color: var(--copper);
+  margin-inline-end: 2px;
+}
+.result-standing {
+  margin-block: 8px 16px;
+}
+.result-standing h2 {
+  font-size: 17px;
+  margin: 0 0 10px;
+}
+.result-standing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+.result-standing-grid > div {
+  display: grid;
+  gap: 2px;
+  padding: 14px 16px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.result-standing-grid span,
+.result-standing-grid small {
+  font-size: 13px;
+  color: var(--muted);
+}
+.result-standing-grid strong {
+  font: 700 30px/1.2 var(--display);
+  color: var(--olive-deep);
+}
+.result-standing > p,
+.result-standing-loading {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 8px 0 0;
+}
+.leaderboard tr.mine td {
+  background: color-mix(in srgb, var(--copper) 12%, var(--white));
+  font-weight: 600;
+}

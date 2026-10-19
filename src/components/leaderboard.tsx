@@ -52,19 +52,11 @@ export function Leaderboard({
     };
   }, [competitionId, stage, testRunId, page, attempt, participantNumber]);
   const entries = board?.entries;
-  const mine =
-    board?.mine ??
-    entries?.find((row) => participantNumber && row.participantNumber === participantNumber);
   const pageSize = board?.pageSize ?? 0;
   const pages = board?.total && pageSize ? Math.ceil(board.total / pageSize) : 1;
   return (
     <section className="leaderboard">
       <h2>ترتيب {stageNames[stage]}</h2>
-      {mine && (
-        <p className="result-current-rank">
-          ترتيبك الحالي <bdi dir="ltr">{arDigits(mine.rank)}</bdi>
-        </p>
-      )}
       {entries ? (
         <>
           <div className="table-scroll">
@@ -79,7 +71,11 @@ export function Leaderboard({
               </thead>
               <tbody>
                 {entries.map((row) => (
-                  <tr key={row.participantNumber}>
+                  <tr
+                    key={row.participantNumber}
+                    className={row.participantNumber === participantNumber ? 'mine' : undefined}
+                    aria-current={row.participantNumber === participantNumber || undefined}
+                  >
                     <td>{arDigits(row.rank)}</td>
                     <td>
                       <bdi>{arDigits(row.participantNumber)}</bdi>

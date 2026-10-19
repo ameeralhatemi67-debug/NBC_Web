@@ -1,6 +1,14 @@
 'use client';
 import Link from 'next/link';
-import { sourceReadingReady, type ReadingProgress } from '@/lib/reading-progress';
+import {
+  furthestPageRead,
+  nextUnreadSourcePage,
+  readingGap,
+  sourceReadingReady,
+  sourceReadingShare,
+  type ReadingGap,
+  type ReadingProgress,
+} from '@/lib/reading-progress';
 import { useEffect, useId, useRef, useState } from 'react';
 import { api, ApiError, ErrorMessage, Icon, Loading } from './ui';
 import { BookReader } from './book-reader';
@@ -70,6 +78,11 @@ export function Participation({
   const [mapOpen, setMapOpen] = useState(false);
   const [inputOrigin, setInputOrigin] = useState<'pointer' | 'keyboard'>('pointer');
   const [sourceFlash, setSourceFlash] = useState<{ page: number; request: number } | null>(null);
+  // Set when a reading rule stopped the student: the book is moved to the answer's page and the
+  // choices open by themselves once the server credits the reading, so nobody is left stuck.
+  const [guide, setGuide] = useState<{ questionId: string; gap: ReadingGap } | null>(null);
+  const guideOpenedDock = useRef('');
+  const nudgeId = useId();
   const flashRequest = useRef(0);
   const mainAction = useRef<HTMLButtonElement>(null);
   const priorLocks = useRef({ attemptId: '', count: 0 });
@@ -311,7 +324,10 @@ export function Participation({
     const attempt = data?.attempt;
     if (!attempt) return;
     const previous = priorLocks.current.attemptId === attempt.id ? priorLocks.current.count : 0;
+    // With final submission, choosing the last answer must not pop the review over the question:
+    // the student may still be changing it. The last question's button opens the review instead.
     if (
+      !final &&
       !attempt.submittedAt &&
       lockedCount === attempt.questions.length &&
       previous < lockedCount
@@ -320,7 +336,24 @@ export function Participation({
       setReviewOpen(true);
     }
     priorLocks.current = { attemptId: attempt.id, count: lockedCount };
-  }, [data?.attempt?.id, data?.attempt?.submittedAt, lockedCount]);
+  }, [data?.attempt?.id, data?.attempt?.submittedAt, lockedCount, final]);
+  const guidedPage =
+    guide && guide.questionId === currentQuestionId && currentSource
+      ? nextUnreadSourcePage(data?.attempt?.reading, currentSource)
+      : null;
+  useEffect(() => {
+    // A two-page source: once the first page has its reading time, turn to the second by itself.
+    if (guidedPage !== null && guidedPage !== page && bookOpen)
+      openSource(guidedPage, bookButton.current ?? document.body);
+  }, [guidedPage]);
+  useEffect(() => {
+    // Guided reading finished: on a phone, bring the question back up so the student can answer.
+    if (!guide || guide.questionId !== currentQuestionId || !sourceReady) return;
+    if (narrow && bookOpen && guideOpenedDock.current !== guide.questionId) {
+      guideOpenedDock.current = guide.questionId;
+      setDockExpanded(true);
+    }
+  }, [guide, currentQuestionId, sourceReady, narrow, bookOpen]);
   useEffect(() => {
     // After locking, the explanation can land below the fold on a phone. Bring it into view.
     if (!currentLocked) return;
@@ -451,7 +484,7 @@ export function Participation({
   async function write(kind: WriteEvent['kind'], selected?: number[]) {
     if (!data?.attempt || !controller.current || pendingSubmit || data.attempt.submittedAt) return;
     if (kind !== 'SUBMIT' && !sourceReady) {
-      setError('تصفّح موضع السؤال في الكتاب بهدوء قبل تسجيل الإجابة.');
+      guideToSource();
       return false;
     }
     if (kind === 'SUBMIT' && data.competition.readingRequired) {
@@ -460,8 +493,7 @@ export function Participation({
       );
       if (missing >= 0) {
         setReviewOpen(false);
-        setIndex(missing);
-        setError('أكمل تصفّح مواضع الأسئلة في الكتاب قبل الإرسال.');
+        guideToSource(missing);
         return false;
       }
     }
@@ -488,12 +520,13 @@ export function Participation({
   function go(i: number, keyboard = false) {
     if (!data?.attempt || i < 0 || i >= data.attempt.questions.length) return;
     if (i > index && !sourceReady) {
-      setError('تصفّح موضع السؤال في الكتاب بهدوء قبل المتابعة.');
+      guideToSource();
       return;
     }
     setInputOrigin(keyboard ? 'keyboard' : 'pointer');
     setIndex(i);
     setHintPages(null);
+    setGuide(null);
     void controller.current?.remember(i, page, maxPage).catch((e) => setError(e.message));
     requestAnimationFrame(() => heading.current?.focus());
   }
@@ -506,10 +539,13 @@ export function Participation({
       busy ||
       pendingSubmit ||
       attempt.answers[question.id]?.locked ||
-      !sourceReady ||
       option >= question.options.length
     )
       return;
+    if (!sourceReady) {
+      guideToSource();
+      return;
+    }
     const chosen = attempt.answers[question.id]?.selected ?? [];
     const selected =
       question.type === 'single_choice'
@@ -521,7 +557,11 @@ export function Participation({
   }
   function advance(keyboard = false) {
     const attempt = data?.attempt;
-    if (!attempt || !sourceReady) return;
+    if (!attempt) return;
+    if (!sourceReady) {
+      guideToSource();
+      return;
+    }
     if (index < attempt.questions.length - 1) go(index + 1, keyboard);
     else if (lockedCount === attempt.questions.length) setReviewOpen(true);
     else
@@ -531,6 +571,26 @@ export function Participation({
         ),
         keyboard,
       );
+  }
+  // Explains which reading rule stopped the student and moves the book to the answer's page.
+  function guideToSource(i = index) {
+    const attempt = data?.attempt;
+    const question = attempt?.questions[i];
+    if (!attempt || !question || question.pdfPage === null) return;
+    setError('');
+    setGuide({
+      questionId: question.id,
+      gap: readingGap(attempt.reading, question, maxPage) ?? 'unreached',
+    });
+    if (i !== index) setIndex(i);
+    setDockExpanded(false);
+    const target = nextUnreadSourcePage(attempt.reading, question) ?? question.pdfPage;
+    const opener =
+      (document.activeElement as HTMLElement | null) ?? bookButton.current ?? document.body;
+    openSource(target, opener);
+    void controller.current
+      ?.remember(i, target, Math.max(maxPage, target))
+      .catch((e) => setError(e.message));
   }
   function openSource(n: number, opener: HTMLElement) {
     openBook(n, opener);
@@ -632,7 +692,17 @@ export function Participation({
   const q = a.questions[index];
   const answer = a.answers[q.id];
   const feedback = answer?.locked ? a.feedback[q.id] : undefined;
-  const eligible = sourceReady && hintEligible(maxPage, q, data.book.pageCount);
+  // A question already answered keeps its hint on every later visit, wherever the reader is now.
+  const eligible =
+    sourceReady &&
+    (Boolean(answer?.selected.length) ||
+      hintEligible(Math.max(maxPage, furthestPageRead(a.reading)), q, data.book.pageCount));
+  const activeGuide = guide?.questionId === q.id ? guide : null;
+  const readingShare = sourceReadingShare(a.reading, q);
+  const sourcePages =
+    q.pdfPageEnd !== undefined && q.pdfPageEnd !== q.pdfPage
+      ? `${q.pdfPage} و${q.pdfPageEnd}`
+      : `${q.pdfPage}`;
   const pendingText = pendingSubmit
     ? 'المشاركة بانتظار الإرسال'
     : pendingAnswers
@@ -656,26 +726,70 @@ export function Participation({
           {q.title}
         </h2>
         {!sourceReady && (
-          <div className="reading-nudge" role="status">
-            <strong>تصفّح الكتاب قبل المتابعة</strong>
-            <p>
-              {isOffline
-                ? 'يتأكد تقدم القراءة عند عودة الاتصال. تبقى إجاباتك المحفوظة متاحة.'
-                : 'تمهّل في تصفّح موضع هذا السؤال في الكتاب، ثم سجّل إجابتك. القفز إلى نهاية الكتاب لا يغني عن قراءة الموضع.'}
-            </p>
+          <div
+            id={nudgeId}
+            className={`reading-nudge ${activeGuide ? 'guided' : ''}`}
+            role="status"
+          >
+            {activeGuide ? (
+              <>
+                <strong>{guideTitles[activeGuide.gap]}</strong>
+                <p>
+                  {guideReasons[activeGuide.gap]} نقلنا الكتاب إلى الصفحة {sourcePages}. ابقَ عليها
+                  لحظات واقرأها، وستُفتح الخيارات تلقائيًا.
+                </p>
+                <div
+                  className="reading-meter"
+                  role="progressbar"
+                  aria-label="قراءة صفحة الإجابة"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={Math.round(readingShare * 100)}
+                >
+                  <span style={{ inlineSize: `${readingShare * 100}%` }} />
+                </div>
+              </>
+            ) : (
+              <>
+                <strong>اقرأ موضع السؤال في الكتاب أولًا</strong>
+                <p>
+                  تُفتح الخيارات بعد أن تقرأ الصفحة التي فيها الإجابة. اقرأ بهدوء؛ التقليب السريع أو
+                  القفز إلى نهاية الكتاب لا يُحتسب. إن احترت، اضغط أي خيار وسنرشدك إلى الصفحة.
+                </p>
+              </>
+            )}
+            {isOffline && <p>يتأكد تقدم القراءة عند عودة الاتصال. تبقى إجاباتك المحفوظة متاحة.</p>}
             {!bookOpen && (
-              <button type="button" className="button outline" onClick={() => openBook()}>
-                افتح الكتاب
+              <button
+                type="button"
+                className="button outline"
+                onClick={(event) =>
+                  activeGuide && q.pdfPage !== null
+                    ? openSource(
+                        nextUnreadSourcePage(a.reading, q) ?? q.pdfPage,
+                        event.currentTarget,
+                      )
+                    : openBook(undefined, event.currentTarget)
+                }
+              >
+                {activeGuide ? 'افتح صفحة الإجابة' : 'افتح الكتاب'}
               </button>
             )}
+          </div>
+        )}
+        {sourceReady && activeGuide && !answer?.selected.length && (
+          <div className="reading-nudge ready" role="status">
+            <strong>أحسنت، الخيارات مفتوحة الآن</strong>
+            <p>اختر إجابتك. يمكنك تغييرها لاحقًا حتى الإرسال النهائي.</p>
           </div>
         )}
         <p className="answer-instruction">
           {q.type === 'multi_select' ? 'حدد كل الإجابات الصحيحة' : 'اختر إجابة واحدة'}
         </p>
         <fieldset
-          className="answer-options"
-          disabled={busy || pendingSubmit || answer?.locked || !sourceReady}
+          className={`answer-options ${sourceReady ? '' : 'awaiting-reading'}`}
+          disabled={busy || pendingSubmit || answer?.locked}
+          aria-describedby={sourceReady ? undefined : nudgeId}
         >
           <legend className="sr-only">
             {q.type === 'multi_select' ? 'حدد كل الإجابات الصحيحة' : 'اختر إجابة واحدة'}
@@ -801,7 +915,7 @@ export function Participation({
           <button
             ref={mainAction}
             className="button primary"
-            disabled={busy || !sourceReady}
+            disabled={busy}
             onClick={(event) => advance(event.detail === 0)}
           >
             {index < a.questions.length - 1
@@ -947,7 +1061,7 @@ export function Participation({
                 )}
                 <button
                   ref={dockButton}
-                  className="question-dock"
+                  className={`question-dock ${activeGuide && !sourceReady ? 'guiding' : ''}`}
                   aria-expanded={dockExpanded}
                   aria-controls={dockId}
                   onClick={() => {
@@ -956,11 +1070,26 @@ export function Participation({
                   }}
                 >
                   <span>
-                    سؤال {arDigits(index + 1)} من {arDigits(a.questions.length)}:{' '}
-                    {q.title.slice(0, 60)}
-                    {q.title.length > 60 ? '…' : ''}
+                    {activeGuide && !sourceReady ? (
+                      `${guideTitles[activeGuide.gap]}: ابقَ على هذه الصفحة لحظات، وستُفتح الخيارات تلقائيًا`
+                    ) : activeGuide && !answer?.selected.length ? (
+                      'الخيارات مفتوحة الآن، اضغط هنا لتجيب'
+                    ) : (
+                      <>
+                        سؤال {arDigits(index + 1)} من {arDigits(a.questions.length)}:{' '}
+                        {q.title.slice(0, 60)}
+                        {q.title.length > 60 ? '…' : ''}
+                      </>
+                    )}
                   </span>
                   <Icon name="arrow" size={18} />
+                  {activeGuide && !sourceReady && (
+                    <i
+                      className="dock-meter"
+                      aria-hidden="true"
+                      style={{ inlineSize: `${readingShare * 100}%` }}
+                    />
+                  )}
                 </button>
               </>
             )}
@@ -1013,3 +1142,15 @@ export function Participation({
     </div>
   );
 }
+
+const guideTitles: Record<ReadingGap, string> = {
+  unreached: 'لم تصل بعد إلى موضع الإجابة',
+  'too-fast': 'مررت بصفحة الإجابة بسرعة',
+  skipped: 'صفحة الإجابة لم تُقرأ بعد',
+};
+const guideReasons: Record<ReadingGap, string> = {
+  unreached: 'الإجابة في صفحة لم تقرأها بعد.',
+  'too-fast': 'تحتاج الصفحة إلى قراءة متأنية لبضع ثوانٍ، والتقليب السريع لا يُحتسب.',
+  skipped:
+    'الكتاب مفتوح بعد موضع الإجابة، والمرور السريع أو القفز إلى نهاية الكتاب لا يُحتسب قراءة له.',
+};

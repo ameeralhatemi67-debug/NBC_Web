@@ -122,6 +122,15 @@ const policies = {
             },
           }),
         );
+        await page.route('**/api/standing**', (route) =>
+          route.fulfill({
+            json: {
+              stage: 'middle',
+              overall: { rank: 3, total: 40 },
+              city: { name: 'الدمام', rank: 1, total: 9 },
+            },
+          }),
+        );
         await page.goto(base + '/participate');
         await page.getByRole('heading', { name: 'أهلًا فاطمة', exact: true }).waitFor();
         await page.waitForFunction(() => document.querySelector('.book-cover-slot.cover-ready'));
@@ -417,7 +426,9 @@ const policies = {
             await page.locator('.result-policy').waitFor();
             assert.equal(await page.locator('.result-policy').innerText(), line);
             if (mode === 'public_live')
-              await page.getByText('ترتيبك الحالي ٣', { exact: true }).waitFor();
+              await page.locator('.leaderboard tr.mine', { hasText: '٣' }).waitFor();
+            if (mode !== 'hidden')
+              await page.locator('.result-standing', { hasText: 'الدمام' }).waitFor();
             assert.equal(
               await page.locator('.leaderboard').count(),
               ['public_live', 'publish_after_close'].includes(mode) ? 1 : 0,

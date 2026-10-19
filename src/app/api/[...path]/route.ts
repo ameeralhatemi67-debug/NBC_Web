@@ -182,6 +182,16 @@ async function respond(req: NextRequest) {
           q.get('stage') as Stage,
           { page: Number(q.get('page') ?? 1), me: q.get('me') ?? undefined },
         );
+      } else if (route === 'standing') {
+        result = await new CompetitionService(await getDb()).standing(
+          role(session, ['participant']),
+          req.nextUrl.searchParams.get('competitionId') ?? undefined,
+        );
+      } else if (route === 'admin/test-run/standing') {
+        result = await new CompetitionService(await getDb()).testStanding(
+          role(session, ['admin']),
+          req.nextUrl.searchParams.get('id') ?? '',
+        );
       } else if (route === 'admin/test-run/leaderboard') {
         result = await new CompetitionService(await getDb()).testLeaderboard(
           role(session, ['admin']),

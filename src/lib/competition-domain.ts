@@ -444,6 +444,12 @@ export function feedbackFor(
       ]),
   );
 }
+// A participant's own position after submission; other entries are never part of it.
+export type Standing = {
+  stage: Stage;
+  overall: { rank: number; total: number };
+  city: { name: string; rank: number; total: number };
+};
 export type LeaderboardEntry = {
   participantNumber: string;
   score: number;

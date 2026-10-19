@@ -2,15 +2,15 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { CompetitionState } from '@/lib/competition-domain';
-import { registeredStage } from '@/lib/competition-domain';
-import { resultSentence } from '@/lib/format';
+import { registeredStage, stageNames, type Standing } from '@/lib/competition-domain';
+import { arDigits, resultSentence } from '@/lib/format';
 import {
   copyWithFallback,
   leaderboardModeLines,
   resultHiddenLine,
   resultReceivedTitle,
 } from '@/lib/result-presentation';
-import { Icon } from './ui';
+import { api, Icon } from './ui';
 import { Leaderboard } from './leaderboard';
 import { BookStage } from './book-stage';
 export function CompetitionResult({
@@ -75,6 +75,7 @@ export function CompetitionResult({
             <p className={hidden ? 'result-hidden' : 'result-sentence'}>
               {hidden ? resultHiddenLine : resultSentence(attempt.score!, attempt.maxScore)}
             </p>
+            {!hidden && <ScoreSplit score={attempt.score!} maxScore={attempt.maxScore} />}
           </div>
           <div className="result-book">
             <BookStage book={data.book} initial="open" closeWhenReady />
@@ -83,7 +84,12 @@ export function CompetitionResult({
         <div className="receipt-number result-ticket">
           <div>
             <span>رقم المشارك</span>
-            <bdi dir="ltr">{attempt.participantNumber}</bdi>
+            <bdi dir="ltr">
+              <span className="result-hash" aria-hidden="true">
+                #
+              </span>
+              {attempt.participantNumber}
+            </bdi>
           </div>
           <button className="button outline" onClick={() => void copy()}>
             <Icon name={copied ? 'check' : 'copy'} size={18} />
@@ -104,6 +110,13 @@ export function CompetitionResult({
             </div>
           )}
         </div>
+        {!data.practice && !hidden && (
+          <ResultStanding
+            competitionId={data.competition.id}
+            testRunId={testRunId}
+            submittedAt={attempt.submittedAt}
+          />
+        )}
         <p className="result-policy">
           {data.practice
             ? 'نتيجة التجربة خاصة بك ولا تدخل في ترتيب المسابقة أو جوائزها.'
@@ -123,6 +136,87 @@ export function CompetitionResult({
           واصل القراءة <Icon name="book" size={18} />
         </Link>
       </div>
+    </section>
+  );
+}
+
+// Share of right and wrong answers only: which questions were right stays undisclosed.
+function ScoreSplit({ score, maxScore }: { score: number; maxScore: number }) {
+  const right = maxScore ? Math.round((score / maxScore) * 100) : 0;
+  return (
+    <div className="score-split">
+      <div className="score-split-bar" aria-hidden="true">
+        <span className="right" style={{ inlineSize: `${right}%` }} />
+        <span className="wrong" style={{ inlineSize: `${100 - right}%` }} />
+      </div>
+      <dl>
+        <div className="right">
+          <dt>إجابات صحيحة</dt>
+          <dd>{arDigits(right)}٪</dd>
+        </div>
+        <div className="wrong">
+          <dt>إجابات غير صحيحة</dt>
+          <dd>{arDigits(100 - right)}٪</dd>
+        </div>
+      </dl>
+    </div>
+  );
+}
+
+function ResultStanding({
+  competitionId,
+  testRunId,
+  submittedAt,
+}: {
+  competitionId: string;
+  testRunId?: string;
+  submittedAt: string | null;
+}) {
+  const [standing, setStanding] = useState<Standing | null | undefined>(undefined);
+  useEffect(() => {
+    let alive = true;
+    const load = () =>
+      api<Standing | null>(
+        testRunId
+          ? `admin/test-run/standing?id=${encodeURIComponent(testRunId)}`
+          : `standing?competitionId=${encodeURIComponent(competitionId)}`,
+      )
+        .then((value) => alive && setStanding(value))
+        .catch(() => alive && setStanding((old) => old ?? null));
+    void load();
+    // Other participants keep submitting, so the position is refreshed while the page is open.
+    const timer = setInterval(load, 60000);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+    };
+  }, [competitionId, testRunId, submittedAt]);
+  if (standing === undefined)
+    return (
+      <p className="result-standing-loading" role="status">
+        جارٍ حساب ترتيبك…
+      </p>
+    );
+  if (!standing) return null;
+  const rows = [
+    { label: `على مستوى ${stageNames[standing.stage]}`, ...standing.overall },
+    { label: `في ${standing.city.name}`, ...standing.city },
+  ];
+  return (
+    <section className="result-standing" aria-label="ترتيبك الحالي">
+      <h2>ترتيبك الحالي</h2>
+      <div className="result-standing-grid">
+        {rows.map((row) => (
+          <div key={row.label}>
+            <span>{row.label}</span>
+            <strong>
+              <bdi>{arDigits(row.rank)}</bdi>
+            </strong>
+            <small>من أصل {arDigits(row.total)}</small>
+          </div>
+        ))}
+      </div>
+      <p>يتغير ترتيبك مع وصول مشاركات أخرى. تعتمد اللجنة النتائج الرسمية وتعلنها.</p>
     </section>
   );
 }

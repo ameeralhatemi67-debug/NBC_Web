@@ -71,8 +71,24 @@ export type Competition = {
   maxPerPhone?: number;
   questionCounts?: Record<Stage, number>;
   answerMode?: 'per_question' | 'final_submission';
+  // How each attempt orders its questions. Absent means random, the original behaviour.
+  questionOrder?: QuestionOrder;
   readingRequired?: boolean;
 };
+export type QuestionOrder = 'random' | 'page';
+export const questionOrders: QuestionOrder[] = ['random', 'page'];
+// Book order: source page first, then the end of a two-page range. Organizer questions without
+// book pages go last. The sort is stable, so equal pages keep the (shuffled) order they arrive in.
+export function orderByPage<T extends Pick<CompetitionQuestion, 'pdfPage' | 'pdfPageEnd'>>(
+  questions: T[],
+): T[] {
+  const key = (q: T) => (q.pdfPage === null ? Infinity : q.pdfPage);
+  return [...questions].sort(
+    (a, b) =>
+      key(a) - key(b) || (a.pdfPageEnd ?? a.pdfPage ?? 0) - (b.pdfPageEnd ?? b.pdfPage ?? 0),
+  );
+}
+export const guideGaps = ['unreached', 'too-fast', 'skipped'] as const;
 export const meetingQuestionCounts: Record<Stage, number> = {
   middle: 20,
   highschool: 25,

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import {
   furthestPageRead,
   nextUnreadSourcePage,
+  READING_MIN_SOURCE_SECONDS,
   readingGap,
   sourceReadingReady,
   sourceReadingShare,
@@ -82,6 +83,8 @@ export function Participation({
   // choices open by themselves once the server credits the reading, so nobody is left stuck.
   const [guide, setGuide] = useState<{ questionId: string; gap: ReadingGap } | null>(null);
   const guideOpenedDock = useRef('');
+  // "How it works" window, shown once per attempt before the first question.
+  const [howOpen, setHowOpen] = useState(false);
   const nudgeId = useId();
   const flashRequest = useRef(0);
   const mainAction = useRef<HTMLButtonElement>(null);
@@ -217,6 +220,25 @@ export function Participation({
   useEffect(() => {
     if (data) onStateChange?.(data);
   }, [data, onStateChange]);
+  useEffect(() => {
+    const attempt = data?.attempt;
+    if (!attempt || attempt.submittedAt) return;
+    let seen = false;
+    try {
+      seen = localStorage.getItem(`nbc-how-it-works:${attempt.id}`) === '1';
+    } catch {
+      // Storage can be blocked; the window then shows again, which is harmless.
+    }
+    if (!seen) setHowOpen(true);
+  }, [data?.attempt?.id, data?.attempt?.submittedAt]);
+  function closeHowItWorks() {
+    setHowOpen(false);
+    try {
+      if (data?.attempt) localStorage.setItem(`nbc-how-it-works:${data.attempt.id}`, '1');
+    } catch {
+      // See above.
+    }
+  }
   async function attach(state: CompetitionState) {
     setData(state);
     if (!state.attempt) {
@@ -591,6 +613,18 @@ export function Participation({
     void controller.current
       ?.remember(i, target, Math.max(maxPage, target))
       .catch((e) => setError(e.message));
+    // Recorded for the committee: which questions and attempts needed guidance. Best effort.
+    if (!isOffline)
+      void api(
+        practiceRunId ? 'simulation/guide' : testRunId ? 'admin/test-run/guide' : 'attempt/guide',
+        {
+          attemptId: attempt.id,
+          clientEventId: crypto.randomUUID(),
+          questionId: question.id,
+          gap: readingGap(attempt.reading, question, maxPage) ?? 'unreached',
+        },
+        AbortSignal.timeout(12000),
+      ).catch(() => {});
   }
   function openSource(n: number, opener: HTMLElement) {
     openBook(n, opener);
@@ -698,6 +732,20 @@ export function Participation({
     (Boolean(answer?.selected.length) ||
       hintEligible(Math.max(maxPage, furthestPageRead(a.reading)), q, data.book.pageCount));
   const activeGuide = guide?.questionId === q.id ? guide : null;
+  // Thin bar on the page being read: fills as the server credits reading time, so students learn
+  // the pace. Only guided reading marks the page as the answer's page.
+  const pageMeter = data.competition.readingRequired
+    ? {
+        page,
+        share: Math.min(1, (a.reading?.pageSeconds[page] ?? 0) / READING_MIN_SOURCE_SECONDS),
+        target: Boolean(
+          activeGuide &&
+          q.pdfPage !== null &&
+          page >= q.pdfPage &&
+          page <= (q.pdfPageEnd ?? q.pdfPage),
+        ),
+      }
+    : undefined;
   const readingShare = sourceReadingShare(a.reading, q);
   const sourcePages =
     q.pdfPageEnd !== undefined && q.pdfPageEnd !== q.pdfPage
@@ -719,6 +767,16 @@ export function Participation({
         <span>
           السؤال {arDigits(index + 1)} من {arDigits(a.questions.length)}
         </span>
+        {data.competition.readingRequired && (
+          <button
+            type="button"
+            className="text-link how-it-works-link"
+            onClick={() => setHowOpen(true)}
+          >
+            <Icon name="info" size={16} />
+            كيف تعمل المسابقة؟
+          </button>
+        )}
       </header>
       <div className="question-body" key={q.id}>
         <ErrorMessage message={!isOffline && saveState !== 'error' ? error : ''} />
@@ -1051,6 +1109,7 @@ export function Participation({
               onClearHint={() => setHintPages(null)}
               sourceFlash={sourceFlash}
               phone={narrow}
+              readingMeter={pageMeter}
             />
             {narrow && bookOpen && (
               <>
@@ -1121,6 +1180,18 @@ export function Participation({
         />
       </ExamDialog>
       <ExamDialog
+        open={howOpen && !reviewOpen && !mapOpen}
+        title="كيف تعمل المسابقة؟"
+        onClose={closeHowItWorks}
+        returnFocus={() => heading.current?.focus()}
+      >
+        <HowItWorks
+          pageOrder={data.competition.questionOrder === 'page'}
+          final={final}
+          onStart={closeHowItWorks}
+        />
+      </ExamDialog>
+      <ExamDialog
         open={mapOpen}
         title="انتقل إلى سؤال"
         onClose={() => setMapOpen(false)}
@@ -1154,3 +1225,57 @@ const guideReasons: Record<ReadingGap, string> = {
   skipped:
     'الكتاب مفتوح بعد موضع الإجابة، والمرور السريع أو القفز إلى نهاية الكتاب لا يُحتسب قراءة له.',
 };
+
+function HowItWorks({
+  pageOrder,
+  final,
+  onStart,
+}: {
+  pageOrder: boolean;
+  final: boolean;
+  onStart: () => void;
+}) {
+  return (
+    <div className="how-it-works">
+      <p className="how-it-works-lead">
+        كل سؤال مأخوذ من صفحة في الكتاب. اقرأ تلك الصفحة، ثم أجب.
+        {pageOrder ? ' الأسئلة مرتبة حسب صفحات الكتاب من أوله إلى آخره.' : ''}
+      </p>
+      <ol className="how-it-works-rules">
+        <li>
+          <Icon name="book" size={20} />
+          <div>
+            <strong>اقرأ صفحة الإجابة أولًا</strong>
+            <span>تُفتح الخيارات بعد أن تبقى على الصفحة التي فيها الإجابة بضع ثوانٍ.</span>
+          </div>
+        </li>
+        <li>
+          <Icon name="clock" size={20} />
+          <div>
+            <strong>لا تستعجل</strong>
+            <span>التقليب السريع للصفحات لا يُحتسب قراءة. الشريط أعلى الصفحة يمتلئ وأنت تقرأ.</span>
+          </div>
+        </li>
+        <li>
+          <Icon name="pages" size={20} />
+          <div>
+            <strong>القفز إلى نهاية الكتاب لا يفتح الأسئلة</strong>
+            <span>تُحتسب الصفحة التي قرأتها فقط، لا الصفحات التي تجاوزتها.</span>
+          </div>
+        </li>
+      </ol>
+      <p className="how-it-works-help">
+        <Icon name="info" size={18} />
+        إن احترت، اضغط أي خيار وسننقل الكتاب إلى صفحة الإجابة.
+        {final
+          ? ' يمكنك تعديل إجاباتك حتى الإرسال النهائي، وبعده ترى نسبة إجاباتك الصحيحة وترتيبك.'
+          : ''}
+      </p>
+      <div className="review-actions">
+        <button data-autofocus type="button" className="button primary" onClick={onStart}>
+          ابدأ المسابقة
+        </button>
+      </div>
+    </div>
+  );
+}

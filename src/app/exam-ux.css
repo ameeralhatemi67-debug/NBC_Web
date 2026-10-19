@@ -872,3 +872,92 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
+
+/* How it works: shown before question 1 and reopened from the question header. */
+.exam-shell .question-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.exam-shell .how-it-works-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+}
+.exam-dialog .how-it-works {
+  display: grid;
+  gap: 14px;
+  max-inline-size: 520px;
+}
+.exam-dialog .how-it-works p {
+  margin: 0;
+}
+.exam-dialog .how-it-works-rules {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.exam-dialog .how-it-works-rules li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+}
+.exam-dialog .how-it-works-rules svg {
+  flex-shrink: 0;
+  margin-block-start: 3px;
+  color: var(--copper);
+}
+.exam-dialog .how-it-works-rules div {
+  display: grid;
+  gap: 2px;
+}
+.exam-dialog .how-it-works-rules span,
+.exam-dialog .how-it-works-help {
+  font-size: 13px;
+  color: var(--muted);
+}
+.exam-dialog .how-it-works-help {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.exam-dialog .how-it-works-help svg {
+  flex-shrink: 0;
+  margin-block-start: 3px;
+}
+
+/* Reading meter on the page itself: fills while the page is read, green once it counts. */
+.page-reading-meter {
+  position: absolute;
+  z-index: 3;
+  inset-block-start: 0;
+  inset-inline: 0;
+  block-size: 4px;
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+  pointer-events: none;
+}
+.page-reading-meter > i {
+  display: block;
+  block-size: 100%;
+  background: var(--copper);
+  transition: inline-size 0.8s var(--ease);
+}
+.page-reading-meter.done > i {
+  background: var(--olive);
+}
+.page-reading-meter.target {
+  block-size: 6px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-reading-meter > i {
+    transition: none;
+  }
+}

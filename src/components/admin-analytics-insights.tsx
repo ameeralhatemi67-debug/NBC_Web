@@ -16,6 +16,7 @@ import {
   reviewSignals,
   sourceAttribution,
   stageCityMatrix,
+  summarizeGuidance,
   weekdays,
   type InsightsData,
   type ItemStat,
@@ -295,6 +296,13 @@ export function AdminAnalyticsInsights({
           <p className="fine-print">مؤشرات للمراجعة، وليست حكمًا على أي مشارك.</p>
         </Panel>
       </div>
+
+      <GuidancePanel
+        data={ready ? data.guidance : undefined}
+        live={live}
+        stageKey={keyOf(focusStage) ?? ''}
+        stageName={focusStage}
+      />
 
       <Panel wide title="صحة رموز التحقق" subtitle="نسبة الرسائل الفاشلة كل ساعة · آخر ٢٤ ساعة">
         {!live ? (
@@ -811,5 +819,136 @@ function OtpHealth({ hours, now }: { hours: InsightsData['otp']['hours']; now: n
         })}
       </svg>
     </div>
+  );
+}
+
+const gapLabels: Record<string, string> = {
+  unreached: 'لم يصل',
+  'too-fast': 'مرّ سريعًا',
+  skipped: 'تجاوز الصفحة',
+};
+function GuidancePanel({
+  data,
+  live,
+  stageKey,
+  stageName,
+}: {
+  data: InsightsData['guidance'];
+  live: boolean;
+  stageKey: string;
+  stageName: string;
+}) {
+  const [source, setSource] = useState<'participants' | 'tests'>('participants');
+  const summary = summarizeGuidance(data?.[source], stageKey);
+  return (
+    <Panel
+      wide
+      title="الإرشاد إلى صفحة الإجابة"
+      subtitle={`كل مرة نقل فيها الاختبار كتاب الطالب إلى موضع الإجابة · ${stageName}`}
+      foot="كثرة الإرشاد في سؤال تعني أن موضعه في الكتاب غير واضح للطلاب، أو أن نصه يحتاج مراجعة. وكثرته عند مشارك ملاحظة للمراجعة، وليست حكمًا عليه."
+    >
+      {!live ? (
+        <ServerOnly />
+      ) : !data ? null : (
+        <div className="guidance-panel">
+          <div className="insight-stage" role="group" aria-label="مصدر البيانات">
+            {(
+              [
+                ['participants', 'المشاركون'],
+                ['tests', 'تجارب الإدارة'],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={source === value}
+                onClick={() => setSource(value)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <dl className="guidance-stats">
+            <div>
+              <dt>مرات الإرشاد</dt>
+              <dd>{number(summary.events)}</dd>
+            </div>
+            <div>
+              <dt>محاولات احتاجت إرشادًا</dt>
+              <dd>
+                {number(summary.guided)} <small>من {number(summary.started)}</small>
+              </dd>
+            </div>
+            <div>
+              <dt>متوسط الإرشاد للمحاولة</dt>
+              <dd>{summary.guided ? number(Math.round(summary.perAttempt * 10) / 10) : '—'}</dd>
+            </div>
+          </dl>
+          {!summary.events ? (
+            <p className="empty-inline">لم يحتج أحد إلى الإرشاد في هذه المرحلة بعد.</p>
+          ) : (
+            <div className="guidance-tables">
+              <div className="table-scroll">
+                <table>
+                  <caption>الأسئلة الأكثر إرشادًا</caption>
+                  <thead>
+                    <tr>
+                      <th>السؤال</th>
+                      <th>المرات</th>
+                      <th>المحاولات</th>
+                      <th>السبب</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {summary.questions.slice(0, 10).map((q) => (
+                      <tr key={q.questionId}>
+                        <td title={q.title}>
+                          {q.title.length > 70
+                            ? `${q.title.slice(0, 70)}…`
+                            : q.title || q.questionId}
+                        </td>
+                        <td>{number(q.events)}</td>
+                        <td>{number(q.attempts)}</td>
+                        <td className="guidance-gaps">
+                          {Object.entries(q.gaps)
+                            .sort((a, b) => b[1] - a[1])
+                            .map(([gap, n]) => `${gapLabels[gap] ?? gap} ${number(n)}`)
+                            .join(' · ')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="table-scroll">
+                <table>
+                  <caption>أكثر من اعتمد على الإرشاد</caption>
+                  <thead>
+                    <tr>
+                      <th>رقم المشارك</th>
+                      <th>المدينة</th>
+                      <th>المرات</th>
+                      <th>الأسئلة</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {summary.people.slice(0, 10).map((p) => (
+                      <tr key={p.attemptId}>
+                        <td>
+                          <bdi dir="ltr">{p.label}</bdi>
+                        </td>
+                        <td>{p.city || '—'}</td>
+                        <td>{number(p.events)}</td>
+                        <td>{number(p.questions)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </Panel>
   );
 }

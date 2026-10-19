@@ -24,7 +24,7 @@ import { riyadhDateTime } from '@/lib/format';
 import { HoldButton } from './hold-button';
 import { AdminEligibility, eligibilityIssue } from './admin-eligibility';
 import { resolveEligibility } from '@/lib/eligibility';
-import { DEFAULT_MAX_PER_PHONE } from '@/lib/competition-domain';
+import { DEFAULT_MAX_PER_PHONE, effectiveState } from '@/lib/competition-domain';
 import { Icon } from './ui';
 
 type Mutation = (path: string, body: unknown, message: string) => Promise<unknown>;
@@ -134,6 +134,7 @@ export function AdminCompetition({
   const pre = preconditions(book, questions, c);
   const dirty = changedSettings(c, form);
   const locked = c.state === 'RESULTS_PUBLISHED';
+  const orderLocked = !['DRAFT', 'SCHEDULED'].includes(effectiveState(c));
   const descriptionId = useId();
   const act = (action: string) =>
     mutate('admin/competition', { action, version: c.version }, 'تم تحديث المسابقة.');
@@ -458,11 +459,43 @@ export function AdminCompetition({
                 <p className="muted">تتوقف المحاولات القائمة عند لحظة الإغلاق.</p>
               )}
             </section>
+            <section className="launch-card">
+              <h3 id="order-heading">ترتيب الأسئلة</h3>
+              <div className="segmented" role="radiogroup" aria-labelledby="order-heading">
+                {(
+                  [
+                    ['random', 'عشوائي'],
+                    ['page', 'حسب صفحات الكتاب'],
+                  ] as const
+                ).map(([value, label]) => (
+                  <label
+                    key={value}
+                    className={(form.questionOrder ?? 'random') === value ? 'on' : ''}
+                  >
+                    <input
+                      type="radio"
+                      name="questionOrder"
+                      value={value}
+                      checked={(form.questionOrder ?? 'random') === value}
+                      disabled={orderLocked}
+                      onChange={() => setForm({ ...form, questionOrder: value })}
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+              <p className="field-hint">
+                {(form.questionOrder ?? 'random') === 'page'
+                  ? 'يقرأ الطالب الكتاب من أوله ويجيب في الطريق. تبقى خيارات كل سؤال مخلوطة لكل طالب.'
+                  : 'لكل طالب ترتيب مختلف للأسئلة والخيارات، فيصعب تبادل الإجابات.'}
+                {orderLocked ? ' لا يتغير الترتيب بعد فتح المسابقة.' : ''}
+              </p>
+            </section>
             <p className="policy-note">
               <Icon name="info" size={18} />
               <span>
                 {c.answerMode === 'final_submission'
-                  ? 'يمكن تعديل الإجابات حتى الإرسال النهائي. تظهر الإجابات الصحيحة والتوضيحات بعد استلام المشاركة فقط.'
+                  ? 'يمكن تعديل الإجابات حتى الإرسال النهائي. بعد الإرسال يرى الطالب نسبة إجاباته الصحيحة وترتيبه فقط، دون تحديد الأسئلة.'
                   : 'هذه حملة سابقة تعتمد تثبيت كل إجابة. تبقى محاولاتها وفق قواعدها الأصلية.'}
               </span>
             </p>

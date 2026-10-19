@@ -357,6 +357,19 @@ async function respond(req: NextRequest) {
         if (token) await revokeSession(token);
         jar.delete(cookieName);
         result = { ok: true };
+      } else if (
+        route === 'attempt/guide' ||
+        route === 'admin/test-run/guide' ||
+        route === 'simulation/guide'
+      ) {
+        strictKeys(body, ['attemptId', 'clientEventId', 'questionId', 'gap']);
+        const test =
+          route === 'admin/test-run/guide' ? true : route === 'simulation/guide' && 'simulation';
+        result = await new CompetitionService(await getDb()).recordGuide(
+          role(session, [test === true ? 'admin' : 'participant']),
+          body,
+          test,
+        );
       } else if (route === 'attempt/reading' || route === 'admin/test-run/reading') {
         strictKeys(body, ['attemptId', 'clientEventId', 'page', 'active']);
         const test = route === 'admin/test-run/reading';

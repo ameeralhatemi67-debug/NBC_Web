@@ -4,6 +4,8 @@ import type { Session } from './service';
 import { otpEnabled } from './runtime';
 import {
   pointBiserial,
+  type GuidanceRow,
+  type GuidanceSet,
   type InsightRow,
   type InsightsData,
   type StageItems,
@@ -144,9 +146,51 @@ export class AnalyticsService {
         sent: Number(h.sent),
         failed: Number(h.failed),
       }));
+      // Guidance events for actual attempts and, separately, for administrator rehearsals.
+      type Raw = Omit<GuidanceRow, 'title'> & { title: string | null };
+      const started = async (sql: string) =>
+        Object.fromEntries(
+          (await tx.query<{ stage: string; n: string }>(sql)).rows.map((r) => [
+            r.stage,
+            Number(r.n),
+          ]),
+        );
+      const participants: GuidanceSet = {
+        started: await started(
+          `SELECT stage,count(*) AS n FROM attempts WHERE competition_id=${current} GROUP BY stage`,
+        ),
+        rows: (
+          await tx.query<Raw>(
+            `SELECT a.id AS "attemptId",a.participant_number AS label,a.stage,p.locality AS city,
+              e.payload->>'questionId' AS "questionId",e.payload->>'gap' AS gap,q.snapshot->>'title' AS title
+            FROM attempt_events e JOIN attempts a ON a.id=e.attempt_id
+            JOIN participants p ON p.id=a.participant_id
+            LEFT JOIN attempt_questions q ON q.attempt_id=a.id AND q.question_id=e.payload->>'questionId'
+            WHERE a.competition_id=${current} AND e.payload->>'kind'='GUIDE'`,
+          )
+        ).rows.map((r) => ({ ...r, title: r.title ?? '' })),
+      };
+      const testRows = (
+        await tx.query<Omit<Raw, 'title'> & { questions: { id: string; title: string }[] }>(
+          `SELECT r.id AS "attemptId",r.participant_number AS label,r.stage,coalesce(r.config->>'testCity','') AS city,
+            e.payload->>'questionId' AS "questionId",e.payload->>'gap' AS gap,r.questions
+          FROM admin_test_events e JOIN admin_test_runs r ON r.id=e.run_id
+          WHERE r.competition_id=${current} AND r.invalidated_at IS NULL AND e.payload->>'kind'='GUIDE'`,
+        )
+      ).rows;
+      const tests: GuidanceSet = {
+        started: await started(
+          `SELECT stage,count(*) AS n FROM admin_test_runs WHERE competition_id=${current} AND invalidated_at IS NULL GROUP BY stage`,
+        ),
+        rows: testRows.map(({ questions, ...r }) => ({
+          ...r,
+          title: questions.find((q) => q.id === r.questionId)?.title ?? '',
+        })),
+      };
       return {
         rows,
         items,
+        guidance: { participants, tests },
         otp: { enabled: otpEnabled(), hours },
         generatedAt: new Date(this.now()).toISOString(),
       };

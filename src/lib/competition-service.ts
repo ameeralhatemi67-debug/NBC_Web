@@ -37,6 +37,9 @@ import {
   safeQuestions,
   stageKeys,
   stageNames,
+  orderByPage,
+  questionOrders,
+  guideGaps,
   validateBank,
   validateQuestion,
   type AnswerMap,
@@ -44,6 +47,7 @@ import {
   type Competition,
   type CompetitionQuestion,
   type CompetitionState,
+  type QuestionOrder,
   type Stage,
   type Standing,
   type WriteEvent,
@@ -114,8 +118,13 @@ function shuffled<T>(items: T[]): T[] {
   }
   return next;
 }
-export function snapshotQuestions(questions: CompetitionQuestion[]) {
-  return shuffled(questions).map((q) => {
+export function snapshotQuestions(
+  questions: CompetitionQuestion[],
+  order: QuestionOrder = 'random',
+) {
+  // Answer options are shuffled either way; book order only changes the question sequence.
+  const sequence = order === 'page' ? orderByPage(shuffled(questions)) : shuffled(questions);
+  return sequence.map((q) => {
     const indices = q.options.map((_, i) => i);
     const order = q.preserveOptionOrder ? indices : shuffled(indices);
     const correctAnswers = q.correctAnswers.map((i) => order.indexOf(i));
@@ -173,6 +182,7 @@ export class CompetitionService {
         stageKeys.map((stage) => [stage, questionCount(c, stage)]),
       ) as Record<Stage, number>,
       answerMode: c.answerMode ?? 'per_question',
+      questionOrder: c.questionOrder ?? 'random',
     };
   }
   async registrationOptions(): Promise<Eligibility> {
@@ -367,6 +377,58 @@ export class CompetitionService {
       return this.readingProgress(tx, a.id, test);
     });
   }
+  // Each time the exam moved a student's book to an answer page. Committee analytics only.
+  async recordGuide(
+    s: Session,
+    body: Record<string, unknown>,
+    test: boolean | 'simulation' = false,
+  ) {
+    const simulation = test === 'simulation';
+    requireRole(s, test === true ? ['admin'] : ['participant']);
+    if (
+      typeof body.attemptId !== 'string' ||
+      typeof body.clientEventId !== 'string' ||
+      !/^[a-zA-Z0-9_-]{8,100}$/.test(body.clientEventId) ||
+      typeof body.questionId !== 'string' ||
+      !guideGaps.includes(body.gap as (typeof guideGaps)[number])
+    )
+      throw new AppError('حدث الإرشاد غير صالح.');
+    await this.db.transaction(async (tx) => {
+      const practice = simulation ? await this.practiceRow(tx, s, String(body.attemptId)) : null;
+      const a =
+        practice?.a ??
+        (
+          await tx.query<AttemptRow & { invalidated_at?: string }>(
+            `SELECT * FROM ${test ? 'admin_test_runs' : 'attempts'} WHERE id=$1 AND ${test ? 'actor' : 'participant_id'}=$2`,
+            [body.attemptId, test ? actor(s) : s.participant_id],
+          )
+        ).rows[0];
+      if (!a || a.invalidated_at)
+        throw new AppError('الجلسة غير متاحة. افتح التجربة الحالية.', 409);
+      if (a.submitted_at) return;
+      if (!a.questions.some((q) => q.id === body.questionId))
+        throw new AppError('السؤال غير موجود.');
+      const events = simulation
+        ? 'simulation_events'
+        : test
+          ? 'admin_test_events'
+          : 'attempt_events';
+      await tx.query(
+        `INSERT INTO ${events}(${test === true ? 'run_id' : 'attempt_id'},client_event_id,payload) VALUES($1,$2,$3) ON CONFLICT DO NOTHING`,
+        [
+          a.id,
+          body.clientEventId,
+          JSON.stringify({
+            kind: 'GUIDE',
+            questionId: body.questionId,
+            gap: body.gap,
+            acceptedAt: this.now(),
+          }),
+        ],
+      );
+    });
+    return { ok: true };
+  }
   async readAttempt(tx: Queryable, participantId: string | null, c: Competition, lock = false) {
     const a = (
       await tx.query<AttemptRow>(
@@ -486,7 +548,7 @@ export class CompetitionService {
       ).rows[0]?.questions;
       if (!bank || bank.length !== questionCount(c, stage))
         throw new AppError('بنك المرحلة غير مكتمل.', 409);
-      const questions = snapshotQuestions(bank);
+      const questions = snapshotQuestions(bank, c.questionOrder);
       const id = randomUUID();
       let number: string;
       // Campaign row lock serializes random number reservation, without sequential public identifiers.
@@ -905,6 +967,9 @@ export class CompetitionService {
     const cities = Object.values(resolveEligibility(c).cities).flat();
     const config = {
       ...c,
+      questionOrder: questionOrders.includes(body.order as QuestionOrder)
+        ? (body.order as QuestionOrder)
+        : (c.questionOrder ?? 'random'),
       // Rehearsal-only city, so the result screen can show a city standing like a participant's.
       testCity: typeof body.city === 'string' && cities.includes(body.city) ? body.city : cities[0],
       state: body.closed === true ? ('CLOSED' as const) : ('OPEN' as const),
@@ -923,7 +988,7 @@ export class CompetitionService {
         c.id,
         stage,
         JSON.stringify(config),
-        JSON.stringify(snapshotQuestions(questions)),
+        JSON.stringify(snapshotQuestions(questions, config.questionOrder)),
         `TEST-${randomInt(100000, 999999)}`,
       ],
     );
@@ -946,6 +1011,7 @@ export class CompetitionService {
           closed: old.competition.state === 'CLOSED',
           synthetic: old.testQuestionSource === 'synthetic',
           city: (old.competition as Competition & { testCity?: string }).testCity,
+          order: old.competition.questionOrder,
         },
         tx,
       );
@@ -1150,6 +1216,17 @@ export class CompetitionService {
           throw new AppError('مواعيد غير صالحة.');
         if (c.state === 'RESULTS_PUBLISHED')
           throw new AppError('اسحب النشر قبل تغيير السياسة.', 409);
+        if (
+          body.questionOrder !== undefined &&
+          !questionOrders.includes(body.questionOrder as QuestionOrder)
+        )
+          throw new AppError('ترتيب الأسئلة غير صالح.');
+        if (
+          body.questionOrder !== undefined &&
+          body.questionOrder !== (c.questionOrder ?? 'random') &&
+          !['DRAFT', 'SCHEDULED'].includes(effectiveState(c, this.now()))
+        )
+          throw new AppError('لا يتغير ترتيب الأسئلة بعد فتح المسابقة.', 409);
         if (body.registrationPaused !== undefined && typeof body.registrationPaused !== 'boolean')
           throw new AppError('إعداد إيقاف التسجيل غير صالح.');
         if (
@@ -1181,6 +1258,9 @@ export class CompetitionService {
             ? { registrationPaused: body.registrationPaused as boolean }
             : {}),
           ...(body.maxPerPhone !== undefined ? { maxPerPhone: Number(body.maxPerPhone) } : {}),
+          ...(body.questionOrder !== undefined
+            ? { questionOrder: body.questionOrder as QuestionOrder }
+            : {}),
         };
       } else throw new AppError('إجراء غير صالح.');
       c.version++;

@@ -600,3 +600,9 @@
   background: color-mix(in srgb, var(--copper) 12%, var(--white));
   font-weight: 600;
 }
+@media (max-width: 640px) {
+  .result-screen .leaderboard h2 {
+    font-size: 19px;
+    line-height: 1.5;
+  }
+}

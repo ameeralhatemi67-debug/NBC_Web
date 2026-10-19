@@ -41,6 +41,7 @@ function BookPage({
   ratio,
   root,
   flash,
+  meter,
 }: {
   pdf: PDFDocumentProxy;
   number: number;
@@ -49,6 +50,7 @@ function BookPage({
   ratio: number;
   root: React.RefObject<HTMLDivElement | null>;
   flash?: number;
+  meter?: { share: number; target: boolean };
 }) {
   const holder = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -118,6 +120,18 @@ function BookPage({
       aria-busy={near && !ready && !error}
     >
       {flashing && <span key={flash} className="pdf-source-flash" aria-hidden="true" />}
+      {meter && (
+        <span
+          className={`page-reading-meter${meter.share >= 1 ? ' done' : ''}${meter.target ? ' target' : ''}`}
+          role="progressbar"
+          aria-label={meter.share >= 1 ? 'قُرئت هذه الصفحة' : 'قراءة هذه الصفحة'}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(meter.share * 100)}
+        >
+          <i style={{ inlineSize: `${meter.share * 100}%` }} />
+        </span>
+      )}
       {near && (
         <canvas
           ref={canvas}
@@ -149,6 +163,7 @@ export function BookReader({
   onClearHint,
   sourceFlash,
   phone = false,
+  readingMeter,
 }: {
   book?: BookVersion;
   page?: number;
@@ -159,6 +174,8 @@ export function BookReader({
   onClearHint?: () => void;
   sourceFlash?: { page: number; request: number } | null;
   phone?: boolean;
+  // Exam only: reading credit for the page being read.
+  readingMeter?: { page: number; share: number; target: boolean };
 }) {
   const config = readerBookConfig(book);
   const [ownPage, setOwnPage] = useState(page ?? config.openingPage);
@@ -836,6 +853,7 @@ export function BookReader({
               ratio={ratio}
               root={container}
               flash={sourceFlash?.page === number ? sourceFlash.request : undefined}
+              meter={readingMeter?.page === number ? readingMeter : undefined}
             />
           ))}
       </div>

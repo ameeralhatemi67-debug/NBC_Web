@@ -223,7 +223,7 @@ export class SimulationService {
           s.participant_id,
           stage,
           `PRACTICE-${randomInt(100000, 999999)}`,
-          JSON.stringify(snapshotQuestions(run.banks[stage])),
+          JSON.stringify(snapshotQuestions(run.banks[stage], c.questionOrder)),
           new Date(this.now()),
         ],
       );

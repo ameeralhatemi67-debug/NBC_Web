@@ -39,9 +39,21 @@ export type ItemStat = {
 };
 export type StageItems = { submitted: number; items: ItemStat[] };
 export type OtpHour = { hour: string; sent: number; failed: number };
+// One row per time the exam moved a student's book to the answer page (see recordGuide).
+export type GuidanceRow = {
+  attemptId: string;
+  label: string;
+  stage: string;
+  city: string;
+  questionId: string;
+  title: string;
+  gap: string;
+};
+export type GuidanceSet = { started: Record<string, number>; rows: GuidanceRow[] };
 export type InsightsData = {
   rows: InsightRow[];
   items: Record<string, StageItems>;
+  guidance?: { participants: GuidanceSet; tests: GuidanceSet };
   otp: { enabled: boolean; hours: OtpHour[] };
   generatedAt: string;
 };
@@ -316,4 +328,59 @@ export function pointBiserial(
 ) {
   if (correctMean === null || wrongMean === null || !sd || p <= 0 || p >= 1) return null;
   return ((correctMean - wrongMean) / sd) * Math.sqrt(p * (1 - p));
+}
+
+// Which questions sent students to the book most, and who leaned on the guidance most.
+export function summarizeGuidance(set: GuidanceSet | undefined, stage: string) {
+  const rows = (set?.rows ?? []).filter((r) => r.stage === stage);
+  const questions = new Map<
+    string,
+    {
+      questionId: string;
+      title: string;
+      events: number;
+      attempts: Set<string>;
+      gaps: Record<string, number>;
+    }
+  >();
+  const people = new Map<
+    string,
+    { attemptId: string; label: string; city: string; events: number; questions: Set<string> }
+  >();
+  for (const r of rows) {
+    const q = questions.get(r.questionId) ?? {
+      questionId: r.questionId,
+      title: r.title,
+      events: 0,
+      attempts: new Set<string>(),
+      gaps: {},
+    };
+    q.events++;
+    q.attempts.add(r.attemptId);
+    q.gaps[r.gap] = (q.gaps[r.gap] ?? 0) + 1;
+    questions.set(r.questionId, q);
+    const p = people.get(r.attemptId) ?? {
+      attemptId: r.attemptId,
+      label: r.label,
+      city: r.city,
+      events: 0,
+      questions: new Set<string>(),
+    };
+    p.events++;
+    p.questions.add(r.questionId);
+    people.set(r.attemptId, p);
+  }
+  const started = set?.started[stage] ?? 0;
+  return {
+    events: rows.length,
+    guided: people.size,
+    started,
+    perAttempt: people.size ? rows.length / people.size : 0,
+    questions: [...questions.values()]
+      .map((q) => ({ ...q, attempts: q.attempts.size }))
+      .sort((a, b) => b.events - a.events || b.attempts - a.attempts),
+    people: [...people.values()]
+      .map((p) => ({ ...p, questions: p.questions.size }))
+      .sort((a, b) => b.events - a.events || b.questions - a.questions),
+  };
 }

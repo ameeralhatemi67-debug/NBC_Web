@@ -312,3 +312,52 @@
     gap: 2px;
   }
 }
+
+/* Guidance to the answer page: totals, then the questions and attempts that needed it most. */
+.guidance-panel {
+  display: grid;
+  gap: 16px;
+}
+.guidance-panel .insight-stage {
+  justify-self: start;
+}
+.guidance-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+.guidance-stats > div {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+}
+.guidance-stats dt {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.guidance-stats dd {
+  margin: 2px 0 0;
+  font: 700 24px/1.3 var(--display);
+  color: var(--olive-deep);
+}
+.guidance-stats dd small {
+  font: 400 13px var(--body);
+  color: var(--muted);
+}
+.guidance-tables {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+.guidance-tables caption {
+  text-align: start;
+  font-weight: 600;
+  padding-block-end: 6px;
+}
+.guidance-gaps {
+  font-size: 12.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}

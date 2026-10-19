@@ -2,7 +2,13 @@
 import { useEffect, useState } from 'react';
 import { api, ErrorMessage } from './ui';
 import { Participation } from './participation';
-import { stageKeys, stageNames, type CompetitionState, type Stage } from '@/lib/competition-domain';
+import {
+  stageKeys,
+  stageNames,
+  type CompetitionState,
+  type QuestionOrder,
+  type Stage,
+} from '@/lib/competition-domain';
 export function AdminTestRun() {
   const [stage, setStage] = useState<Stage>('middle');
   const [closed, setClosed] = useState(false);
@@ -13,6 +19,13 @@ export function AdminTestRun() {
   const [entered, setEntered] = useState(false);
   const [cities, setCities] = useState<string[]>([]);
   const [city, setCity] = useState('');
+  const [order, setOrder] = useState<QuestionOrder>('random');
+  useEffect(() => {
+    // Rehearse with the campaign's own order by default; the selector can override it.
+    api<{ questionOrder?: QuestionOrder }>('status')
+      .then((status) => status.questionOrder && setOrder(status.questionOrder))
+      .catch(() => {});
+  }, []);
   useEffect(() => {
     api<{ cities: Record<string, string[]> }>('registration-options')
       .then((options) => {
@@ -38,7 +51,7 @@ export function AdminTestRun() {
     try {
       const state = await api<CompetitionState>(
         reset ? 'admin/test-run/reset' : 'admin/test-run/start',
-        reset ? { id: run?.attempt?.id } : { stage, reveal: true, closed, city },
+        reset ? { id: run?.attempt?.id } : { stage, reveal: true, closed, city, order },
       );
       setRun(state);
       sessionStorage.setItem('nbc-admin-test-run', state.attempt!.id);
@@ -84,6 +97,13 @@ export function AdminTestRun() {
             ))}
           </select>
         </label>
+        <label>
+          ترتيب الأسئلة
+          <select value={order} onChange={(e) => setOrder(e.target.value as QuestionOrder)}>
+            <option value="random">عشوائي</option>
+            <option value="page">حسب صفحات الكتاب</option>
+          </select>
+        </label>
         {cities.length > 0 && (
           <label>
             مدينة المشارك التجريبي
@@ -125,7 +145,8 @@ export function AdminTestRun() {
             <summary>معلومات الاختبار</summary>
             <p>
               المرحلة {run.participant.stage} · التصحيح {run.competition.feedbackMode} · حالة
-              النافذة {run.competition.state}
+              النافذة {run.competition.state} · الترتيب{' '}
+              {run.competition.questionOrder === 'page' ? 'حسب صفحات الكتاب' : 'عشوائي'}
             </p>
             <p>
               المصدر وصفحات التلميح وإصدارات الأسئلة معروضة في الرحلة. يمكنك القفز إلى أي سؤال من

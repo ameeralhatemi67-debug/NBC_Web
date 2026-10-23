@@ -1,0 +1,56 @@
+/* The competition title lettered as on the book cover (see components/book-title.tsx).
+   The shape is a mask, so the colour is simply the text colour of the surface it sits on. */
+.book-title {
+  display: block;
+  width: min(100%, var(--book-title-width, 380px));
+  aspect-ratio: 243.83 / 189.82;
+  background-color: currentColor;
+  -webkit-mask: url('/images/competition/book-title.svg') center / contain no-repeat;
+  mask: url('/images/competition/book-title.svg') center / contain no-repeat;
+}
+.book-title-kicker {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 21px;
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+.competition-hero-copy h1,
+.registration-aside h1 {
+  color: #f6f0e0;
+}
+.competition-hero-copy h1 .book-title-kicker {
+  color: #d6bd83;
+}
+.registration-aside h1 .book-title-kicker {
+  font-size: 17px;
+  color: #d6bd83;
+}
+.registration-aside h1 .book-title {
+  --book-title-width: 250px;
+}
+:root:is([data-design='official'], [data-design='hybrid']) {
+  .competition-hero-copy h1,
+  .registration-aside h1 {
+    color: #fff;
+  }
+  .competition-hero-copy h1 .book-title-kicker,
+  .registration-aside h1 .book-title-kicker {
+    color: #d4edf8;
+  }
+}
+
+@media (max-width: 900px) {
+  .registration-aside h1 .book-title {
+    --book-title-width: 190px;
+  }
+}
+@media (max-width: 760px) {
+  .competition-hero-copy h1 .book-title {
+    --book-title-width: 270px;
+  }
+  .book-title-kicker {
+    font-size: 17px;
+  }
+}

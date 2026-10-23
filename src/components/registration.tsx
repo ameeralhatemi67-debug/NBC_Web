@@ -4,9 +4,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { BookLinkFeedback } from './book-link-feedback';
+import { BookTitle } from './book-title';
 import { api, BrandMark, DemoNote, ErrorMessage, Icon, Loading } from './ui';
 import { OtpEntry, type OtpChallenge } from './otp-entry';
-import { genders, stages } from '@/lib/content';
+import { genders, OTHER_UNIVERSITY, stages, universityStage, type University } from '@/lib/content';
 import type { Eligibility } from '@/lib/eligibility';
 
 // The post link code captured on arrival (see layout.tsx), kept for 30 days, sent on registration.
@@ -25,6 +26,7 @@ function linkSource(mode: 'login' | 'register') {
 }
 type RegistrationOptions = Eligibility & {
   registration: { open: boolean; reason: 'paused' | 'closed' | null };
+  universities: University[];
 };
 function RegistrationForm({
   mode,
@@ -45,6 +47,8 @@ function RegistrationForm({
     phone: '',
     stage: stages[0],
     institution: '',
+    universityId: '',
+    universityStudentId: '',
     gender: '',
     region: '',
     locality: '',
@@ -74,9 +78,19 @@ function RegistrationForm({
     };
   }, [mode, optionsAttempt]);
   const cities = options?.cities[values.region] ?? [];
+  const isUniversity = values.stage === universityStage;
   const [challenge, setChallenge] = useState<OtpChallenge | null>(null);
   const change = (key: string, value: string | boolean) =>
     setValues((v) => ({ ...v, [key]: value }));
+  // University students pick from a list; everyone else types their school. Switching between the
+  // two starts that part of the form again, so a school name never ends up as a university.
+  function changeStage(stage: string) {
+    setValues((v) =>
+      (stage === universityStage) === (v.stage === universityStage)
+        ? { ...v, stage }
+        : { ...v, stage, institution: '', universityId: '', universityStudentId: '' },
+    );
+  }
   async function requestCode(e?: FormEvent) {
     e?.preventDefault();
     setBusy(true);
@@ -119,8 +133,7 @@ function RegistrationForm({
         </div>
         <span className="eyebrow light">معرفة تُلهمنا، وانتماء يجمعنا.</span>
         <h1>
-          مسابقة الانتماء
-          <br /> واللحمة الوطنية
+          <BookTitle />
         </h1>
         <p>
           {mode === 'login'
@@ -285,7 +298,7 @@ function RegistrationForm({
                       <select
                         name="stage"
                         value={values.stage}
-                        onChange={(e) => change('stage', e.target.value)}
+                        onChange={(e) => changeStage(e.target.value)}
                       >
                         {stages.map((s) => (
                           <option key={s}>{s}</option>
@@ -306,18 +319,87 @@ function RegistrationForm({
                         ))}
                       </select>
                     </label>
-                    <label className="full-width">
-                      اسم المدرسة/الجامعة
-                      <input
-                        name="institution"
-                        autoComplete="organization"
-                        required
-                        maxLength={160}
-                        placeholder="اسم المدرسة أو الجامعة / الكلية"
-                        value={values.institution}
-                        onChange={(e) => change('institution', e.target.value)}
-                      />
-                    </label>
+                    {isUniversity ? (
+                      <>
+                        <label className="full-width">
+                          الجامعة
+                          <select
+                            name="universityId"
+                            required
+                            disabled={!options}
+                            value={values.universityId}
+                            onChange={(e) =>
+                              setValues((v) => ({
+                                ...v,
+                                universityId: e.target.value,
+                                institution: '',
+                              }))
+                            }
+                          >
+                            <option value="">
+                              {!options
+                                ? optionsFailed
+                                  ? 'تعذّر تحميل الجامعات'
+                                  : 'جارٍ تحميل الجامعات…'
+                                : 'اختر الجامعة'}
+                            </option>
+                            {options?.universities.map((university) => (
+                              <option key={university.id} value={university.id}>
+                                {university.name}
+                              </option>
+                            ))}
+                            {options && (
+                              <option value={OTHER_UNIVERSITY}>أخرى (جامعتي غير مدرجة)</option>
+                            )}
+                          </select>
+                        </label>
+                        {values.universityId === OTHER_UNIVERSITY && (
+                          <label className="full-width reveal-field">
+                            اسم الجامعة / الكلية
+                            <input
+                              name="institution"
+                              autoComplete="organization"
+                              required
+                              maxLength={160}
+                              placeholder="اكتب اسم جامعتك أو كليتك"
+                              value={values.institution}
+                              onChange={(e) => change('institution', e.target.value)}
+                            />
+                          </label>
+                        )}
+                        {values.universityId && (
+                          <label className="full-width reveal-field">
+                            الرقم الجامعي
+                            <input
+                              name="universityStudentId"
+                              dir="ltr"
+                              autoComplete="off"
+                              required
+                              minLength={4}
+                              maxLength={20}
+                              pattern="[A-Za-z0-9][A-Za-z0-9\-]{3,19}"
+                              title="من 4 إلى 20 خانة: أرقام أو حروف إنجليزية"
+                              placeholder="الرقم الجامعي كما في بطاقتك"
+                              value={values.universityStudentId}
+                              onChange={(e) => change('universityStudentId', e.target.value)}
+                            />
+                          </label>
+                        )}
+                      </>
+                    ) : (
+                      <label className="full-width">
+                        اسم المدرسة
+                        <input
+                          name="institution"
+                          autoComplete="organization"
+                          required
+                          maxLength={160}
+                          placeholder="اسم المدرسة"
+                          value={values.institution}
+                          onChange={(e) => change('institution', e.target.value)}
+                        />
+                      </label>
+                    )}
                     {options && options.regions.length > 1 && (
                       <label className="full-width">
                         المنطقة

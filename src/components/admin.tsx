@@ -47,6 +47,7 @@ const AdminMedia = dynamic(() => import('./media/admin-media').then((m) => m.Adm
   ssr: false,
 });
 import { AdminParticipants } from './admin-participants';
+import { AdminUniversities } from './admin-universities';
 import { AdminCampaigns } from './admin-campaigns';
 import { AdminBook } from './admin-book';
 import { AdminContent } from './admin-content';
@@ -85,6 +86,7 @@ const tabs = [
   { id: 'security', name: 'إعداد التحقق والأمان', icon: 'shield' },
   { id: 'overview', name: 'نظرة عامة', icon: 'chart' },
   { id: 'participants', name: 'المشاركون', icon: 'user' },
+  { id: 'universities', name: 'الجامعات', icon: 'grad' },
   { id: 'analytics', name: 'تحليلات المسابقة', icon: 'chart' },
   { id: 'media', name: 'المركز الإعلامي', icon: 'image' },
   { id: 'prizes', name: 'الجوائز والتصميم', icon: 'trophy' },
@@ -870,6 +872,7 @@ export function Admin({
               onChanged={load}
             />
           )}
+          {tab === 'universities' && role === 'admin' && <AdminUniversities />}
           {tab === 'participants' && role === 'admin' && <AdminParticipants />}
           {tab === 'participants' && role === 'admin' && (
             <AdminRecovery participants={people} busy={busy} mutate={mutate} />

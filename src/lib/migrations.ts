@@ -346,6 +346,60 @@ UPDATE settings SET value=replace(value::text,'تعتمد جميع الأسئل�
       CREATE INDEX participants_source ON participants(source) WHERE source IS NOT NULL;
     `,
   },
+  {
+    id: '017_universities',
+    // The committee-managed university list for registration, and what a university student adds:
+    // the list entry they picked (null for «أخرى») and their university ID number.
+    sql: `
+      CREATE TABLE universities (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL CHECK(char_length(btrim(name)) BETWEEN 2 AND 120),
+        sort_order INT NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT now());
+      CREATE UNIQUE INDEX universities_name ON universities(lower(btrim(name)));
+      ALTER TABLE participants ADD COLUMN university_ref TEXT REFERENCES universities(id) ON DELETE SET NULL;
+      ALTER TABLE participants ADD COLUMN university_student_id TEXT CHECK(university_student_id IS NULL OR university_student_id ~ '^[A-Za-z0-9][A-Za-z0-9-]{3,19}$');
+      CREATE INDEX participants_university ON participants(university_ref) WHERE university_ref IS NOT NULL;
+      INSERT INTO universities(id,name,sort_order) VALUES
+        ('uni-01','جامعة الإمام عبدالرحمن بن فيصل',1),
+        ('uni-02','جامعة الملك فهد للبترول والمعادن',2),
+        ('uni-03','جامعة الملك فيصل',3),
+        ('uni-04','جامعة الأمير محمد بن فهد',4),
+        ('uni-05','جامعة حفر الباطن',5),
+        ('uni-06','الجامعة السعودية الإلكترونية',6),
+        ('uni-07','الجامعة العربية المفتوحة',7),
+        ('uni-08','جامعة الملك سعود',8),
+        ('uni-09','جامعة الإمام محمد بن سعود الإسلامية',9),
+        ('uni-10','جامعة الأميرة نورة بنت عبدالرحمن',10),
+        ('uni-11','جامعة الملك عبدالعزيز',11),
+        ('uni-12','جامعة أم القرى',12),
+        ('uni-13','جامعة جدة',13),
+        ('uni-14','جامعة الطائف',14),
+        ('uni-15','جامعة الملك خالد',15),
+        ('uni-16','جامعة القصيم',16),
+        ('uni-17','جامعة حائل',17),
+        ('uni-18','جامعة الجوف',18),
+        ('uni-19','جامعة الحدود الشمالية',19),
+        ('uni-20','جامعة تبوك',20),
+        ('uni-21','جامعة طيبة',21),
+        ('uni-22','الجامعة الإسلامية بالمدينة المنورة',22),
+        ('uni-23','جامعة جازان',23),
+        ('uni-24','جامعة نجران',24),
+        ('uni-25','جامعة الباحة',25),
+        ('uni-26','جامعة المجمعة',26),
+        ('uni-27','جامعة شقراء',27),
+        ('uni-28','جامعة سطام بن عبدالعزيز',28),
+        ('uni-29','جامعة بيشة',29),
+        ('uni-30','جامعة الملك عبدالله للعلوم والتقنية (كاوست)',30),
+        ('uni-31','جامعة الأمير سلطان',31),
+        ('uni-32','جامعة الفيصل',32),
+        ('uni-33','جامعة اليمامة',33),
+        ('uni-34','جامعة عفت',34),
+        ('uni-35','جامعة دار العلوم',35),
+        ('uni-36','جامعة الأعمال والتكنولوجيا',36);
+    `,
+  },
 ];
 export const migrationChecksum = (sql: string) => createHash('sha256').update(sql).digest('hex');
 export async function migrate(db: Database) {

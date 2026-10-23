@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { genders, regions, stages } from '@/lib/content';
+import { genders, regions, stages, universityStage } from '@/lib/content';
 import type { ParticipantListRow } from '@/lib/participant-admin';
 import { riyadhDateTime } from '@/lib/format';
 import { api, ErrorMessage } from './ui';
@@ -10,6 +10,7 @@ type Page = { total: number; page: number; pageSize: number; rows: ParticipantLi
 type Form = {
   name: string;
   institution: string;
+  universityStudentId: string;
   gender: string;
   stage: string;
   region: string;
@@ -20,6 +21,7 @@ type Form = {
 const formOf = (row: ParticipantListRow): Form => ({
   name: row.name,
   institution: row.institution ?? '',
+  universityStudentId: row.universityStudentId ?? '',
   gender: row.gender ?? '',
   stage: row.stage,
   region: row.region,
@@ -268,6 +270,17 @@ export function AdminParticipants() {
                 onChange={(e) => setForm({ ...form, institution: e.target.value })}
               />
             </label>
+            {form.stage === universityStage && (
+              <label>
+                الرقم الجامعي
+                <input
+                  dir="ltr"
+                  value={form.universityStudentId}
+                  maxLength={20}
+                  onChange={(e) => setForm({ ...form, universityStudentId: e.target.value })}
+                />
+              </label>
+            )}
             <label>
               المنطقة
               <select

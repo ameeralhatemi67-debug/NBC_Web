@@ -1,4 +1,8 @@
 export const stages = ['المرحلة المتوسطة', 'المرحلة الثانوية', 'المرحلة الجامعية'];
+export const universityStage = stages[2];
+// University students pick their university from the committee's list, or this value for «أخرى».
+export const OTHER_UNIVERSITY = 'other';
+export type University = { id: string; name: string };
 export const genders = ['ذكر', 'أنثى'];
 export const easternCities = [
   'الدمام',

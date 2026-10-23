@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { BookTitle } from './book-title';
 import { DemoNote, Icon } from './ui';
 
 const highlights = [
@@ -81,27 +82,7 @@ export function CompetitionHero({
             <span /> معرفة تُلهمنا، وانتماء يجمعنا.
           </p>
           <h1>
-            <span className="sr-only">مسابقة الانتماء واللحمة الوطنية</span>
-            <Image
-              src="/images/competition/type-ivory-0.png"
-              alt=""
-              width={877}
-              height={168}
-              sizes="(max-width: 760px) 88vw, 46vw"
-              preload
-            />
-            <Image
-              src="/images/competition/type-ivory-1.png"
-              alt=""
-              width={894}
-              height={170}
-              sizes="(max-width: 760px) 88vw, 46vw"
-              preload
-            />
-            <span className="identity-hero-title" aria-hidden="true">
-              <small>مسابقة</small>
-              <span>الانتماء</span> <span>واللحمة الوطنية</span>
-            </span>
+            <BookTitle />
           </h1>
           <p className="competition-hero-intro">{intro}</p>
           <div className="button-row">

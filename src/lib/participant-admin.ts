@@ -1,7 +1,8 @@
 import type { Database, Queryable } from './database';
 import { AppError, normalizeDigits } from './domain';
-import { genders, regions, stages } from './content';
+import { genders, regions, stages, universityStage } from './content';
 import { identityLookup, keyedHash, maskPhone, normalizePhone } from './otp-crypto';
+import { universityStudentId } from './universities';
 import type { Session } from './service';
 
 // Committee tools for participant records: find, correct (including a changed phone or a
@@ -12,6 +13,7 @@ export type ParticipantListRow = {
   name: string;
   stage: string;
   institution: string | null;
+  universityStudentId: string | null;
   gender: string | null;
   region: string;
   locality: string;
@@ -88,6 +90,7 @@ export class ParticipantAdmin {
         name: string;
         stage: string;
         institution: string | null;
+        university_student_id: string | null;
         gender: string | null;
         region: string;
         locality: string;
@@ -98,7 +101,7 @@ export class ParticipantAdmin {
         submitted_at: string | null;
         score: number | null;
       }>(
-        `SELECT p.id,p.name,p.stage,p.institution,p.gender,p.region,p.locality,p.phone,p.created_at,p.erased_at,a.id AS attempt_id,a.submitted_at,a.score ${from} ORDER BY p.created_at DESC,p.id LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+        `SELECT p.id,p.name,p.stage,p.institution,p.university_student_id,p.gender,p.region,p.locality,p.phone,p.created_at,p.erased_at,a.id AS attempt_id,a.submitted_at,a.score ${from} ORDER BY p.created_at DESC,p.id LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
         [...params, pageSize, (page - 1) * pageSize],
       )
     ).rows;
@@ -111,6 +114,7 @@ export class ParticipantAdmin {
         name: r.name,
         stage: r.stage,
         institution: r.institution,
+        universityStudentId: r.university_student_id,
         gender: r.gender,
         region: r.region,
         locality: r.locality,
@@ -135,6 +139,7 @@ export class ParticipantAdmin {
       'phone',
       'identity',
       'institution',
+      'universityStudentId',
       'gender',
       'stage',
       'region',
@@ -150,6 +155,8 @@ export class ParticipantAdmin {
     }
     if ('institution' in changes) set.institution = clean(changes.institution, 160, 'جهة الدراسة');
     if ('locality' in changes) set.locality = clean(changes.locality, 60, 'المدينة');
+    if ('universityStudentId' in changes)
+      set.university_student_id = universityStudentId(changes.universityStudentId);
     if ('gender' in changes) {
       if (!genders.includes(String(changes.gender))) throw new AppError('الجنس غير صالح.');
       set.gender = String(changes.gender);
@@ -177,6 +184,8 @@ export class ParticipantAdmin {
         if (attempt)
           throw new AppError('لا يمكن تغيير المرحلة بعد بدء المشاركة في المسابقة الحالية.', 409);
       }
+      if (set.university_student_id && (set.stage ?? p.stage) !== universityStage)
+        throw new AppError('الرقم الجامعي لطلاب المرحلة الجامعية فقط.');
       if (set.identity) {
         const clash = (
           await tx.query('SELECT 1 FROM participants WHERE identity=$1 AND id<>$2', [
@@ -195,6 +204,11 @@ export class ParticipantAdmin {
         `UPDATE participants SET ${entries.map(([k], i) => `${k}=$${i + 1}`).join(',')} WHERE id=$${entries.length + 1}`,
         [...entries.map(([, v]) => v), p.id],
       );
+      if (set.stage && set.stage !== universityStage)
+        await tx.query(
+          'UPDATE participants SET university_ref=NULL,university_student_id=NULL WHERE id=$1',
+          [p.id],
+        );
       if (set.phone && set.phone !== p.phone) {
         // A changed number ends every session and pending code tied to the old one.
         await tx.query('DELETE FROM sessions WHERE participant_id=$1', [p.id]);
@@ -253,7 +267,7 @@ export class ParticipantAdmin {
       if (hasAttempt) {
         mode = 'anonymized';
         await tx.query(
-          "UPDATE participants SET name='مشارك محذوف',phone='erased',identity=$2,institution=NULL,gender=NULL,locality='—',village=NULL,backup=NULL,erased_at=now() WHERE id=$1",
+          "UPDATE participants SET name='مشارك محذوف',phone='erased',identity=$2,institution=NULL,university_ref=NULL,university_student_id=NULL,gender=NULL,locality='—',village=NULL,backup=NULL,erased_at=now() WHERE id=$1",
           [p.id, `erased:${p.id}`],
         );
       } else await tx.query('DELETE FROM participants WHERE id=$1', [p.id]);

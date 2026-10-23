@@ -3,6 +3,7 @@ export type AnalyticsParticipant = {
   name: string;
   stage: string;
   institution: string | null;
+  university_student_id?: string | null;
   gender: string | null;
   region: string;
   locality: string;

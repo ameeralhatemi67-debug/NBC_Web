@@ -38,6 +38,7 @@ import { ParticipantAdmin } from '@/lib/participant-admin';
 import { CampaignHistory } from '@/lib/campaigns';
 import { BookStore } from '@/lib/book-store';
 import { defaultEligibility } from '@/lib/eligibility';
+import { listUniversities, UniversityAdmin } from '@/lib/universities';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 const role = requireRole;
@@ -111,12 +112,18 @@ async function respond(req: NextRequest) {
         // Public: the regions and cities the current competition accepts. The city list is static
         // reference data, so it is still served when the database is unavailable; submitting the
         // form reports the real backend error.
-        const info = await getDb()
-          .then((db) => new CompetitionService(db).registrationInfo())
-          .catch(() => null);
-        result = info
-          ? { ...info.eligibility, registration: { open: info.open, reason: info.reason } }
-          : { ...defaultEligibility, registration: { open: true, reason: null } };
+        const db = await getDb().catch(() => null);
+        const info = db
+          ? await new CompetitionService(db).registrationInfo().catch(() => null)
+          : null;
+        // The university list is committee-managed; without it the form still offers «أخرى».
+        const universities = db ? await listUniversities(db).catch(() => []) : [];
+        result = {
+          ...(info
+            ? { ...info.eligibility, registration: { open: info.open, reason: info.reason } }
+            : { ...defaultEligibility, registration: { open: true, reason: null } }),
+          universities,
+        };
       } else if (route === 'status') {
         // Public: competition state for the home and registration pages.
         result = await new CompetitionService(await getDb()).publicStatus();
@@ -133,6 +140,8 @@ async function respond(req: NextRequest) {
           stage: q.get('stage') ?? '',
           status: q.get('status') ?? '',
         });
+      } else if (route === 'admin/universities') {
+        result = await new UniversityAdmin(await getDb()).list(role(session, ['admin']));
       } else if (route === 'admin/campaigns') {
         result = await new CampaignHistory(await getDb()).list(role(session, ['admin']));
       } else if (route === 'admin/campaign') {
@@ -241,6 +250,7 @@ async function respond(req: NextRequest) {
             isLocalMode() ? 'الاسم (بيانات افتراضية)' : 'الاسم',
             'المرحلة',
             'أسم المدرسة/الجامعة',
+            'الرقم الجامعي',
             'الجنس',
             'المنطقة',
             'المحافظة',
@@ -258,6 +268,7 @@ async function respond(req: NextRequest) {
             p.name,
             p.stage,
             p.institution,
+            p.university_student_id ?? '',
             p.gender,
             p.region,
             p.locality,
@@ -414,6 +425,14 @@ async function respond(req: NextRequest) {
         const staff = role(session, ['admin']);
         if (body.action === 'update') result = await service.update(staff, body);
         else if (body.action === 'erase') result = await service.erase(staff, body);
+        else throw new AppError('إجراء غير صالح.');
+      } else if (route === 'admin/universities') {
+        strictKeys(body, ['action', 'id', 'name']);
+        const service = new UniversityAdmin(await getDb());
+        const staff = role(session, ['admin']);
+        if (body.action === 'create') result = await service.create(staff, body);
+        else if (body.action === 'update') result = await service.update(staff, body);
+        else if (body.action === 'delete') result = await service.remove(staff, body);
         else throw new AppError('إجراء غير صالح.');
       } else if (route === 'admin/site-content') {
         result = await updateSiteContent(body, role(session, ['admin']).actor ?? 'admin');

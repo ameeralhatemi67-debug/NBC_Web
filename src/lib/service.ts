@@ -18,6 +18,7 @@ export type ParticipantReport = {
   name: string;
   stage: string;
   institution: string | null;
+  university_student_id?: string | null;
   gender: string | null;
   region: string;
   locality: string;
@@ -88,7 +89,7 @@ export async function adminState() {
             AND detail::jsonb->>'competitionId'=(SELECT value #>> '{}' FROM settings WHERE id='current_competition')
           GROUP BY detail::jsonb->>'attemptId'
         )
-        SELECT p.id,p.name,p.stage,p.institution,p.gender,p.region,p.locality,p.village,p.created_at,
+        SELECT p.id,p.name,p.stage,p.institution,p.university_student_id,p.gender,p.region,p.locality,p.village,p.created_at,
           a.score,jsonb_array_length(a.questions) AS max_score,a.submitted_at,a.receipt,a.id AS attempt_id,
           a.created_at AS attempt_started_at,COALESCE(o.flags,'[]'::jsonb) AS reading_flags
         FROM participants p LEFT JOIN attempts a ON a.participant_id=p.id

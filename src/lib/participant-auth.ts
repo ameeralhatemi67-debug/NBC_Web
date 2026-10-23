@@ -1,8 +1,9 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import type { Database } from './database';
 import { AppError } from './domain';
-import { genders, stages } from './content';
+import { genders, stages, universityStage } from './content';
 import { assertEligible } from './eligibility';
+import { resolveUniversity } from './universities';
 import { CompetitionService } from './competition-service';
 import { strictKeys, textField } from './otp';
 import { identityLookup, keyedHash, normalizePhone } from './otp-crypto';
@@ -26,6 +27,8 @@ export async function authenticateParticipant(
     'name',
     'stage',
     'institution',
+    'universityId',
+    'universityStudentId',
     'gender',
     'region',
     'locality',
@@ -61,7 +64,13 @@ export async function authenticateParticipant(
       gender,
       locality,
       region: place.region,
-      institution: textField(body, 'institution', 160),
+      ...(stage === universityStage
+        ? await resolveUniversity(db, body)
+        : {
+            institution: textField(body, 'institution', 160),
+            universityRef: '',
+            universityStudentId: '',
+          }),
       source: cleanSource(body.source) ?? '',
     };
   }
@@ -95,7 +104,7 @@ export async function authenticateParticipant(
       participant = randomUUID();
       const p = profile!;
       const inserted = await tx.query(
-        'INSERT INTO participants(id,identity,name,phone,stage,region,locality,institution,gender,source) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ON CONFLICT(identity) DO NOTHING RETURNING id',
+        'INSERT INTO participants(id,identity,name,phone,stage,region,locality,institution,gender,source,university_ref,university_student_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ON CONFLICT(identity) DO NOTHING RETURNING id',
         [
           participant,
           identity,
@@ -107,6 +116,8 @@ export async function authenticateParticipant(
           p.institution,
           p.gender,
           p.source || null,
+          p.universityRef || null,
+          p.universityStudentId || null,
         ],
       );
       if (!inserted.rows.length)

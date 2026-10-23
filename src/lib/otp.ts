@@ -1,8 +1,9 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import type { Database, Queryable } from './database';
 import { AppError, normalizeDigits } from './domain';
-import { genders, stages } from './content';
+import { genders, stages, universityStage } from './content';
 import { assertEligible } from './eligibility';
+import { resolveUniversity } from './universities';
 import { CompetitionService } from './competition-service';
 import {
   generateOtp,
@@ -100,6 +101,8 @@ export class OtpService {
             'name',
             'stage',
             'institution',
+            'universityId',
+            'universityStudentId',
             'gender',
             'region',
             'locality',
@@ -159,6 +162,15 @@ export class OtpService {
             'REGISTRATION_CLOSED',
           );
         const place = assertEligible(policy.eligibility, body.region, locality);
+        // University students choose from the committee's list and give their university ID.
+        const education =
+          stage === universityStage
+            ? await resolveUniversity(this.db, body)
+            : {
+                institution: textField(body, 'institution', 160),
+                universityRef: '',
+                universityStudentId: '',
+              };
         if (await this.phoneFull(phone, policy.maxPerPhone)) {
           await this.requestLimit(context);
           throw phoneLimit();
@@ -169,7 +181,7 @@ export class OtpService {
           stage,
           gender,
           locality,
-          institution: textField(body, 'institution', 160),
+          ...education,
           region: place.region,
           source: cleanSource(body.source) ?? '',
         };
@@ -391,8 +403,8 @@ export class OtpService {
           participant = randomUUID();
           const p = row.payload_json;
           const inserted = await tx.query(
-            `INSERT INTO participants(id,identity,name,phone,stage,region,locality,institution,gender,source)
-            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ON CONFLICT(identity) DO NOTHING RETURNING id`,
+            `INSERT INTO participants(id,identity,name,phone,stage,region,locality,institution,gender,source,university_ref,university_student_id)
+            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ON CONFLICT(identity) DO NOTHING RETURNING id`,
             [
               participant,
               p.identity,
@@ -404,6 +416,8 @@ export class OtpService {
               p.institution,
               p.gender,
               cleanSource(p.source),
+              p.universityRef || null,
+              p.universityStudentId || null,
             ],
           );
           if (!inserted.rows.length) {

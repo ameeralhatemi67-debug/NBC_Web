@@ -1,0 +1,29 @@
+/* University choice on the registration form, and the committee's university list. */
+.reveal-field {
+  animation: reveal-field 0.28s ease both;
+}
+@keyframes reveal-field {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal-field {
+    animation: none;
+  }
+}
+
+.universities-admin .university-name-input {
+  width: 100%;
+  min-width: 220px;
+}
+.universities-admin .university-actions {
+  display: flex;
+  gap: 18px;
+  white-space: nowrap;
+}

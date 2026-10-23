@@ -326,7 +326,7 @@ export function OrganizationsBar({
                   alt={`شعار ${organizer.name}`}
                   width={organizer.width}
                   height={organizer.height}
-                  sizes="(max-width: 640px) 180px, 228px"
+                  sizes="(max-width: 640px) 153px, 194px"
                 />
               </div>
             </figure>

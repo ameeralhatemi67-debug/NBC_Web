@@ -10,7 +10,7 @@
   text-align: center;
 }
 .partner-showcase {
-  --organizer-logo: 228px;
+  --organizer-logo: calc(228px * 0.85);
   --partner-logo: 140px;
   --education-cell: 96px;
   display: grid;
@@ -45,7 +45,7 @@
   font: 600 14px/1.7 var(--body);
   text-align: center;
 }
-.partner-organizer .partner-role {
+.partner-showcase .partner-role {
   padding: 3px 18px;
   background: var(--olive);
   color: var(--white);
@@ -108,13 +108,13 @@
 }
 /* Footer and committee views use the same hierarchy at a smaller scale. */
 .organizations-bar:not(.prominent) .partner-showcase {
-  --organizer-logo: 150px;
+  --organizer-logo: calc(150px * 0.85);
   --partner-logo: 92px;
   --education-cell: 72px;
   gap: 28px;
 }
 .organizations-bar.compact .partner-showcase {
-  --organizer-logo: 110px;
+  --organizer-logo: calc(110px * 0.85);
   --partner-logo: 72px;
   --education-cell: 60px;
 }
@@ -145,13 +145,13 @@
   }
   .partner-showcase,
   .organizations-bar:not(.prominent) .partner-showcase {
-    --organizer-logo: 180px;
+    --organizer-logo: calc(180px * 0.85);
     --partner-logo: 84px;
     --education-cell: 68px;
     gap: 28px;
   }
   .organizations-bar.compact .partner-showcase {
-    --organizer-logo: 120px;
+    --organizer-logo: calc(120px * 0.85);
     --partner-logo: 64px;
     --education-cell: 56px;
   }
@@ -170,7 +170,7 @@
     padding: 3px 12px;
     font-size: 13px;
   }
-  .partner-organizer .partner-role {
+  .partner-showcase .partner-role {
     font-size: 15px;
   }
   .partner-logo img {

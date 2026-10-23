@@ -55,6 +55,48 @@
       "text": "Add 'فهرس المصادر والمراجع' (printed p.57) to the book reader's contents list.",
       "at": "2026-10-12",
       "source": "auto"
+    },
+    {
+      "id": "imv5itgkn0",
+      "text": "Hardcode the 12 Eastern Province cities in the registration dropdown, keeping server validation in sync.",
+      "at": "2026-10-12",
+      "source": "auto"
+    },
+    {
+      "id": "imv69w8h20",
+      "text": "Add a 'للاطلاع على شروط المشاركة ومعايير التقييم' link from the prizes section to /terms.",
+      "at": "2026-10-13",
+      "source": "auto"
+    },
+    {
+      "id": "imv69w8h21",
+      "text": "Add a replace-migration so saved site_content picks up the new hero subtitle and award wording.",
+      "at": "2026-10-13",
+      "source": "auto"
+    },
+    {
+      "id": "imv6abrfr0",
+      "text": "Add a Playwright check that public pages contain no Latin digits.",
+      "at": "2026-10-13",
+      "source": "auto"
+    },
+    {
+      "id": "imv6abrfr1",
+      "text": "Make the stale-client registration payload (backup/village) fully rejected once cached forms expire.",
+      "at": "2026-10-13",
+      "source": "auto"
+    },
+    {
+      "id": "imv6at81k0",
+      "text": "Add more Eastern Province cities (الظهران, الهفوف, سيهات) to the default city list.",
+      "at": "2026-10-13",
+      "source": "auto"
+    },
+    {
+      "id": "imv6at81k1",
+      "text": "Run db:migrate automatically or add a pre-deploy check so a new migration cannot ship unapplied.",
+      "at": "2026-10-13",
+      "source": "auto"
     }
   ],
   "findings": [
@@ -175,6 +217,94 @@
       "text": "Committee decisions still pending: prize approval, media-award criteria, logo publication approval, patronage wording, clause 5 vs Presidency questions.",
       "severity": "medium",
       "at": "2026-10-12",
+      "status": "open",
+      "source": "auto"
+    },
+    {
+      "id": "fmv5itgkn0",
+      "text": "Production registration city list fails if DATABASE_URL is unset, so the form cannot load cities or register.",
+      "severity": "high",
+      "at": "2026-10-12",
+      "status": "open",
+      "source": "auto"
+    },
+    {
+      "id": "fmv5itgkn1",
+      "text": "The city field shows the loading text forever on any fetch failure, hiding the real error state.",
+      "severity": "medium",
+      "at": "2026-10-12",
+      "status": "open",
+      "source": "auto"
+    },
+    {
+      "id": "fmv69w8h20",
+      "text": "Last commit bd42b4d aligned the author name to the book cover; the document now asks to remove that name and the 'كتاب المسابقة' caption under the book.",
+      "severity": "medium",
+      "at": "2026-10-13",
+      "status": "open",
+      "source": "auto"
+    },
+    {
+      "id": "fmv69w8h21",
+      "text": "Prize amounts, rank labels and FAQ question counts render in Latin digits via en-US formatting; the document asks for Arabic digits throughout the prizes page.",
+      "severity": "medium",
+      "at": "2026-10-13",
+      "status": "open",
+      "source": "auto"
+    },
+    {
+      "id": "fmv69w8h22",
+      "text": "Backup phone and village/centre registration fields still exist in the form, validation, INSERT and admin display, although the document says they should not.",
+      "severity": "medium",
+      "at": "2026-10-13",
+      "status": "open",
+      "source": "auto"
+    },
+    {
+      "id": "fmv6abrfr0",
+      "text": "Migration 013 only replaces the exact old hero string; if the committee edited the saved hero text, production keeps the custom value.",
+      "severity": "low",
+      "at": "2026-10-13",
+      "status": "open",
+      "source": "auto"
+    },
+    {
+      "id": "fmv6abrfr1",
+      "text": "Stale browser tests or fixtures may still assert Latin digits or old prize/registration strings beyond the ones grepped; they were not run.",
+      "severity": "medium",
+      "at": "2026-10-13",
+      "status": "open",
+      "source": "auto"
+    },
+    {
+      "id": "fmv6abrfr2",
+      "text": "Author name still appears in the /book page subtitle, cover alt text and about paragraph; scope was not confirmed.",
+      "severity": "low",
+      "at": "2026-10-13",
+      "status": "open",
+      "source": "auto"
+    },
+    {
+      "id": "fmv6at81k0",
+      "text": "Deploying a content-only migration makes every production API route return 503 until db:migrate is run; no deploy gate or ordering enforces this.",
+      "severity": "high",
+      "at": "2026-10-13",
+      "status": "open",
+      "source": "auto"
+    },
+    {
+      "id": "fmv6at81k1",
+      "text": "registration-options now falls back to open registration with default cities when the DB is down, which could show a paused or closed competition as open.",
+      "severity": "low",
+      "at": "2026-10-13",
+      "status": "open",
+      "source": "auto"
+    },
+    {
+      "id": "fmv6at81k2",
+      "text": "Author name still appears in the /book subtitle, cover alt text and about paragraph; the document asked only about the area under the book.",
+      "severity": "low",
+      "at": "2026-10-13",
       "status": "open",
       "source": "auto"
     }

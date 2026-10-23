@@ -87,3 +87,7 @@ A dated log of what was done, with its evidence. Oldest first. Updated from Git 
 ## 2026-10-12 — Logged by Compass
 
 - 58893d4 fix: withhold answer key, load approved terms, and refine partner logos
+
+## 2026-10-13 — Logged by Compass
+
+- d5700be fix: keep registration city list available when the backend is unavailable
